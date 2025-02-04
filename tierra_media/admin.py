@@ -3,6 +3,4 @@ from .models import *
 
 # Register your models here.
 
-admin.site.register(
-    [Character, Faction, Location, Race, Relationship, Backpack, Weapon, Armor]
-)
+admin.site.register([Character, Faction, Location, Race, Backpack, Weapon, Armor])

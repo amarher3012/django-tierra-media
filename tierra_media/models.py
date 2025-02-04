@@ -39,14 +39,6 @@ class Character(models.Model):
         return self.name
 
 
-class Relationship(models.Model):
-    type = models.CharField(max_length=50)
-    character = models.OneToOneField(Character, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.character.name}: {self.type}"
-
-
 class Backpack(models.Model):
     character = models.OneToOneField(Character, on_delete=models.CASCADE)
 
