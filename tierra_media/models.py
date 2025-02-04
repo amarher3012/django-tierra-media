@@ -49,7 +49,9 @@ class Relationship(models.Model):
     )
 
     def __str__(self):
-        return self.character.name + " -> " + self.character2.name + " -> " + self.type
+        return (
+            self.character_1.name + " -> " + self.character_2.name + " -> " + self.type
+        )
 
 
 class Backpack(models.Model):
