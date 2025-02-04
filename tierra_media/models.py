@@ -5,21 +5,21 @@ from django.contrib.auth.models import User
 
 
 class Faction(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(unique=True, max_length=50)
 
     def __str__(self):
         return self.name
 
 
 class Location(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(unique=True, max_length=50)
 
     def __str__(self):
         return self.name
 
 
 class Race(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(unique=True, max_length=50)
 
     def __str__(self):
         return self.name
@@ -40,7 +40,7 @@ class Character(models.Model):
 
 
 class Relationship(models.Model):
-    type = models.CharField(max_length=50)
+    type = models.CharField(unique=True, max_length=50)
     character_1 = models.ForeignKey(
         Character, related_name="character", on_delete=models.CASCADE
     )
