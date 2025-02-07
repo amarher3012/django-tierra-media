@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "tierra_media.apps.TierraMediaConfig",
 ]
 
 MIDDLEWARE = [
