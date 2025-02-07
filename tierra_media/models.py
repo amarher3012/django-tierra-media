@@ -27,9 +27,9 @@ class Race(models.Model):
 
 class Character(models.Model):
     name = models.CharField(unique=True, max_length=50)
-    max_health = models.IntegerField()
-    health = models.IntegerField()
-    defense = models.IntegerField()
+    max_health = models.IntegerField(default=250)
+    health = models.IntegerField(default=250)
+    defense = models.IntegerField(default=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     faction = models.ForeignKey(Faction, on_delete=models.DO_NOTHING)
     location = models.ForeignKey(Location, on_delete=models.DO_NOTHING)
