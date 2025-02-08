@@ -21,4 +21,5 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("tierra_media/", include("tierra_media.urls")),
 ] + debug_toolbar_urls()
