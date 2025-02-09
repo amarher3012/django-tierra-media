@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {% if character %}
+        <ul>
+            <li>Nombre: {{ character.name }}</li>
+            <li>Vida maxima: {{ character.max_health }}</li>
+            <li>Vida: {{ character.health }}</li>
+            <li>Defensa: {{ character.defense }}</li>
+            <li>Usuario: {{ character.user }}</li>
+            <li>Facción: {{ character.faction }}</li>
+            <li>Localización: {{ character.location }}</li>
+            <li>Raza: {{ character.race }}</li>
+        </ul>
+    {% endif %}
+</body>
+</html>
