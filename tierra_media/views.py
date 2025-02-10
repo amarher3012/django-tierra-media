@@ -7,8 +7,8 @@ from .models import Character
 # Create your views here.
 
 
-class CharacterCreation(FormView):
-    template_name = "tierra_media/character-creation.html"
+class CharacterCreation(CreateView):
+    template_name = "character-creation.html"
     form_class = CreateCharacterForm
     success_url = "/tierra-media/character-creation/success/"
 
@@ -22,10 +22,9 @@ class CharacterCreation(FormView):
 
     def form_valid(self, form):
         if self.check_name(form):
-            form.save()
             return super().form_valid(form)
         return super().form_invalid(form)
 
 
 class CharacterCreationSuccess(TemplateView):
-    template_name = "tierra_media/success.html"
+    template_name = "success.html"
