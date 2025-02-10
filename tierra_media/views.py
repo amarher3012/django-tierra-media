@@ -30,7 +30,7 @@ class RegisterView(FormView):
 
         self.send_activation_email(user, token_url)
 
-        messages.success(self.request, f'Cuenta {user.username} creada exitosamente. En breves te llegará un correo de verificación.')
+        messages.success(self.request, f"Cuenta {user.username} creada exitosamente. En breves te llegará un correo de verificación.")
 
         return super().form_valid(form)
 
