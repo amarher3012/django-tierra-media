@@ -1,10 +1,6 @@
-from django.http import JsonResponse
-from django.shortcuts import render
 from django.views.generic import *
 from .forms import CreateCharacterForm
 from .models import Character
-
-# Create your views here.
 
 
 class CharacterCreation(CreateView):
