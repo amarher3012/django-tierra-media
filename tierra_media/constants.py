@@ -1,0 +1,32 @@
+NPCS = [
+    {
+        "name": "NPC1",
+        "max_health": 250,
+        "health": 250,
+        "defense": 50,
+        "character": "",
+        "faction": "faction1",
+        "location": "location1",
+        "race": "race1",
+    },
+    {
+        "name": "NPC2",
+        "max_health": 250,
+        "health": 250,
+        "defense": 50,
+        "character": "",
+        "faction": "faction1",
+        "location": "location1",
+        "race": "race1",
+    },
+    {
+        "name": "NPC3",
+        "max_health": 250,
+        "health": 250,
+        "defense": 50,
+        "character": "",
+        "faction": "faction1",
+        "location": "location1",
+        "race": "race1",
+    },
+]
