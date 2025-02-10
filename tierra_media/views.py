@@ -16,7 +16,7 @@ class CharacterCreation(CreateView):
         name = form.cleaned_data.get("name")
         user = form.cleaned_data.get("user")
         if Character.objects.filter(name=name).filter(user=user).exists():
-            # TODO: add error message / render error page
+            form.add_error("name", "Ya tienes un personaje con ese nombre.")
             return False
         return True
 
