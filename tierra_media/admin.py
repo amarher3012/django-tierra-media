@@ -3,5 +3,5 @@ from .models import *
 
 
 admin.site.register(
-    [Character, Faction, Location, Relationship, Race, Backpack, Weapon, Armor]
+    [Character, NPC, Faction, Location, Relationship, Race, Weapon, Armor]
 )
