@@ -26,7 +26,7 @@ class Race(models.Model):
 
 
 class Character(models.Model):
-    name = models.CharField(unique=True, max_length=50)
+    name = models.CharField(max_length=50)
     max_health = models.IntegerField(default=250)
     health = models.IntegerField(default=250)
     defense = models.IntegerField(default=50)
@@ -40,7 +40,7 @@ class Character(models.Model):
 
 
 class Relationship(models.Model):
-    type = models.CharField(unique=True, max_length=50)
+    type = models.CharField(max_length=50)
     character_1 = models.ForeignKey(
         Character, related_name="character", on_delete=models.CASCADE
     )
