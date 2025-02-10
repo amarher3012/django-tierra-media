@@ -104,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es"
 
 TIME_ZONE = "UTC"
 
@@ -123,6 +123,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOGIN_URL = "cuentas/login"
-LOGIN_REDIRECT_URL = "tierra_media/"
-LOGOUT_REDIRECT_URL = "tierra_media/"
+LOGIN_URL = "tierra_media:login"
+LOGIN_REDIRECT_URL = "tierra_media:index"
+LOGOUT_REDIRECT_URL = "tierra_media:index"
