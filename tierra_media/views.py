@@ -1,7 +1,7 @@
 import copy
 from django.views.generic import *
 from .forms import CreateCharacterForm
-from .models import Character, NPC
+from .models import Character
 from .constants import NPCS
 
 
@@ -12,8 +12,8 @@ class NPC_preparations:
         npcs = copy.deepcopy(NPCS)
         for npc in npcs:
             npc.update({"character": Character.objects.get(pk=1)})
-            npc_created = NPC(**npc)
-            npc_created.save()
+            # npc_created = NPC(**npc)
+            # npc_created.save()
 
 
 class CharacterCreation(CreateView):
