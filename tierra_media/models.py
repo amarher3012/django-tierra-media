@@ -32,20 +32,7 @@ class Character(models.Model):
     faction = models.ForeignKey(Faction, on_delete=models.DO_NOTHING)
     location = models.ForeignKey(Location, on_delete=models.DO_NOTHING)
     race = models.ForeignKey(Race, on_delete=models.DO_NOTHING)
-
-    def __str__(self):
-        return self.name
-
-
-class NPC(models.Model):
-    name = models.CharField(max_length=50)
-    max_health = models.IntegerField(default=250)
-    health = models.IntegerField(default=250)
-    defense = models.IntegerField(default=50)
-    character = models.ForeignKey(Character, on_delete=models.CASCADE)
-    faction = models.ForeignKey(Faction, on_delete=models.DO_NOTHING)
-    location = models.ForeignKey(Location, on_delete=models.DO_NOTHING)
-    race = models.ForeignKey(Race, on_delete=models.DO_NOTHING)
+    npc = models.BooleanField()
 
     def __str__(self):
         return self.name
@@ -70,17 +57,37 @@ class Weapon(models.Model):
     name = models.CharField(unique=True, max_length=50)
     damage = models.IntegerField()
     type = models.CharField(max_length=50)
-    owner = models.ManyToManyField(Character)
-    npc_owned = models.BooleanField()
+
+    class Meta:
+        abstract = True
 
     def __str__(self):
         return self.name
+
+
+class UniqueWeapon(Weapon):
+    owner = models.OneToOneField(Character, on_delete=models.CASCADE)
+
+
+class CommonWeapon(Weapon):
+    owner = models.ManyToManyField(Character)
 
 
 class Armor(models.Model):
     name = models.CharField(unique=True, max_length=50)
     defense = models.IntegerField()
-    owner = models.ManyToManyField(Character)
+    type = models.CharField(max_length=50)
+
+    class Meta:
+        abstract = True
 
     def __str__(self):
         return self.name
+
+
+class UniqueArmor(Armor):
+    owner = models.OneToOneField(Character, on_delete=models.CASCADE)
+
+
+class CommonArmor(Armor):
+    owner = models.ManyToManyField(Character)
