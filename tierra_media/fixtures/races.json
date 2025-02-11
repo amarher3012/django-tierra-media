@@ -1,0 +1,37 @@
+[
+    {
+        "model": "tierra_media.race",
+        "pk": 1,
+        "fields": {
+            "name": "Humano"
+        }
+    },
+    {
+        "model": "tierra_media.race",
+        "pk": 2,
+        "fields": {
+            "name": "Elfo"
+        }
+    },
+    {
+        "model": "tierra_media.race",
+        "pk": 3,
+        "fields": {
+            "name": "Enano"
+        }
+    },
+    {
+        "model": "tierra_media.race",
+        "pk": 4,
+        "fields": {
+            "name": "Hobit"
+        }
+    },
+    {
+        "model": "tierra_media.race",
+        "pk": 5,
+        "fields": {
+            "name": "Orco"
+        }
+    }
+]
