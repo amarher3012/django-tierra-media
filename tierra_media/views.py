@@ -1,21 +1,20 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.mail import send_mail
-from django.contrib.sites.shortcuts import get_current_site
+import copy
 from django.utils.http import urlencode
-from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
 from django.urls import reverse_lazy
-from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.views import View
-from django.views.generic import FormView, TemplateView
-from .forms import CustomUserCreationForm
-import copy
 from django.views.generic import *
+from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
 from .models import Character
-from .constants import NPCS
+from .constants import npc_init
 
 
 class RegisterView(FormView):
@@ -91,27 +90,29 @@ class IndexView(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/index.html"
 
 
-# class NPC_preparations:
-#     # TODO: create migration with fixed data (factions, locations and races)
-#     # TODO: faction, location and race need to be an instance of said objects
-#     def create_npcs(request):
-#         npcs = copy.deepcopy(NPCS)
-#         for npc in npcs:
-#             npc.update({"character": request.get("session")})
-#             print(npc)
-#             # npc_created = NPC(**npc)
-#             # npc_created.save()
+class NPC_preparations:
+    def create_npcs(self):
+        NPCS = npc_init()
+        npcs = copy.deepcopy(NPCS)
+        for npc in npcs:
+            npc.update(
+                {
+                    "user": self.request.user,
+                }
+            )
+            npc_created = Character(**npc)
+            npc_created.save()
 
 
 class CharacterCreation(LoginRequiredMixin, CreateView):
     template_name = "character-creation/character-creation.html"
     form_class = CreateCharacterForm
     success_url = "/tierra-media/character-creation/success/"
-    # npc = NPC_preparations()
 
     def check_name(self, form):
         name = form.cleaned_data.get("name")
         user = self.request.user
+
         if Character.objects.filter(name=name, user=user).exists():
             form.add_error("name", "Ya tienes un personaje con ese nombre.")
             return False
@@ -120,6 +121,7 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         if self.check_name(form):
             form.instance.user = self.request.user
+            NPC_preparations.create_npcs(self)
             return super().form_valid(form)
         return super().form_invalid(form)
 
