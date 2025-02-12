@@ -32,7 +32,7 @@ class Character(models.Model):
     faction = models.ForeignKey(Faction, on_delete=models.DO_NOTHING)
     location = models.ForeignKey(Location, on_delete=models.DO_NOTHING)
     race = models.ForeignKey(Race, on_delete=models.DO_NOTHING)
-    npc = models.BooleanField()
+    npc = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
