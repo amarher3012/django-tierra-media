@@ -78,6 +78,9 @@ class ActivateAccount(View):
                 request,
                 "Tu cuenta ha sido activada con éxito. Ahora puedes iniciar sesión.",
             )
+            # Tras activar al usuario, los NPCs se crean y asignan a ese usuario
+            # TODO: update to work on user activation
+            NPC_preparations.create_npcs(self)
             return redirect("tierra_media:login")
         else:
             messages.error(
@@ -88,20 +91,6 @@ class ActivateAccount(View):
 
 class IndexView(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/index.html"
-
-
-class NPC_preparations:
-    def create_npcs(self):
-        NPCS = npc_init()
-        npcs = copy.deepcopy(NPCS)
-        for npc in npcs:
-            npc.update(
-                {
-                    "user": self.request.user,
-                }
-            )
-            npc_created = Character(**npc)
-            npc_created.save()
 
 
 class CharacterCreation(LoginRequiredMixin, CreateView):
@@ -121,13 +110,26 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         if self.check_name(form):
             form.instance.user = self.request.user
-            NPC_preparations.create_npcs(self)
             return super().form_valid(form)
         return super().form_invalid(form)
 
 
 class CharacterCreationSuccess(TemplateView):
     template_name = "character-creation/success.html"
+
+
+class NPC_preparations:
+    def create_npcs(self):
+        npcs = npc_init()
+        for npc in npcs:
+            # TODO: update to work on user activation (maybe using user as a parameter then "user": user)
+            npc.update(
+                {
+                    "user": self.request.user,
+                }
+            )
+            npc_object = Character(**npc)
+            npc_object.save()
 
 
 class Weapons(UpdateView):
