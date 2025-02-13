@@ -129,3 +129,39 @@ def common_weapons_init():
             "type": "axe"
         },
     ]
+
+def common_armor_init():
+    ARMORS = [
+        {
+            "name": "Thalindra",
+            "defense": 20,
+            "type": "helmet"
+        },
+        {
+            "name": "Draxon",
+            "defense": 20,
+            "type": "helmet"
+        },
+        {
+            "name": "Galen",
+            "defense": 20,
+            "type": "chest"
+        },
+        {
+            "name": "Rhiannon",
+            "defense": 20,
+            "type": "chest"
+        },
+        {
+            "name": "Fenris",
+            "defense": 20,
+            "type": "gloves"
+        },
+        {
+            "name": "Kylara",
+            "defense": 20,
+            "type": "gloves"
+        },
+    ]
+
+    return ARMORS
