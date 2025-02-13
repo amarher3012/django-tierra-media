@@ -129,3 +129,5 @@ def common_weapons_init():
             "type": "axe"
         },
     ]
+
+    return WEAPONS
