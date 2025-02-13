@@ -79,8 +79,8 @@ class ActivateAccount(View):
                 "Tu cuenta ha sido activada con éxito. Ahora puedes iniciar sesión.",
             )
             # Tras activar al usuario, los NPCs se crean y asignan a ese usuario
-            # TODO: update to work on user activation
-            NPC_preparations.create_npcs(self)
+            NPC_preparations.create_npcs(user)
+
             return redirect("tierra_media:login")
         else:
             messages.error(
@@ -119,13 +119,12 @@ class CharacterCreationSuccess(TemplateView):
 
 
 class NPC_preparations:
-    def create_npcs(self):
+    def create_npcs(user):
         npcs = npc_init()
         for npc in npcs:
-            # TODO: update to work on user activation (maybe using user as a parameter then "user": user)
             npc.update(
                 {
-                    "user": self.request.user,
+                    "user": user,
                 }
             )
             npc_object = Character(**npc)
