@@ -130,6 +130,8 @@ def common_weapons_init():
         },
     ]
 
+    return WEAPONS
+
 def common_armor_init():
     ARMORS = [
         {
