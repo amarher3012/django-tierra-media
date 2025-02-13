@@ -1,9 +1,13 @@
 from django.contrib import admin
-from django.urls import path
-from tierra_media.views import PersonajesView, CharacterDetailsView
-app_name = "tierra_media"
+from django.urls import path, include
+from .views import *
 
+app_name = "tierra_media"
 urlpatterns = [
+    path("", IndexView.as_view(), name="index"),
+    path("cuentas/", include("django.contrib.auth.urls")),
+    path("cuentas/registro", RegisterView.as_view(), name="register"),
+    path("cuentas/activar", ActivateAccount.as_view(), name="activate"),
     path("personajes/", PersonajesView.as_view(), name="characters"),
     path("personajes/<int:pk>", CharacterDetailsView.as_view(), name="character_details"),
 ]
