@@ -1,6 +1,5 @@
 from .models import Faction, Location, Race
 
-
 def npc_init():
     NPCS = [
         {
@@ -86,3 +85,47 @@ def npc_init():
     ]
 
     return NPCS
+
+def common_weapons_init():
+    WEAPONS = [
+        {
+            "name": "Glamdring",
+            "damage": 15,
+            "type": "sword"
+        },
+        {
+            "name": "Narsail",
+            "damage": 15,
+            "type": "sword"
+        },
+        {
+            "name": "Nymera",
+            "damage": 15,
+            "type": "bow"
+        },
+        {
+            "name": "Liora",
+            "damage": 15,
+            "type": "bow"
+        },
+        {
+            "name": "Keldorn",
+            "damage": 15,
+            "type": "mace"
+        },
+        {
+            "name": "Vorak",
+            "damage": 15,
+            "type": "mace"
+        },
+        {
+            "name": "Astrid",
+            "damage": 15,
+            "type": "axe"
+        },
+        {
+            "name": "Zharok",
+            "damage": 15,
+            "type": "axe"
+        },
+    ]
