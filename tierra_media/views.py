@@ -100,10 +100,10 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
         return context
 
 class EquipWeapon(LoginRequiredMixin, TemplateView):
-    pass
+    template_name = "tierra_media/equip_weapon.html"
 
 class MoveCharacter(LoginRequiredMixin, TemplateView):
-    pass
+    template_name = "tierra_media/move_character.html"
 
 class Shop(LoginRequiredMixin, TemplateView):
-    pass
+    template_name = "tierra_media/shop.html"
