@@ -13,6 +13,7 @@ from django.views.generic import FormView, TemplateView
 from .models import *
 from django.views.generic import ListView, DetailView
 from .forms import CustomUserCreationForm
+from django.forms.models import model_to_dict
 
 class RegisterView(FormView):
     template_name = 'registration/register.html'
@@ -96,7 +97,7 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['character'] = Character.objects.get(pk=self.kwargs['pk'])
+        context['character'] = model_to_dict(Character.objects.get(pk=self.kwargs['pk']), exclude=['user'])
         return context
 
 class EquipWeapon(LoginRequiredMixin, TemplateView):

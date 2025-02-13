@@ -11,6 +11,9 @@
             <a href="{% url 'tierra_media:move_character' character.id %}"><li>Mover personaje</li></a>
             <a href="{% url 'tierra_media:shop' character.id %}"><li>Tienda</li></a>
         </ul>
+        {% for field,value in character.items %}
+            <li>{{ field|title }}: {{ value }}</li>
+        {% endfor %}
     {% endif %}
 </body>
 </html>
