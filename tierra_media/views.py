@@ -80,7 +80,9 @@ class CharactersView(ListView):
     context_object_name = "characters"
 
     def get_queryset(self):
-        return Character.objects.all()
+        key_user = self.request.user.pk
+        characters = Character.objects.filter(user=key_user)
+        return characters
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
