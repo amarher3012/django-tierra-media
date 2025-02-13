@@ -70,5 +70,5 @@ class ActivateAccount(View):
             messages.error(request, "El enlace de activación no es válido o ha expirado.")
             return redirect("tierra_media:register")
 
-class IndexView(LoginRequiredMixin, TemplateView):
+class IndexView(TemplateView):
     template_name = "tierra_media/index.html"

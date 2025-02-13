@@ -12,21 +12,30 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
     <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
-        <div class="col-md-3 mb-2 mb-md-0">
-
+        <div class="col-md-3 mb-md-0">
+            <a href="{% url 'tierra_media:index' %}" class="d-inline-flex link-body-emphasis text-decoration-none ps-4">
+                <img src="{% static 'icon.png' %}" alt="Logo" title="Logo" width="50">
+            </a>
         </div>
 
         <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
             <li><a href="#" class="nav-link px-2 link-secondary">Inicio</a></li>
-            <li><a href="#" class="nav-link px-2"></a></li>
             <li><a href="#" class="nav-link px-2">Información</a></li>
+            <li><a href="#" class="nav-link px-2">Contacto</a></li>
             <li><a href="#" class="nav-link px-2">Sobre nosotros</a></li>
         </ul>
 
-        <div class="col-md-3 text-end pe-4">
-            <button type="button" class="btn btn-outline-primary me-2">Iniciar sesión</button>
-            <button type="button" class="btn btn-primary">Registrarse</button>
-        </div>
+        {% if user.is_authenticated %}
+            <div class="col-md-3 text-end pe-4">
+                Bienvenido, <b>{{ user.username }}</b>
+                <a href="{% url 'tierra_media:logout' %}" type="button" class="btn btn-primary">Cerrar sesión</a>
+            </div>
+        {% else %}
+            <div class="col-md-3 text-end pe-4">
+                <a href="{% url 'tierra_media:login' %}" type="button" class="btn btn-outline-primary me-2">Iniciar sesión</a>
+                <a href="{% url 'tierra_media:register' %}"  type="button" class="btn btn-primary">Registrarse</a>
+            </div>
+        {% endif %} 
     </header>
     {% block content %}{% endblock %}
     <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 border-top mt-auto">
