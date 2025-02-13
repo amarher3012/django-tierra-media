@@ -91,7 +91,7 @@ class CharactersView(LoginRequiredMixin, ListView):
 
 class CharacterDetailsView(LoginRequiredMixin, DetailView):
     model = Character
-    template_name = "tierra_media/character_details.html"
+    template_name = "tierra_media/character_menu.html"
     context_object_name = "character"
 
     def get_context_data(self, **kwargs):
