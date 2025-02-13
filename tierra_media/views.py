@@ -74,7 +74,7 @@ class ActivateAccount(View):
 class IndexView(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/index.html"
 
-class PersonajesView(ListView):
+class CharactersView(ListView):
     model = Character
     template_name = "tierra_media/characters.html"
     context_object_name = "characters"
