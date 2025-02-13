@@ -74,7 +74,7 @@ class ActivateAccount(View):
 class IndexView(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/index.html"
 
-class CharactersView(ListView):
+class CharactersView(LoginRequiredMixin, ListView):
     model = Character
     template_name = "tierra_media/characters.html"
     context_object_name = "characters"
@@ -89,7 +89,7 @@ class CharactersView(ListView):
         context['characters'] = self.get_queryset()
         return context
 
-class CharacterDetailsView(DetailView):
+class CharacterDetailsView(LoginRequiredMixin, DetailView):
     model = Character
     template_name = "tierra_media/character_details.html"
     context_object_name = "character"
