@@ -7,14 +7,9 @@
 <body>
     {% if character %}
         <ul>
-            <li>Nombre: {{ character.name }}</li>
-            <li>Vida maxima: {{ character.max_health }}</li>
-            <li>Vida: {{ character.health }}</li>
-            <li>Defensa: {{ character.defense }}</li>
-            <li>Usuario: {{ character.user }}</li>
-            <li>Facción: {{ character.faction }}</li>
-            <li>Localización: {{ character.location }}</li>
-            <li>Raza: {{ character.race }}</li>
+            <a href="{% url 'tierra_media:equip_weapon' character.id %}"><li>Equipar arma</li></a>
+            <a href="{% url 'tierra_media:move_character' character.id %}"><li>Mover personaje</li></a>
+            <a href="{% url 'tierra_media:shop' character.id %}"><li>Tienda</li></a>
         </ul>
     {% endif %}
 </body>

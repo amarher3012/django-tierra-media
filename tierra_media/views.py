@@ -98,3 +98,12 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['character'] = Character.objects.get(pk=self.kwargs['pk'])
         return context
+
+class EquipWeapon(LoginRequiredMixin, TemplateView):
+    pass
+
+class MoveCharacter(LoginRequiredMixin, TemplateView):
+    pass
+
+class Shop(LoginRequiredMixin, TemplateView):
+    pass
