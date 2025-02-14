@@ -1,7 +1,5 @@
-import copy
 from django.utils.http import urlencode
 from django.core.mail import send_mail
-from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -9,10 +7,8 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.views import View
+from django.shortcuts import redirect
 from django.views.generic import *
-from .models import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
 from .models import Character
@@ -72,7 +68,7 @@ class ActivateAccount(View):
             user.save()
             messages.success(request,"Tu cuenta ha sido activada con éxito. Ahora puedes iniciar sesión.",)
             # Tras activar al usuario, los NPCs se crean y asignan a ese usuario
-            NPC_preparations.create_npcs(user)
+            #NPC_preparations.create_npcs(user)
 
             return redirect("tierra_media:login")
         else:
