@@ -1,0 +1,51 @@
+[
+    {
+        "model": "tierra_media.location",
+        "pk": 1,
+        "fields": {
+            "name": "Rivendel"
+        }
+    },
+    {
+        "model": "tierra_media.location",
+        "pk": 2,
+        "fields": {
+            "name": "Hobbiton"
+        }
+    },
+    {
+        "model": "tierra_media.location",
+        "pk": 3,
+        "fields": {
+            "name": "Minas Tirith"
+        }
+    },
+    {
+        "model": "tierra_media.location",
+        "pk": 4,
+        "fields": {
+            "name": "Mordor"
+        }
+    },
+    {
+        "model": "tierra_media.location",
+        "pk": 5,
+        "fields": {
+            "name": "Isengard"
+        }
+    },
+    {
+        "model": "tierra_media.location",
+        "pk": 6,
+        "fields": {
+            "name": "Bosque Negro"
+        }
+    },
+    {
+        "model": "tierra_media.location",
+        "pk": 7,
+        "fields": {
+            "name": "Lothlorien"
+        }
+    }
+]

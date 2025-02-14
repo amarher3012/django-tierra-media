@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
-
 
 class Faction(models.Model):
     name = models.CharField(unique=True, max_length=50)
@@ -26,21 +24,22 @@ class Race(models.Model):
 
 
 class Character(models.Model):
-    name = models.CharField(unique=True, max_length=50)
-    max_health = models.IntegerField()
-    health = models.IntegerField()
-    defense = models.IntegerField()
+    name = models.CharField(max_length=50)
+    max_health = models.IntegerField(default=250)
+    health = models.IntegerField(default=250)
+    defense = models.IntegerField(default=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     faction = models.ForeignKey(Faction, on_delete=models.DO_NOTHING)
     location = models.ForeignKey(Location, on_delete=models.DO_NOTHING)
     race = models.ForeignKey(Race, on_delete=models.DO_NOTHING)
+    npc = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
 
 
 class Relationship(models.Model):
-    type = models.CharField(unique=True, max_length=50)
+    type = models.CharField(max_length=50)
     character_1 = models.ForeignKey(
         Character, related_name="character", on_delete=models.CASCADE
     )
@@ -54,27 +53,41 @@ class Relationship(models.Model):
         )
 
 
-class Backpack(models.Model):
-    character = models.OneToOneField(Character, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.character.name
-
-
 class Weapon(models.Model):
     name = models.CharField(unique=True, max_length=50)
     damage = models.IntegerField()
     type = models.CharField(max_length=50)
-    equipment = models.ForeignKey(Backpack, on_delete=models.CASCADE)
+
+    class Meta:
+        abstract = True
 
     def __str__(self):
         return self.name
+
+
+class UniqueWeapon(Weapon):
+    owner = models.OneToOneField(Character, on_delete=models.CASCADE)
+
+
+class CommonWeapon(Weapon):
+    owner = models.ManyToManyField(Character)
 
 
 class Armor(models.Model):
     name = models.CharField(unique=True, max_length=50)
     defense = models.IntegerField()
-    equipment = models.ForeignKey(Backpack, on_delete=models.CASCADE)
+    type = models.CharField(max_length=50)
+
+    class Meta:
+        abstract = True
 
     def __str__(self):
         return self.name
+
+
+class UniqueArmor(Armor):
+    owner = models.OneToOneField(Character, on_delete=models.CASCADE)
+
+
+class CommonArmor(Armor):
+    owner = models.ManyToManyField(Character)
