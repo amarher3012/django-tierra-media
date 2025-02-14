@@ -1,6 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django import forms
+from .models import Character
+
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField()
@@ -15,3 +18,9 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class CreateCharacterForm(forms.ModelForm):
+    class Meta:
+        model = Character
+        fields = ["name", "faction", "location", "race"]
