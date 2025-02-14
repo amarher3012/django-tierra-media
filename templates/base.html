@@ -19,16 +19,19 @@
         </div>
 
         <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-            <li><a href="#" class="nav-link px-2 link-secondary">Inicio</a></li>
+            <li><a href="{% url 'tierra_media:index' %}" class="nav-link px-2 link-secondary">Inicio</a></li>
             <li><a href="#" class="nav-link px-2">Información</a></li>
             <li><a href="#" class="nav-link px-2">Contacto</a></li>
             <li><a href="#" class="nav-link px-2">Sobre nosotros</a></li>
         </ul>
 
         {% if user.is_authenticated %}
-            <div class="col-md-3 text-end pe-4">
-                Bienvenido, <b>{{ user.username }}</b>
-                <a href="{% url 'tierra_media:logout' %}" type="button" class="btn btn-primary ms-2">Cerrar sesión</a>
+            <div class="col-md-3 text-end pe-4 d-flex align-items-center justify-content-end">
+                <div>Bienvenido,  <b>{{ user.username }}</b></div>
+                <form action="{% url 'tierra_media:logout' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary ms-2">Cerrar sesión</button>
+                </form>
             </div>
         {% else %}
             <div class="col-md-3 text-end pe-4">
