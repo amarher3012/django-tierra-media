@@ -9,9 +9,8 @@ admin.site.register(
         Location,
         Relationship,
         Race,
-        UniqueWeapon,
-        UniqueArmor,
-        CommonWeapon,
-        CommonArmor,
+        Backpack,
+        Weapon,
+        Armor,
     ]
 )
