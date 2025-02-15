@@ -86,3 +86,39 @@ def npc_init():
     ]
 
     return NPCS
+
+def weapons_init():
+    weapons = [
+        {
+            "name": "Aelion",
+            "damage": 10,
+            "type": "sword",
+        },
+        {
+            "name": "Balathor",
+            "damage": 10,
+            "type": "sword",
+        },
+        {
+            "name": "Thalion",
+            "damage": 10,
+            "type": "bow",
+        },
+        {
+            "name": "Eledrin",
+            "damage": 10,
+            "type": "bow",
+        },
+        {
+            "name": "Faelion",
+            "damage": 10,
+            "type": "mace",
+        },
+        {
+            "name": "Amdir",
+            "damage": 10,
+            "type": "mace",
+        },
+    ]
+
+    return weapons

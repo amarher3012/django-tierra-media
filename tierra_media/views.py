@@ -13,8 +13,8 @@ from django.views import View
 from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
-from .models import Character
-from .constants import npc_init
+from .models import Character, Weapon
+from .constants import npc_init, weapons_init
 
 
 class RegisterView(FormView):
@@ -30,9 +30,11 @@ class RegisterView(FormView):
         token = default_token_generator.make_token(user)
 
         uid = user.pk
+        WeaponPreparations.create_weapons(user)
+
         token_url = self.build_activation_url(uid, token)
 
-        self.send_activation_email(user, token_url)
+        #self.send_activation_email(user, token_url)
 
         messages.success(
             self.request,
@@ -79,7 +81,7 @@ class ActivateAccount(View):
                 "Tu cuenta ha sido activada con éxito. Ahora puedes iniciar sesión.",
             )
             # Tras activar al usuario, los NPCs se crean y asignan a ese usuario
-            NPC_preparations.create_npcs(user)
+            #NPC_preparations.create_npcs(user)
 
             return redirect("tierra_media:login")
         else:
@@ -131,8 +133,17 @@ class NPC_preparations:
             npc_object.save()
 
 
-class Weapons(UpdateView):
-    pass
+class WeaponPreparations:
+    def create_weapons(user):
+        weapons = weapons_init()
+        for weapon in weapons:
+            weapon.update(
+                {
+                    "user": user,
+                }
+            )
+            weapon_object = Weapon(**weapon)
+            weapon_object.save()
 
 
 class Armors(UpdateView):
