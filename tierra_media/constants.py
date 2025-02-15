@@ -122,3 +122,39 @@ def weapons_init():
     ]
 
     return weapons
+
+def armors_init():
+    armors = [
+        {
+            "name": "Thalionir",
+            "defense": 10,
+            "type": "helmet",
+        },
+        {
+            "name": "Gorundor",
+            "defense": 10,
+            "type": "helmet",
+        },
+        {
+            "name": "Eldrinel",
+            "defense": 10,
+            "type": "chest",
+        },
+        {
+            "name": "Kaelorn",
+            "defense": 10,
+            "type": "chest",
+        },
+        {
+            "name": "Faethor",
+            "defense": 10,
+            "type": "gloves",
+        },
+        {
+            "name": "Ithilwen",
+            "defense": 10,
+            "type": "gloves",
+        },
+    ]
+
+    return armors

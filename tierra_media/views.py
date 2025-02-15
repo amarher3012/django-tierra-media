@@ -13,8 +13,8 @@ from django.views import View
 from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
-from .models import Character, Weapon
-from .constants import npc_init, weapons_init
+from .models import Character, Weapon, Armor
+from .constants import npc_init, weapons_init, armors_init
 
 
 class RegisterView(FormView):
@@ -31,6 +31,7 @@ class RegisterView(FormView):
 
         uid = user.pk
         WeaponPreparations.create_weapons(user)
+        ArmorPreparations.create_armors(user)
 
         token_url = self.build_activation_url(uid, token)
 
@@ -146,5 +147,14 @@ class WeaponPreparations:
             weapon_object.save()
 
 
-class Armors(UpdateView):
-    pass
+class ArmorPreparations:
+    def create_armors(user):
+        armors = armors_init()
+        for armor in armors:
+            armor.update(
+                {
+                    "user": user,
+                }
+            )
+            armor_object = Armor(**armor)
+            armor_object.save()
