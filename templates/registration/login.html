@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block title %}
+	Iniciar sesión
+{% endblock %}
 {% block content %}
-    <h1>Inicio de sesión</h1>
+    <h1>Iniciar sesión</h1>
     {% if user.is_authenticated %}
         <div><p>Parece que ya has iniciado sesión.</p></div>
         <div class="d-flex align-items-center justify-content-start gap-2">

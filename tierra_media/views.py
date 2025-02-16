@@ -1,9 +1,3 @@
-import copy
-from django.utils.http import urlencode
-from django.core.mail import send_mail
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
@@ -26,7 +20,7 @@ from .constants import npc_init
 class RegisterView(FormView):
     template_name = "registration/signin.html"
     form_class = CustomUserCreationForm
-    success_url = reverse_lazy('tierra_media:index')
+    success_url = reverse_lazy("tierra_media:index")
 
     def form_valid(self, form):
         user = form.save(commit=False)
@@ -64,8 +58,8 @@ class RegisterView(FormView):
 
 class ActivateAccount(View):
     def get(self, request):
-        uid = request.GET.get('uid')
-        token = request.GET.get('token')
+        uid = request.GET.get("uid")
+        token = request.GET.get("token")
 
         if not uid or not token:
             messages.error(request, "Token inválido o expirado.")
@@ -144,30 +138,38 @@ class Weapons(UpdateView):
 class Armors(UpdateView):
     pass
 
+
 class Move(UpdateView):
     model = Character
     fields = []
-    template_name = 'move/move.html'
-    context_object_name = 'character'
-    success_url = '/tierra-media/character-creation/success/'
+    template_name = "move/move.html"
+    context_object_name = "character"
+
+    def get_success_url(self):
+        return reverse_lazy("tierra_media:move_success", kwargs={"pk": self.object.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['localizaciones'] = Location.objects.all()
+        character = self.get_object()
+        context["locations"] = Location.objects.exclude(id=character.location.id)
         return context
 
     def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
         character = self.get_object()
-        new_location_id = request.POST.get('ubicacion')
+        new_location_id = request.POST.get("location")
 
         new_location = Location.objects.filter(id=new_location_id).first()
 
-        if new_location_id:
+        if new_location:
             character.location = new_location
             character.save()
-            return self.form_valid(self.get_form())
+            messages.success(request, "Ubicación cambiada con éxito.")
+            return redirect(self.get_success_url())
 
-        return self.form_invalid(self.get_form())
+        messages.error(request, "Ocurrió un error al intentar cambiar la ubicación.")
+        return redirect(self.get_success_url())
+
 
 class MoveSuccess(TemplateView):
     template_name = "move/success.html"

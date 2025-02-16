@@ -18,6 +18,8 @@ urlpatterns = [
         CharacterCreationSuccess.as_view(),
         name="success",
     ),
-    path("move/", Move.as_view(), name="move"),
-    path("move/success/", MoveSuccess.as_view(), name="move_success"),
+    path("characters/<int:pk>/move/", Move.as_view(), name="move"),
+    path(
+        "characters/<int:pk>/move/success/", MoveSuccess.as_view(), name="move_success"
+    ),
 ]
