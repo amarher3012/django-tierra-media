@@ -137,3 +137,10 @@ class Weapons(UpdateView):
 
 class Armors(UpdateView):
     pass
+
+class Move(UpdateView):
+    model = Character
+    fields = []
+    template_name = 'move/mover.html'
+    context_object_name = 'character'
+    success_url = '/tierra-media/character-creation/success/'
