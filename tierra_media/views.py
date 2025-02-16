@@ -15,7 +15,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.views import View
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView, TemplateView, UpdateView, CreateView
 
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
