@@ -1,17 +1,21 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
-    <title>Registro de usuario</title>
-</head>
-<body>
+{% block content %}
     <h1>Registro de usuario</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Registrarse</button>
-    </form>
-</body>
-</html>
+    {% if user.is_authenticated %}
+        <div><p>Parece que ya has iniciado sesión. Por favor, cierra sesión antes de crear una cuenta nueva.</p></div>
+        <div class="d-flex align-items-center justify-content-start gap-2">
+            <a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Volver a Inicio</a>
+            <form action="{% url 'tierra_media:logout' %}" method="POST" class="m-0 p-0 d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-link text-decoration-none p-0 m-0">Cerrar sesión</button>
+            </form>
+        </div>
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Registrarse</button>
+        </form>
+    {% endif %}
+{% endblock %}

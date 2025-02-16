@@ -1,26 +1,22 @@
-import copy
-from django.utils.http import urlencode
-from django.core.mail import send_mail
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlencode
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.urls import reverse_lazy
-from django.shortcuts import redirect
+from django.contrib import messages
+from django.shortcuts import render, redirect
 from django.views import View
-from django.views.generic import *
-from .forms import CustomUserCreationForm
-from .forms import CreateCharacterForm
-from .models import Character
-from .constants import npc_init
+from django.views.generic import FormView, TemplateView
 
+from .forms import CustomUserCreationForm
 
 class RegisterView(FormView):
-    template_name = "registration/register.html"
+    template_name = 'registration/register.html'
     form_class = CustomUserCreationForm
-    success_url = reverse_lazy("tierra_media:index")
+    success_url = reverse_lazy('tierra_media:index')
 
     def form_valid(self, form):
         user = form.save(commit=False)
@@ -55,11 +51,10 @@ class RegisterView(FormView):
 
         send_mail(subject, message, from_email, recipient_list)
 
-
 class ActivateAccount(View):
     def get(self, request):
-        uid = request.GET.get("uid")
-        token = request.GET.get("token")
+        uid = request.GET.get('uid')
+        token = request.GET.get('token')
 
         if not uid or not token:
             messages.error(request, "Token inválido o expirado.")
