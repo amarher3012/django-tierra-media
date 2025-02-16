@@ -1,3 +1,9 @@
+import copy
+from django.utils.http import urlencode
+from django.core.mail import send_mail
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
@@ -12,9 +18,13 @@ from django.views import View
 from django.views.generic import FormView, TemplateView
 
 from .forms import CustomUserCreationForm
+from .forms import CreateCharacterForm
+from .models import Character, Location
+from .constants import npc_init
+
 
 class RegisterView(FormView):
-    template_name = 'registration/register.html'
+    template_name = "registration/signin.html"
     form_class = CustomUserCreationForm
     success_url = reverse_lazy('tierra_media:index')
 
@@ -50,6 +60,7 @@ class RegisterView(FormView):
         recipient_list = [user.email]
 
         send_mail(subject, message, from_email, recipient_list)
+
 
 class ActivateAccount(View):
     def get(self, request):
@@ -136,6 +147,27 @@ class Armors(UpdateView):
 class Move(UpdateView):
     model = Character
     fields = []
-    template_name = 'move/mover.html'
+    template_name = 'move/move.html'
     context_object_name = 'character'
     success_url = '/tierra-media/character-creation/success/'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['localizaciones'] = Location.objects.all()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        character = self.get_object()
+        new_location_id = request.POST.get('ubicacion')
+
+        new_location = Location.objects.filter(id=new_location_id).first()
+
+        if new_location_id:
+            character.location = new_location
+            character.save()
+            return self.form_valid(self.get_form())
+
+        return self.form_invalid(self.get_form())
+
+class MoveSuccess(TemplateView):
+    template_name = "move/success.html"

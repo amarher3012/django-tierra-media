@@ -5,9 +5,9 @@ from .views import *
 app_name = "tierra_media"
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
-    path("cuentas/", include("django.contrib.auth.urls")),
-    path("cuentas/registro", RegisterView.as_view(), name="register"),
-    path("cuentas/activar", ActivateAccount.as_view(), name="activate"),
+    path("accounts/", include("django.contrib.auth.urls")),
+    path("accounts/signin", RegisterView.as_view(), name="register"),
+    path("accounts/activate", ActivateAccount.as_view(), name="activate"),
     path(
         "character-creation/",
         CharacterCreation.as_view(),
@@ -18,4 +18,6 @@ urlpatterns = [
         CharacterCreationSuccess.as_view(),
         name="success",
     ),
+    path("move/", Move.as_view(), name="move"),
+    path("move/success/", MoveSuccess.as_view(), name="move_success"),
 ]
