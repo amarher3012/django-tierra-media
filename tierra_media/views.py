@@ -110,7 +110,10 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         if self.check_name(form):
             form.instance.user = self.request.user
+            messages.success(self.request, "Personaje creado con éxito.")
             return super().form_valid(form)
+
+        messages.error(self.request, "Ocurrió un error al intentar crear el personaje.")
         return super().form_invalid(form)
 
 
@@ -139,7 +142,7 @@ class Armors(UpdateView):
     pass
 
 
-class Move(UpdateView):
+class Move(LoginRequiredMixin, UpdateView):
     model = Character
     fields = []
     template_name = "move/move.html"
@@ -171,5 +174,5 @@ class Move(UpdateView):
         return redirect(self.get_success_url())
 
 
-class MoveSuccess(TemplateView):
+class MoveSuccess(LoginRequiredMixin, UpdateView):
     template_name = "move/success.html"
