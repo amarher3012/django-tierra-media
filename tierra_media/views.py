@@ -13,7 +13,7 @@ from django.views import View
 from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
-from .models import Character
+from .models import Character, Location, Faction, Race
 from .constants import npc_init
 
 
@@ -122,9 +122,20 @@ class NPC_preparations:
     def create_npcs(user):
         npcs = npc_init()
         for npc in npcs:
+            faction_name = npc.pop("faction")
+            location_name = npc.pop("location")
+            race_name = npc.pop("race")
+
+            faction = Faction.objects.get(name__iexact=faction_name)
+            location = Location.objects.get(name__iexact=location_name)
+            race = Race.objects.get(name__iexact=race_name)
+
             npc.update(
                 {
                     "user": user,
+                    "faction": faction,
+                    "location": location,
+                    "race": race,
                 }
             )
             npc_object = Character(**npc)
