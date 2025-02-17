@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}
+    Mover personaje
+{% endblock %}
+{% block content %}
+	<h1>Mover a {{ character.name }}</h1>
+    <p>Ubicación actual: {{ character.location.name }}</p>
+
+    <h2>Localizaciones disponibles:</h2>
+    {% if locations %}
+        <ul>
+            {% for loc in locations %}
+                <li class="mb-1">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="location" value="{{ loc.id }}">
+                        <button type="submit" class="btn btn-link text-decoration-none p-0">{{ loc.name }}</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>En este momento no hay localizaciones disponibles.</p>
+    {% endif %}
+{% endblock %}
