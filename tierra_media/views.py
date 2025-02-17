@@ -80,8 +80,20 @@ class ActivateAccount(View):
             messages.error(request, "El enlace de activación no es válido o ha expirado.")
             return redirect("tierra_media:register")
 
-class IndexView(LoginRequiredMixin, TemplateView):
+class IndexView(LoginRequiredMixin, ListView):
+    model = Character
     template_name = "tierra_media/index.html"
+    context_object_name = "characters"
+
+    def get_queryset(self):
+        user = self.request.user.pk
+        characters = Character.objects.filter(user=user)
+        return characters
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['characters'] = self.get_queryset()
+        return context
 
 class CharacterCreation(LoginRequiredMixin, CreateView):
     template_name = "character-creation/character-creation.html"
@@ -200,9 +212,6 @@ class GetWeapons(LoginRequiredMixin, ListView):
 
 class EquipWeapon(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/equip_weapon.html"
-
-class MoveCharacter(LoginRequiredMixin, TemplateView):
-    template_name = "tierra_media/move_character.html"
 
 class Shop(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/shop.html"

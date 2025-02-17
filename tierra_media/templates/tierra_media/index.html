@@ -9,5 +9,27 @@
             </div>
         {% endfor %}
     {% endif %}
+    {% if user.is_authenticated %}
+        {% if characters %}
+        	<div class="d-flex justify-content-center">
+                {% for character in characters %}
+                    <div class="card mb-3" style="max-width: 540px;">
+                      <div class="row g-0">
+                        <div class="col-md-4">
+                          <img src="..." class="img-fluid rounded-start" alt="...">
+                        </div>
+                        <div class="col-md-8">
+                          <a href="{% url 'tierra_media:character_details' character.id %}" class="text-decoration-none">
+                              <div class="card-body">
+                                <h5 class="card-title">{{ character.name }}</h5>
+                              </div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
     <h1 class="text-center">Hola.</h1>
 {% endblock %}

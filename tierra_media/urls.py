@@ -13,7 +13,6 @@ urlpatterns = [
     path("characters/", CharactersView.as_view(), name="characters"),
     path("characters/<int:pk>", CharacterDetailsView.as_view(), name="character_details"),
     path("characters/<int:pk>/equip-weapon", EquipWeapon.as_view(), name="equip_weapon"),
-    path("characters/<int:pk>/move-character", MoveCharacter.as_view(), name="move_character"),
     path("characters/<int:pk>/get-weapons", GetWeapons.as_view(), name="get_weapons"),
     path("characters/<int:pk>/show-relationships", ShowRelationShips.as_view(), name="show_relationships"),
     path("characters/<int:pk>/shop", Shop.as_view(), name="shop"),
