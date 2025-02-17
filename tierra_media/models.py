@@ -25,6 +25,7 @@ class Race(models.Model):
 
 
 class Character(models.Model):
+    icon = models.ImageField(blank=True, upload_to="uploads/character-icons/")
     name = models.CharField(max_length=50)
     max_health = models.IntegerField(default=250)
     health = models.IntegerField(default=250)
@@ -39,22 +40,8 @@ class Character(models.Model):
         return self.name
 
 
-class Relationship(models.Model):
-    type = models.CharField(max_length=50)
-    character_1 = models.ForeignKey(
-        Character, related_name="character", on_delete=models.CASCADE
-    )
-    character_2 = models.ForeignKey(
-        Character, related_name="relation_with", on_delete=models.CASCADE
-    )
-
-    def __str__(self):
-        return (
-            self.character_1.name + " -> " + self.character_2.name + " -> " + self.type
-        )
-
-
 class Weapon(models.Model):
+    icon = models.ImageField(blank=True, upload_to="uploads/weapon-icons/")
     name = models.CharField(unique=True, max_length=50)
     damage = models.IntegerField()
     type = models.CharField(max_length=50)
@@ -75,6 +62,7 @@ class CommonWeapon(Weapon):
 
 
 class Armor(models.Model):
+    icon = models.ImageField(blank=True, upload_to="uploads/armor-icons/")
     name = models.CharField(unique=True, max_length=50)
     defense = models.IntegerField()
     type = models.CharField(max_length=50)

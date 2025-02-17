@@ -9,7 +9,7 @@
 {% block title %}Crear personaje{% endblock title %}
 
 {% block content %}
-    <form method="post" action="{{ success_url }}">
+    <form enctype="multipart/form-data" method="post" action="{{ success_url }}">
         {% csrf_token %} {{ form.as_p }}
         <input type="submit" value="Crear personaje" />
     </form>
