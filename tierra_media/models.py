@@ -25,6 +25,7 @@ class Race(models.Model):
 
 
 class Character(models.Model):
+    icon = models.ImageField(blank=True, upload_to="uploads/character-icons/")
     name = models.CharField(max_length=50)
     max_health = models.IntegerField(default=250)
     health = models.IntegerField(default=250)
@@ -63,6 +64,7 @@ class Backpack(models.Model):
 
 class Weapon(models.Model):
     name = models.CharField(max_length=50)
+    icon = models.ImageField(blank=True, upload_to="uploads/weapon-icons/")
     damage = models.IntegerField()
     type = models.CharField(max_length=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -74,6 +76,7 @@ class Weapon(models.Model):
 
 class Armor(models.Model):
     name = models.CharField(max_length=50)
+    icon = models.ImageField(blank=True, upload_to="uploads/armor-icons/")
     defense = models.IntegerField()
     type = models.CharField(max_length=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
