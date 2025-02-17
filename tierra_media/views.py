@@ -24,18 +24,16 @@ class RegisterView(FormView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
-        user.is_active = True
+        user.is_active = False
         user.save()
 
         token = default_token_generator.make_token(user)
 
         uid = user.pk
-        WeaponPreparations.create_weapons(user)
-        ArmorPreparations.create_armors(user)
 
         token_url = self.build_activation_url(uid, token)
 
-        #self.send_activation_email(user, token_url)
+        self.send_activation_email(user, token_url)
 
         messages.success(self.request, f"Cuenta {user.username} creada exitosamente. En breves te llegará un correo de verificación.")
 
@@ -73,7 +71,9 @@ class ActivateAccount(View):
             user.save()
             messages.success(request,"Tu cuenta ha sido activada con éxito. Ahora puedes iniciar sesión.",)
             # Tras activar al usuario, los NPCs se crean y asignan a ese usuario
-            #NPC_preparations.create_npcs(user)
+            NPC_preparations.create_npcs(user)
+            WeaponPreparations.create_weapons(user)
+            ArmorPreparations.create_armors(user)
 
             return redirect("tierra_media:login")
         else:
