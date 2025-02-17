@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {% if character %}
+        <ul>
+            <a href="{% url 'tierra_media:equip_weapon' character.id %}"><li>Equipar arma</li></a>
+            <a href="{% url 'tierra_media:move' character.id %}"><li>Mover personaje</li></a>
+            <a href="{% url 'tierra_media:get_weapons' character.id %}"><li>Conseguir un arma</li></a>
+            <a href="{% url 'tierra_media:show_relationships' character.id %}"><li>Mostrar relaciones</li></a>
+            <a href="{% url 'tierra_media:shop' character.id %}"><li>Tienda</li></a>
+            <a href="{% url 'tierra_media:index' %}"><li>Cambiar de personaje</li></a>
+        </ul>
+        {% for field,value in character.items %}
+            <li>{{ field|title }}: {{ value }}</li>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

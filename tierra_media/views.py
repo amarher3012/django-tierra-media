@@ -9,12 +9,12 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.views import View
-from django.views.generic import FormView, TemplateView, UpdateView, CreateView
-
+from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
-from .models import Character, Location, Faction, Race
-from .constants import npc_init
+from django.forms.models import model_to_dict
+from .models import Character, Weapon, Armor, Location, Faction, Race
+from .constants import npc_init, weapons_init, armors_init
 
 
 class RegisterView(FormView):
@@ -30,14 +30,12 @@ class RegisterView(FormView):
         token = default_token_generator.make_token(user)
 
         uid = user.pk
+
         token_url = self.build_activation_url(uid, token)
 
         self.send_activation_email(user, token_url)
 
-        messages.success(
-            self.request,
-            f"Cuenta {user.username} creada exitosamente. En breves te llegará un correo de verificación.",
-        )
+        messages.success(self.request, f"Cuenta {user.username} creada exitosamente. En breves te llegará un correo de verificación.")
 
         return super().form_valid(form)
 
@@ -46,20 +44,17 @@ class RegisterView(FormView):
 
     def send_activation_email(self, user, token_url):
         subject = "Verificación de correo electrónico"
-        message = (
-            f"Hola {user.username},\n\nPara activar tu cuenta, haz clic en el siguiente enlace:\n\n{token_url}\n\n"
-            f"Si no solicitaste esta cuenta, puedes ignorar este correo."
-        )
+        message = (f"Hola {user.username},\n\nPara activar tu cuenta, haz clic en el siguiente enlace:\n\n{token_url}\n\n"
+                   f"Si no solicitaste esta cuenta, puedes ignorar este correo.")
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [user.email]
 
         send_mail(subject, message, from_email, recipient_list)
 
-
 class ActivateAccount(View):
     def get(self, request):
-        uid = request.GET.get("uid")
-        token = request.GET.get("token")
+        uid = request.GET.get('uid')
+        token = request.GET.get('token')
 
         if not uid or not token:
             messages.error(request, "Token inválido o expirado.")
@@ -74,24 +69,31 @@ class ActivateAccount(View):
         if default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
-            messages.success(
-                request,
-                "Tu cuenta ha sido activada con éxito. Ahora puedes iniciar sesión.",
-            )
+            messages.success(request,"Tu cuenta ha sido activada con éxito. Ahora puedes iniciar sesión.",)
             # Tras activar al usuario, los NPCs se crean y asignan a ese usuario
             NPC_preparations.create_npcs(user)
+            WeaponPreparations.create_weapons(user)
+            ArmorPreparations.create_armors(user)
 
             return redirect("tierra_media:login")
         else:
-            messages.error(
-                request, "El enlace de activación no es válido o ha expirado."
-            )
+            messages.error(request, "El enlace de activación no es válido o ha expirado.")
             return redirect("tierra_media:register")
 
-
-class IndexView(LoginRequiredMixin, TemplateView):
+class IndexView(LoginRequiredMixin, ListView):
+    model = Character
     template_name = "tierra_media/index.html"
+    context_object_name = "characters"
 
+    def get_queryset(self):
+        user = self.request.user.pk
+        characters = Character.objects.filter(user=user)
+        return characters
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['characters'] = self.get_queryset()
+        return context
 
 class CharacterCreation(LoginRequiredMixin, CreateView):
     template_name = "character-creation/character-creation.html"
@@ -116,10 +118,8 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
         messages.error(self.request, "Ocurrió un error al intentar crear el personaje.")
         return super().form_invalid(form)
 
-
 class CharacterCreationSuccess(TemplateView):
     template_name = "character-creation/success.html"
-
 
 class NPC_preparations:
     def create_npcs(user):
@@ -144,12 +144,79 @@ class NPC_preparations:
             npc_object = Character(**npc)
             npc_object.save()
 
+class CharactersView(LoginRequiredMixin, ListView):
+    model = Character
+    template_name = "tierra_media/characters.html"
+    context_object_name = "characters"
 
-class Weapons(UpdateView):
-    pass
+    def get_queryset(self):
+        key_user = self.request.user.pk
+        characters = Character.objects.filter(user=key_user)
+        return characters
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['characters'] = self.get_queryset()
+        return context
+
+class WeaponPreparations:
+    def create_weapons(user):
+        weapons = weapons_init()
+        for weapon in weapons:
+            weapon.update(
+                {
+                    "user": user,
+                }
+            )
+            weapon_object = Weapon(**weapon)
+            weapon_object.save()
 
 
-class Armors(UpdateView):
+class CharacterDetailsView(LoginRequiredMixin, DetailView):
+    model = Character
+    template_name = "tierra_media/character_menu.html"
+    context_object_name = "character"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['character'] = model_to_dict(Character.objects.get(pk=self.kwargs['pk']), exclude=['user'])
+        return context
+
+class ArmorPreparations:
+    def create_armors(user):
+        armors = armors_init()
+        for armor in armors:
+            armor.update(
+                {
+                    "user": user,
+                }
+            )
+            armor_object = Armor(**armor)
+            armor_object.save()
+
+
+class GetWeapons(LoginRequiredMixin, ListView):
+    model = Weapon
+    template_name = "tierra_media/get_weapons.html"
+    context_object_name = "weapons"
+
+    def get_queryset(self):
+        user = self.request.user.pk
+        weapons = Weapon.objects.filter(user=user, backpack=None).order_by("?")[:3] #Ordenar aleatoriamente y escoger 3
+        return weapons
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['weapons'] = self.get_queryset()
+        return context
+
+class EquipWeapon(LoginRequiredMixin, TemplateView):
+    template_name = "tierra_media/equip_weapon.html"
+
+class Shop(LoginRequiredMixin, TemplateView):
+    template_name = "tierra_media/shop.html"
+
+class ShowRelationShips(LoginRequiredMixin, TemplateView):
     pass
 
 
