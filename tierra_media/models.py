@@ -1,23 +1,24 @@
 from django.db import models
 from django.contrib.auth.models import User
+from .constants import FACTION_CHOICES, LOCATION_CHOICES, RACE_CHOICES
 
 
 class Faction(models.Model):
-    name = models.CharField(unique=True, max_length=50)
+    name = models.CharField(max_length=50, choices=FACTION_CHOICES)
 
     def __str__(self):
         return self.name
 
 
 class Location(models.Model):
-    name = models.CharField(unique=True, max_length=50)
+    name = models.CharField(max_length=50, choices=LOCATION_CHOICES)
 
     def __str__(self):
         return self.name
 
 
 class Race(models.Model):
-    name = models.CharField(unique=True, max_length=50)
+    name = models.CharField(max_length=50, choices=RACE_CHOICES)
 
     def __str__(self):
         return self.name

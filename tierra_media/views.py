@@ -1,24 +1,24 @@
-import copy
-from django.utils.http import urlencode
-from django.core.mail import send_mail
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlencode
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.urls import reverse_lazy
-from django.shortcuts import redirect
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.views import View
 from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
 from django.forms.models import model_to_dict
-from .models import Character, Weapon, Armor
+from .models import Character, Weapon, Armor, Location, Faction, Race
 from .constants import npc_init, weapons_init, armors_init
 
 
 class RegisterView(FormView):
-    template_name = "registration/register.html"
+    template_name = "registration/signin.html"
     form_class = CustomUserCreationForm
     success_url = reverse_lazy("tierra_media:index")
 
@@ -100,7 +100,10 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         if self.check_name(form):
             form.instance.user = self.request.user
+            messages.success(self.request, "Personaje creado con éxito.")
             return super().form_valid(form)
+
+        messages.error(self.request, "Ocurrió un error al intentar crear el personaje.")
         return super().form_invalid(form)
 
 class CharacterCreationSuccess(TemplateView):
@@ -110,9 +113,20 @@ class NPC_preparations:
     def create_npcs(user):
         npcs = npc_init()
         for npc in npcs:
+            faction_name = npc.pop("faction")
+            location_name = npc.pop("location")
+            race_name = npc.pop("race")
+
+            faction = Faction.objects.get(name__iexact=faction_name)
+            location = Location.objects.get(name__iexact=location_name)
+            race = Race.objects.get(name__iexact=race_name)
+
             npc.update(
                 {
                     "user": user,
+                    "faction": faction,
+                    "location": location,
+                    "race": race,
                 }
             )
             npc_object = Character(**npc)
@@ -195,3 +209,39 @@ class Shop(LoginRequiredMixin, TemplateView):
 
 class ShowRelationShips(LoginRequiredMixin, TemplateView):
     pass
+
+
+class Move(LoginRequiredMixin, UpdateView):
+    model = Character
+    fields = []
+    template_name = "move/move.html"
+    context_object_name = "character"
+
+    def get_success_url(self):
+        return reverse_lazy("tierra_media:move_success", kwargs={"pk": self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        character = self.get_object()
+        context["locations"] = Location.objects.exclude(id=character.location.id)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        character = self.get_object()
+        new_location_id = request.POST.get("location")
+
+        new_location = Location.objects.filter(id=new_location_id).first()
+
+        if new_location:
+            character.location = new_location
+            character.save()
+            messages.success(request, "Ubicación cambiada con éxito.")
+            return redirect(self.get_success_url())
+
+        messages.error(request, "Ocurrió un error al intentar cambiar la ubicación.")
+        return redirect(self.get_success_url())
+
+
+class MoveSuccess(LoginRequiredMixin, TemplateView):
+    template_name = "move/success.html"
