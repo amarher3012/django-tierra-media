@@ -1,3 +1,5 @@
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
@@ -13,7 +15,7 @@ from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
 from django.forms.models import model_to_dict
-from .models import Character, Weapon, Armor, Location, Faction, Race
+from .models import Character, Weapon, Armor, Location, Faction, Race, Relationship
 from .constants import npc_init, weapons_init, armors_init
 
 
@@ -35,7 +37,10 @@ class RegisterView(FormView):
 
         self.send_activation_email(user, token_url)
 
-        messages.success(self.request, f"Cuenta {user.username} creada exitosamente. En breves te llegará un correo de verificación.")
+        messages.success(
+            self.request,
+            f"Cuenta {user.username} creada exitosamente. En breves te llegará un correo de verificación.",
+        )
 
         return super().form_valid(form)
 
@@ -44,17 +49,20 @@ class RegisterView(FormView):
 
     def send_activation_email(self, user, token_url):
         subject = "Verificación de correo electrónico"
-        message = (f"Hola {user.username},\n\nPara activar tu cuenta, haz clic en el siguiente enlace:\n\n{token_url}\n\n"
-                   f"Si no solicitaste esta cuenta, puedes ignorar este correo.")
+        message = (
+            f"Hola {user.username},\n\nPara activar tu cuenta, haz clic en el siguiente enlace:\n\n{token_url}\n\n"
+            f"Si no solicitaste esta cuenta, puedes ignorar este correo."
+        )
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [user.email]
 
         send_mail(subject, message, from_email, recipient_list)
 
+
 class ActivateAccount(View):
     def get(self, request):
-        uid = request.GET.get('uid')
-        token = request.GET.get('token')
+        uid = request.GET.get("uid")
+        token = request.GET.get("token")
 
         if not uid or not token:
             messages.error(request, "Token inválido o expirado.")
@@ -69,7 +77,10 @@ class ActivateAccount(View):
         if default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
-            messages.success(request,"Tu cuenta ha sido activada con éxito. Ahora puedes iniciar sesión.",)
+            messages.success(
+                request,
+                "Tu cuenta ha sido activada con éxito. Ahora puedes iniciar sesión.",
+            )
             # Tras activar al usuario, los NPCs se crean y asignan a ese usuario
             NPC_preparations.create_npcs(user)
             WeaponPreparations.create_weapons(user)
@@ -77,8 +88,11 @@ class ActivateAccount(View):
 
             return redirect("tierra_media:login")
         else:
-            messages.error(request, "El enlace de activación no es válido o ha expirado.")
+            messages.error(
+                request, "El enlace de activación no es válido o ha expirado."
+            )
             return redirect("tierra_media:register")
+
 
 class IndexView(LoginRequiredMixin, ListView):
     model = Character
@@ -92,8 +106,9 @@ class IndexView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['characters'] = self.get_queryset()
+        context["characters"] = self.get_queryset()
         return context
+
 
 class CharacterCreation(LoginRequiredMixin, CreateView):
     template_name = "character-creation/character-creation.html"
@@ -118,8 +133,10 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
         messages.error(self.request, "Ocurrió un error al intentar crear el personaje.")
         return super().form_invalid(form)
 
+
 class CharacterCreationSuccess(TemplateView):
     template_name = "character-creation/success.html"
+
 
 class NPC_preparations:
     def create_npcs(user):
@@ -144,6 +161,7 @@ class NPC_preparations:
             npc_object = Character(**npc)
             npc_object.save()
 
+
 class CharactersView(LoginRequiredMixin, ListView):
     model = Character
     template_name = "tierra_media/characters.html"
@@ -156,8 +174,9 @@ class CharactersView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['characters'] = self.get_queryset()
+        context["characters"] = self.get_queryset()
         return context
+
 
 class WeaponPreparations:
     def create_weapons(user):
@@ -179,8 +198,11 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['character'] = model_to_dict(Character.objects.get(pk=self.kwargs['pk']), exclude=['user'])
+        context["character"] = model_to_dict(
+            Character.objects.get(pk=self.kwargs["pk"]), exclude=["user"]
+        )
         return context
+
 
 class ArmorPreparations:
     def create_armors(user):
@@ -202,22 +224,84 @@ class GetWeapons(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user.pk
-        weapons = Weapon.objects.filter(user=user, backpack=None).order_by("?")[:3] #Ordenar aleatoriamente y escoger 3
+        weapons = Weapon.objects.filter(user=user, backpack=None).order_by("?")[
+            :3
+        ]  # Ordenar aleatoriamente y escoger 3
         return weapons
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['weapons'] = self.get_queryset()
+        context["weapons"] = self.get_queryset()
         return context
+
 
 class EquipWeapon(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/equip_weapon.html"
 
+
 class Shop(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/shop.html"
 
-class ShowRelationShips(LoginRequiredMixin, TemplateView):
-    pass
+
+class RelationShips(LoginRequiredMixin, TemplateView):
+    template_name = "partials/relationships_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        character_id = self.kwargs["pk"]
+        character = Character.objects.get(pk=character_id)
+        faction = character.faction
+
+        relationships = {"allies": [], "enemies": [], "neutrals": []}
+        others = Character.objects.exclude(pk=character_id)
+
+        for other in others:
+            other_faction = other.faction
+
+            match faction:
+                case "La Comunidad del Anillo":
+                    match other_faction:
+                        case "La Comunidad del Anillo" | "Rivendel":
+                            relationships["allies"].append(other)
+                        case "Isengard" | "Mordor":
+                            relationships["enemies"].append(other)
+                        case _:
+                            relationships["neutrals"].append(other)
+
+                case "Isengard" | "Mordor":
+                    match other_faction:
+                        case "Isengard" | "Mordor":
+                            relationships["allies"].append(other)
+                        case _:
+                            relationships["enemies"].append(other)
+
+                case "Rivendel":
+                    match other_faction:
+                        case "Rivendel" | "La Comunidad del Anillo":
+                            relationships["allies"].append(other)
+                        case "Isengard" | "Mordor":
+                            relationships["enemies"].append(other)
+                        case _:
+                            relationships["neutrals"].append(other)
+
+                case "Lothlorien":
+                    match other_faction:
+                        case "Lothlorien":
+                            relationships["allies"].append(other)
+                        case "Isengard" | "Mordor":
+                            relationships["enemies"].append(other)
+                        case _:
+                            relationships["neutrals"].append(other)
+
+        context["relationships"] = relationships
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.is_ajax():
+            html = render_to_string("partials/relationships_list.html", context)
+            return JsonResponse({"html": html})
+        else:
+            return super().render_to_response(context, **response_kwargs)
 
 
 class Move(LoginRequiredMixin, UpdateView):

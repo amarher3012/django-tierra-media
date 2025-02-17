@@ -1,7 +1,24 @@
 {% extends 'base.html' %}
-{% load static %}
 {% block title %}
 	Iniciar sesión
+{% endblock %}
+{% block script %}
+	<script defer>
+        document.addEventListener('DOMContentLoaded', function () {
+            let alerts = document.querySelectorAll('.alert');
+
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                alert.classList.remove('show');
+                alert.classList.add('fade');
+            }, 5000);
+
+            setTimeout(function() {
+                alert.remove();
+            }, 5500);
+        });
+    });
+    </script>
 {% endblock %}
 {% block content %}
     {% if messages %}
