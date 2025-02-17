@@ -24,7 +24,7 @@ class RegisterView(FormView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
-        user.is_active = False
+        user.is_active = True
         user.save()
 
         token = default_token_generator.make_token(user)
@@ -169,6 +169,21 @@ class ArmorPreparations:
             armor_object.save()
 
 
+class GetWeapons(LoginRequiredMixin, ListView):
+    model = Weapon
+    template_name = "tierra_media/get_weapons.html"
+    context_object_name = "weapons"
+
+    def get_queryset(self):
+        user = self.request.user.pk
+        weapons = Weapon.objects.filter(user=user, backpack=None).order_by("?")[:3] #Ordenar aleatoriamente y escoger 3
+        return weapons
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['weapons'] = self.get_queryset()
+        return context
+
 class EquipWeapon(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/equip_weapon.html"
 
@@ -177,3 +192,6 @@ class MoveCharacter(LoginRequiredMixin, TemplateView):
 
 class Shop(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/shop.html"
+
+class ShowRelationShips(LoginRequiredMixin, TemplateView):
+    pass
