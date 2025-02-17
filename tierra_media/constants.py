@@ -1,4 +1,54 @@
-from .models import Faction, Location, Race
+FACTIONS = [
+    "La Comunidad del Anillo",
+    "Lothlorien",
+    "Rivendel",
+    "Mordor",
+    "Isengard",
+]
+
+FACTION_CHOICES = [
+    (FACTIONS[0], FACTIONS[0]),
+    (FACTIONS[1], FACTIONS[1]),
+    (FACTIONS[2], FACTIONS[2]),
+    (FACTIONS[3], FACTIONS[3]),
+    (FACTIONS[4], FACTIONS[4]),
+]
+
+LOCATIONS = [
+    "Minas Tirith",
+    "Bosque Negro",
+    "Lothlorien",
+    "Hobbiton",
+    "Rivendel",
+    "Isengard",
+    "Mordor",
+]
+
+LOCATION_CHOICES = [
+    (LOCATIONS[0], LOCATIONS[0]),
+    (LOCATIONS[1], LOCATIONS[1]),
+    (LOCATIONS[2], LOCATIONS[2]),
+    (LOCATIONS[3], LOCATIONS[3]),
+    (LOCATIONS[4], LOCATIONS[4]),
+    (LOCATIONS[5], LOCATIONS[5]),
+    (LOCATIONS[6], LOCATIONS[6]),
+]
+
+RACES = [
+    "Humano",
+    "Elfo",
+    "Enano",
+    "Hobbit",
+    "Orco",
+]
+
+RACE_CHOICES = [
+    (RACES[0], RACES[0]),
+    (RACES[1], RACES[1]),
+    (RACES[2], RACES[2]),
+    (RACES[3], RACES[3]),
+    (RACES[4], RACES[4]),
+]
 
 
 def npc_init():
@@ -8,9 +58,9 @@ def npc_init():
             "max_health": 250,
             "health": 250,
             "defense": 50,
-            "faction": Faction.objects.get(name__iexact="la comunidad del anillo"),
-            "location": Location.objects.get(name__iexact="minas tirith"),
-            "race": Race.objects.get(name__iexact="humano"),
+            "faction": "La Comunidad del Anillo",
+            "location": "Minas Tirith",
+            "race": "Humano",
             "npc": True,
         },
         {
@@ -18,9 +68,9 @@ def npc_init():
             "max_health": 250,
             "health": 250,
             "defense": 50,
-            "faction": Faction.objects.get(name__iexact="lothlorien"),
-            "location": Location.objects.get(name__iexact="bosque negro"),
-            "race": Race.objects.get(name__iexact="elfo"),
+            "faction": "Lothlorien",
+            "location": "Bosque Negro",
+            "race": "Elfo",
             "npc": True,
         },
         {
@@ -28,9 +78,9 @@ def npc_init():
             "max_health": 250,
             "health": 250,
             "defense": 50,
-            "faction": Faction.objects.get(name__iexact="la comunidad del anillo"),
-            "location": Location.objects.get(name__iexact="lothlorien"),
-            "race": Race.objects.get(name__iexact="enano"),
+            "faction": "La Comunidad del Anillo",
+            "location": "Lothlorien",
+            "race": "Enano",
             "npc": True,
         },
         {
@@ -38,9 +88,9 @@ def npc_init():
             "max_health": 250,
             "health": 250,
             "defense": 50,
-            "faction": Faction.objects.get(name__iexact="la comunidad del anillo"),
-            "location": Location.objects.get(name__iexact="hobbiton"),
-            "race": Race.objects.get(name__iexact="hobbit"),
+            "faction": "La Comunidad del Anillo",
+            "location": "Hobbiton",
+            "race": "Hobbit",
             "npc": True,
         },
         {
@@ -48,9 +98,9 @@ def npc_init():
             "max_health": 250,
             "health": 250,
             "defense": 50,
-            "faction": Faction.objects.get(name__iexact="rivendel"),
-            "location": Location.objects.get(name__iexact="rivendel"),
-            "race": Race.objects.get(name__iexact="humano"),
+            "faction": "Rivendel",
+            "location": "Rivendel",
+            "race": "Humano",
             "npc": True,
         },
         {
@@ -58,9 +108,9 @@ def npc_init():
             "max_health": 250,
             "health": 250,
             "defense": 50,
-            "faction": Faction.objects.get(name__iexact="isengard"),
-            "location": Location.objects.get(name__iexact="isengard"),
-            "race": Race.objects.get(name__iexact="humano"),
+            "faction": "Isengard",
+            "location": "Isengard",
+            "race": "Humano",
             "npc": True,
         },
         {
@@ -68,9 +118,9 @@ def npc_init():
             "max_health": 250,
             "health": 250,
             "defense": 50,
-            "faction": Faction.objects.get(name__iexact="mordor"),
-            "location": Location.objects.get(name__iexact="mordor"),
-            "race": Race.objects.get(name__iexact="humano"),
+            "faction": "Mordor",
+            "location": "Mordor",
+            "race": "Orco",
             "npc": True,
         },
         {
@@ -78,9 +128,9 @@ def npc_init():
             "max_health": 250,
             "health": 250,
             "defense": 50,
-            "faction": Faction.objects.get(name__iexact="mordor"),
-            "location": Location.objects.get(name__iexact="mordor"),
-            "race": Race.objects.get(name__iexact="orco"),
+            "faction": "Mordor",
+            "location": "Mordor",
+            "race": "Orco",
             "npc": True,
         },
     ]
