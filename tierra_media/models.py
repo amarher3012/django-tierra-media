@@ -53,41 +53,30 @@ class Relationship(models.Model):
         )
 
 
+class Backpack(models.Model):
+    owner = models.OneToOneField(Character, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.owner.name
+
+
 class Weapon(models.Model):
-    name = models.CharField(unique=True, max_length=50)
+    name = models.CharField(max_length=50)
     damage = models.IntegerField()
     type = models.CharField(max_length=50)
-
-    class Meta:
-        abstract = True
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    backpack = models.ForeignKey(Backpack, on_delete=models.DO_NOTHING, null=True)
 
     def __str__(self):
         return self.name
-
-
-class UniqueWeapon(Weapon):
-    owner = models.OneToOneField(Character, on_delete=models.CASCADE)
-
-
-class CommonWeapon(Weapon):
-    owner = models.ManyToManyField(Character)
 
 
 class Armor(models.Model):
-    name = models.CharField(unique=True, max_length=50)
+    name = models.CharField(max_length=50)
     defense = models.IntegerField()
     type = models.CharField(max_length=50)
-
-    class Meta:
-        abstract = True
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    backpack = models.ForeignKey(Backpack, on_delete=models.DO_NOTHING, null=True)
 
     def __str__(self):
         return self.name
-
-
-class UniqueArmor(Armor):
-    owner = models.OneToOneField(Character, on_delete=models.CASCADE)
-
-
-class CommonArmor(Armor):
-    owner = models.ManyToManyField(Character)

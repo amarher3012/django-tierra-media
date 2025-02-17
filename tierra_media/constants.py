@@ -86,3 +86,75 @@ def npc_init():
     ]
 
     return NPCS
+
+def weapons_init():
+    weapons = [
+        {
+            "name": "Aelion",
+            "damage": 10,
+            "type": "sword",
+        },
+        {
+            "name": "Balathor",
+            "damage": 10,
+            "type": "sword",
+        },
+        {
+            "name": "Thalion",
+            "damage": 10,
+            "type": "bow",
+        },
+        {
+            "name": "Eledrin",
+            "damage": 10,
+            "type": "bow",
+        },
+        {
+            "name": "Faelion",
+            "damage": 10,
+            "type": "mace",
+        },
+        {
+            "name": "Amdir",
+            "damage": 10,
+            "type": "mace",
+        },
+    ]
+
+    return weapons
+
+def armors_init():
+    armors = [
+        {
+            "name": "Thalionir",
+            "defense": 10,
+            "type": "helmet",
+        },
+        {
+            "name": "Gorundor",
+            "defense": 10,
+            "type": "helmet",
+        },
+        {
+            "name": "Eldrinel",
+            "defense": 10,
+            "type": "chest",
+        },
+        {
+            "name": "Kaelorn",
+            "defense": 10,
+            "type": "chest",
+        },
+        {
+            "name": "Faethor",
+            "defense": 10,
+            "type": "gloves",
+        },
+        {
+            "name": "Ithilwen",
+            "defense": 10,
+            "type": "gloves",
+        },
+    ]
+
+    return armors

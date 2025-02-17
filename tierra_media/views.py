@@ -1,19 +1,21 @@
+import copy
 from django.utils.http import urlencode
 from django.core.mail import send_mail
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
 from django.urls import reverse_lazy
-from django.contrib import messages
 from django.shortcuts import redirect
 from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
-from .models import Character
-from .constants import npc_init
 from django.forms.models import model_to_dict
+from .models import Character, Weapon, Armor
+from .constants import npc_init, weapons_init, armors_init
+
 
 class RegisterView(FormView):
     template_name = "registration/register.html"
@@ -28,9 +30,12 @@ class RegisterView(FormView):
         token = default_token_generator.make_token(user)
 
         uid = user.pk
+        WeaponPreparations.create_weapons(user)
+        ArmorPreparations.create_armors(user)
+
         token_url = self.build_activation_url(uid, token)
 
-        self.send_activation_email(user, token_url)
+        #self.send_activation_email(user, token_url)
 
         messages.success(self.request, f"Cuenta {user.username} creada exitosamente. En breves te llegará un correo de verificación.")
 
@@ -128,6 +133,19 @@ class CharactersView(LoginRequiredMixin, ListView):
         context['characters'] = self.get_queryset()
         return context
 
+class WeaponPreparations:
+    def create_weapons(user):
+        weapons = weapons_init()
+        for weapon in weapons:
+            weapon.update(
+                {
+                    "user": user,
+                }
+            )
+            weapon_object = Weapon(**weapon)
+            weapon_object.save()
+
+
 class CharacterDetailsView(LoginRequiredMixin, DetailView):
     model = Character
     template_name = "tierra_media/character_menu.html"
@@ -137,6 +155,19 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['character'] = model_to_dict(Character.objects.get(pk=self.kwargs['pk']), exclude=['user'])
         return context
+
+class ArmorPreparations:
+    def create_armors(user):
+        armors = armors_init()
+        for armor in armors:
+            armor.update(
+                {
+                    "user": user,
+                }
+            )
+            armor_object = Armor(**armor)
+            armor_object.save()
+
 
 class EquipWeapon(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/equip_weapon.html"
