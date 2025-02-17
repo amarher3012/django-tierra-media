@@ -174,5 +174,5 @@ class Move(LoginRequiredMixin, UpdateView):
         return redirect(self.get_success_url())
 
 
-class MoveSuccess(LoginRequiredMixin, UpdateView):
+class MoveSuccess(LoginRequiredMixin, TemplateView):
     template_name = "move/success.html"
