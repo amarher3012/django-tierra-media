@@ -23,4 +23,4 @@ class CustomUserCreationForm(UserCreationForm):
 class CreateCharacterForm(forms.ModelForm):
     class Meta:
         model = Character
-        fields = ["name", "faction", "location", "race"]
+        fields = ["icon", "name", "faction", "location", "race"]
