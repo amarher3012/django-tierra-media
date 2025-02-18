@@ -31,4 +31,5 @@ urlpatterns = [
     path(
         "characters/<int:pk>/move/success/", MoveSuccess.as_view(), name="move_success"
     ),
+    path("characters/<int:pk>/encounter", Encounter.as_view(), name="encounter"),
 ]

@@ -322,3 +322,10 @@ class Move(LoginRequiredMixin, UpdateView):
 
 class MoveSuccess(LoginRequiredMixin, TemplateView):
     template_name = "move/success.html"
+
+
+class Encounter(LoginRequiredMixin, TemplateView):
+    template_name = "encounters/encounters.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
