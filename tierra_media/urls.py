@@ -26,11 +26,6 @@ urlpatterns = [
         "characters/<int:pk>/equip-weapon", EquipWeapon.as_view(), name="equip_weapon"
     ),
     path("characters/<int:pk>/get-weapons", GetWeapons.as_view(), name="get_weapons"),
-    path(
-        "characters/<int:pk>/relationships",
-        RelationShips.as_view(),
-        name="relationships",
-    ),
     path("characters/<int:pk>/shop", Shop.as_view(), name="shop"),
     path("characters/<int:pk>/move/", Move.as_view(), name="move"),
     path(

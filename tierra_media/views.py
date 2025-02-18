@@ -1,5 +1,3 @@
-from django.http import JsonResponse
-from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
@@ -198,9 +196,56 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["character"] = model_to_dict(
-            Character.objects.get(pk=self.kwargs["pk"]), exclude=["user"]
-        )
+        character = self.get_object()
+        context["character"] = model_to_dict(character, exclude=["user"])
+
+        user = self.request.user
+        user_characters = Character.objects.filter(user=user)
+
+        faction = character.faction.name
+        relationships = {"allies": [], "enemies": [], "neutrals": []}
+
+        others = user_characters.exclude(pk=character.pk)
+
+        for other in others:
+            other_faction = other.faction.name
+
+            match faction:
+                case "La Comunidad del Anillo":
+                    match other_faction:
+                        case "La Comunidad del Anillo" | "Rivendel":
+                            relationships["allies"].append(other)
+                        case "Isengard" | "Mordor":
+                            relationships["enemies"].append(other)
+                        case _:
+                            relationships["neutrals"].append(other)
+
+                case "Isengard" | "Mordor":
+                    match other_faction:
+                        case "Isengard" | "Mordor":
+                            relationships["allies"].append(other)
+                        case _:
+                            relationships["enemies"].append(other)
+
+                case "Rivendel":
+                    match other_faction:
+                        case "Rivendel" | "La Comunidad del Anillo":
+                            relationships["allies"].append(other)
+                        case "Isengard" | "Mordor":
+                            relationships["enemies"].append(other)
+                        case _:
+                            relationships["neutrals"].append(other)
+
+                case "Lothlorien":
+                    match other_faction:
+                        case "Lothlorien":
+                            relationships["allies"].append(other)
+                        case "Isengard" | "Mordor":
+                            relationships["enemies"].append(other)
+                        case _:
+                            relationships["neutrals"].append(other)
+
+        context["relationships"] = relationships
         return context
 
 
@@ -241,67 +286,6 @@ class EquipWeapon(LoginRequiredMixin, TemplateView):
 
 class Shop(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/shop.html"
-
-
-class RelationShips(LoginRequiredMixin, TemplateView):
-    template_name = "partials/relationships_list.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        character_id = self.kwargs["pk"]
-        character = Character.objects.get(pk=character_id)
-        faction = character.faction
-
-        relationships = {"allies": [], "enemies": [], "neutrals": []}
-        others = Character.objects.exclude(pk=character_id)
-
-        for other in others:
-            other_faction = other.faction
-
-            match faction:
-                case "La Comunidad del Anillo":
-                    match other_faction:
-                        case "La Comunidad del Anillo" | "Rivendel":
-                            relationships["allies"].append(other)
-                        case "Isengard" | "Mordor":
-                            relationships["enemies"].append(other)
-                        case _:
-                            relationships["neutrals"].append(other)
-
-                case "Isengard" | "Mordor":
-                    match other_faction:
-                        case "Isengard" | "Mordor":
-                            relationships["allies"].append(other)
-                        case _:
-                            relationships["enemies"].append(other)
-
-                case "Rivendel":
-                    match other_faction:
-                        case "Rivendel" | "La Comunidad del Anillo":
-                            relationships["allies"].append(other)
-                        case "Isengard" | "Mordor":
-                            relationships["enemies"].append(other)
-                        case _:
-                            relationships["neutrals"].append(other)
-
-                case "Lothlorien":
-                    match other_faction:
-                        case "Lothlorien":
-                            relationships["allies"].append(other)
-                        case "Isengard" | "Mordor":
-                            relationships["enemies"].append(other)
-                        case _:
-                            relationships["neutrals"].append(other)
-
-        context["relationships"] = relationships
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        if self.request.is_ajax():
-            html = render_to_string("partials/relationships_list.html", context)
-            return JsonResponse({"html": html})
-        else:
-            return super().render_to_response(context, **response_kwargs)
 
 
 class Move(LoginRequiredMixin, UpdateView):
