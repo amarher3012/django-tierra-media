@@ -22,4 +22,6 @@
     {% else %}
         <p>En este momento no hay localizaciones disponibles.</p>
     {% endif %}
+    
+    <a href="{% url 'tierra_media:character_details' view.kwargs.pk %}" class="text-decoration-none">Volver al menú de personaje</a>
 {% endblock %}
