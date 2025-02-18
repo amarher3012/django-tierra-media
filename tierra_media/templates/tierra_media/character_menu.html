@@ -5,6 +5,7 @@
 {% block content %}
     {% if character %}
         <ul>
+            <li><a href="{% url 'tierra_media:encounters' character.id %}" class="text-decoration-none">Comprobar encuentros cercanos</a></li>
             <li><a href="{% url 'tierra_media:equip_weapon' character.id %}" class="text-decoration-none">Equipar arma</a></li>
             <li><a href="{% url 'tierra_media:move' character.id %}" class="text-decoration-none">Mover personaje</a></li>
             <li><a href="{% url 'tierra_media:get_weapons' character.id %}" class="text-decoration-none">Conseguir un arma</a></li>
