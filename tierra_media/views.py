@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
+from django.core.files import File
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlencode
 from django.contrib.auth.tokens import default_token_generator
@@ -13,7 +14,7 @@ from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
 from django.forms.models import model_to_dict
-from .models import Character, Weapon, Armor, Location, Faction, Race, Relationship
+from .models import Character, Weapon, Armor, Location, Faction, Race
 from .constants import npc_init, weapons_init, armors_init
 
 
@@ -122,8 +123,31 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
             return False
         return True
 
+    def add_icon(self, form):
+        sex = form.cleaned_data.get("sex")
+        race = form.cleaned_data.get("race")
+        if sex == "M":
+            male_icon = open(
+                f"static/icons/character-icons/male/{race.name.lower()}.png",
+                encoding="utf8",
+                errors="ignore",
+            )
+
+            obj = form.save(commit=False)
+            obj.icon = File(male_icon)
+        elif sex == "F":
+            female_icon = open(
+                f"static/icons/character-icons/female/{race.name.lower()}.png",
+                encoding="utf8",
+                errors="ignore",
+            )
+
+            obj = form.save(commit=False)
+            obj.icon = File(female_icon)
+
     def form_valid(self, form):
         if self.check_name(form):
+            self.add_icon(form)
             form.instance.user = self.request.user
             messages.success(self.request, "Personaje creado con éxito.")
             return super().form_valid(form)

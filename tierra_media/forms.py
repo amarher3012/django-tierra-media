@@ -23,4 +23,5 @@ class CustomUserCreationForm(UserCreationForm):
 class CreateCharacterForm(forms.ModelForm):
     class Meta:
         model = Character
-        fields = ["icon", "name", "faction", "location", "race"]
+        fields = ["icon", "name", "sex", "faction", "location", "race"]
+        widgets = {"icon": forms.HiddenInput}

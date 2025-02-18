@@ -25,7 +25,7 @@ class Race(models.Model):
 
 
 class Character(models.Model):
-    icon = models.ImageField(blank=True, upload_to="uploads/character-icons/")
+    icon = models.ImageField(blank=True, upload_to="uploads/")
     name = models.CharField(max_length=50)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     max_health = models.IntegerField(default=250)
