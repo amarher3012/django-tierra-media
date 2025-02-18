@@ -1,3 +1,7 @@
+SEX = ["M", "F"]
+
+SEX_CHOICES = [(SEX[0], "Hombre"), (SEX[1], "Mujer")]
+
 FACTIONS = [
     "La Comunidad del Anillo",
     "Lothlorien",

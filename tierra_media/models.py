@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from .constants import FACTION_CHOICES, LOCATION_CHOICES, RACE_CHOICES
+from .constants import FACTION_CHOICES, LOCATION_CHOICES, RACE_CHOICES, SEX_CHOICES
 
 
 class Faction(models.Model):
@@ -27,6 +27,7 @@ class Race(models.Model):
 class Character(models.Model):
     icon = models.ImageField(blank=True, upload_to="uploads/character-icons/")
     name = models.CharField(max_length=50)
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     max_health = models.IntegerField(default=250)
     health = models.IntegerField(default=250)
     defense = models.IntegerField(default=50)
