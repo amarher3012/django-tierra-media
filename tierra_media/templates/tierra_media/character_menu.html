@@ -1,22 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}
+    Menú de {{ character.name }}
+{% endblock %}
+{% block content %}
     {% if character %}
         <ul>
-            <a href="{% url 'tierra_media:equip_weapon' character.id %}"><li>Equipar arma</li></a>
-            <a href="{% url 'tierra_media:move' character.id %}"><li>Mover personaje</li></a>
-            <a href="{% url 'tierra_media:get_weapons' character.id %}"><li>Conseguir un arma</li></a>
-            <a href="{% url 'tierra_media:show_relationships' character.id %}"><li>Mostrar relaciones</li></a>
-            <a href="{% url 'tierra_media:shop' character.id %}"><li>Tienda</li></a>
-            <a href="{% url 'tierra_media:index' %}"><li>Cambiar de personaje</li></a>
+            <li><a href="{% url 'tierra_media:equip_weapon' character.id %}" class="text-decoration-none">Equipar arma</a></li>
+            <li><a href="{% url 'tierra_media:move' character.id %}" class="text-decoration-none">Mover personaje</a></li>
+            <li><a href="{% url 'tierra_media:get_weapons' character.id %}" class="text-decoration-none">Conseguir un arma</a></li>
+            <li><a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#relationshipsModal">Mostrar relaciones</a></li>
+            <li><a href="{% url 'tierra_media:shop' character.id %}" class="text-decoration-none">Tienda</a></li>
+            <li><a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Cambiar de personaje</a></li>
         </ul>
         {% for field,value in character.items %}
             <li>{{ field|title }}: {{ value }}</li>
         {% endfor %}
+
+        <!--Modal que muestra las relaciones-->
+        <div class="modal fade" id="relationshipsModal" tabindex="-1" aria-labelledby="relationshipsModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="relationshipsModalLabel">Relaciones de {{ character.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6>Aliados: </h6>
+                        <ul>
+                            {% if relationships.allies %}
+                                {% for ally in relationships.allies %}
+                                    <li>{{ ally.name }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>Este personaje no tiene aliados.</li>
+                            {% endif %}
+                        </ul>
+
+                        <h6>Enemigos: </h6>
+                        <ul>
+                            {% if relationships.enemies %}
+                                {% for enemy in relationships.enemies %}
+                                    <li>{{ enemy.name }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>Este personaje no tiene enemigos.</li>
+                            {% endif %}
+                        </ul>
+
+                        <h6>Neutrales: </h6>
+                        <ul>
+                            {% if relationships.neutrals %}
+                                {% for neutral in relationships.neutrals %}
+                                    <li>{{ neutral.name }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>Este personaje no tiene neutrales.</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% endif %}
-</body>
-</html>
+{% endblock %}

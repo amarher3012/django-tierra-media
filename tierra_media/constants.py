@@ -137,6 +137,7 @@ def npc_init():
 
     return NPCS
 
+
 def weapons_init():
     weapons = [
         {
@@ -172,6 +173,7 @@ def weapons_init():
     ]
 
     return weapons
+
 
 def armors_init():
     armors = [
