@@ -129,8 +129,7 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
         if sex == "M":
             male_icon = open(
                 f"static/icons/character-icons/male/{race.name.lower()}.png",
-                encoding="utf8",
-                errors="ignore",
+                "rb",
             )
 
             obj = form.save(commit=False)
@@ -138,8 +137,7 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
         elif sex == "F":
             female_icon = open(
                 f"static/icons/character-icons/female/{race.name.lower()}.png",
-                encoding="utf8",
-                errors="ignore",
+                "rb",
             )
 
             obj = form.save(commit=False)
@@ -164,6 +162,7 @@ class NPC_preparations:
     def create_npcs(user):
         npcs = npc_init()
         for npc in npcs:
+            npc_name = npc.get("name")
             faction_name = npc.pop("faction")
             location_name = npc.pop("location")
             race_name = npc.pop("race")
@@ -172,16 +171,33 @@ class NPC_preparations:
             location = Location.objects.get(name__iexact=location_name)
             race = Race.objects.get(name__iexact=race_name)
 
-            npc.update(
-                {
-                    "user": user,
-                    "faction": faction,
-                    "location": location,
-                    "race": race,
-                }
-            )
-            npc_object = Character(**npc)
-            npc_object.save()
+            try:
+                with open(
+                    f"static/icons/character-icons/npcs/{npc_name.lower()}.png",
+                    "rb",
+                ) as npc_icon:
+                    npc.update(
+                        {
+                            "icon": File(npc_icon),
+                            "user": user,
+                            "faction": faction,
+                            "location": location,
+                            "race": race,
+                        }
+                    )
+                    npc_object = Character(**npc)
+                    npc_object.save()
+            except FileNotFoundError:
+                npc.update(
+                    {
+                        "user": user,
+                        "faction": faction,
+                        "location": location,
+                        "race": race,
+                    }
+                )
+                npc_object = Character(**npc)
+                npc_object.save()
 
 
 class CharactersView(LoginRequiredMixin, ListView):
