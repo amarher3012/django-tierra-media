@@ -8,12 +8,12 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.views import View
 from django.views.generic import *
-from .forms import CustomUserCreationForm
-from .forms import CreateCharacterForm
 from django.forms.models import model_to_dict
+
+from .forms import CustomUserCreationForm, CreateCharacterForm
 from .models import Character, Weapon, Armor, Location, Faction, Race
 from .constants import npc_init, weapons_init, armors_init
 
