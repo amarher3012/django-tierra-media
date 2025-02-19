@@ -216,19 +216,6 @@ class CharactersView(LoginRequiredMixin, ListView):
         return context
 
 
-class WeaponPreparations:
-    def create_weapons(user):
-        weapons = weapons_init()
-        for weapon in weapons:
-            weapon.update(
-                {
-                    "user": user,
-                }
-            )
-            weapon_object = Weapon(**weapon)
-            weapon_object.save()
-
-
 class CharacterDetailsView(LoginRequiredMixin, DetailView):
     model = Character
     template_name = "tierra_media/character_menu.html"
@@ -289,17 +276,60 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
         return context
 
 
+class WeaponPreparations:
+    def create_weapons(user):
+        weapons = weapons_init()
+        for weapon in weapons:
+            weapon_name = weapon.get("name")
+            try:
+                with open(
+                    f"static/icons/weapon-icons/{weapon_name.lower()}.png",
+                    "rb",
+                ) as weapon_icon:
+                    weapon.update(
+                        {
+                            "icon": File(weapon_icon),
+                            "user": user,
+                        }
+                    )
+                    weapon_object = Weapon(**weapon)
+                    weapon_object.save()
+            except FileNotFoundError:
+                weapon.update(
+                    {
+                        "user": user,
+                    }
+                )
+                weapon_object = Weapon(**weapon)
+                weapon_object.save()
+
+
 class ArmorPreparations:
     def create_armors(user):
         armors = armors_init()
         for armor in armors:
-            armor.update(
-                {
-                    "user": user,
-                }
-            )
-            armor_object = Armor(**armor)
-            armor_object.save()
+            armor_name = armor.get("name")
+            try:
+                with open(
+                    f"static/icons/armor-icons/{armor_name.lower()}.png",
+                    "rb",
+                ) as armor_icon:
+                    armor.update(
+                        {
+                            "icon": File(armor_icon),
+                            "user": user,
+                        }
+                    )
+                    armor_object = Armor(**armor)
+                    armor_object.save()
+            except FileNotFoundError:
+                armor.update(
+                    {
+                        "user": user,
+                    }
+                )
+                armor_object = Armor(**armor)
+                armor_object.save()
 
 
 class GetWeapons(LoginRequiredMixin, ListView):
