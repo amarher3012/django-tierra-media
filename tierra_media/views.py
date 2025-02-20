@@ -1,3 +1,5 @@
+import random
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
@@ -7,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.views.generic import *
 from .forms import CustomUserCreationForm
@@ -329,3 +331,111 @@ class Encounter(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        character_id = self.kwargs.get("pk")
+
+        try:
+            character = Character.objects.select_related(
+                "location", "faction", "race"
+            ).get(pk=character_id, user=self.request.user)
+            location = character.location
+
+            encounters = (
+                Character.objects.select_related("faction", "race")
+                .filter(location=location)
+                .exclude(user=self.request.user)
+            )
+
+            faction = character.faction.name
+            relationships = {"allies": [], "enemies": [], "neutrals": []}
+
+            for encounter in encounters:
+                encounter_faction = encounter.faction.name
+
+                match faction:
+                    case "La Comunidad del Anillo":
+                        match encounter_faction:
+                            case "La Comunidad del Anillo" | "Rivendel":
+                                relationships["allies"].append(encounter)
+                            case "Isengard" | "Mordor":
+                                relationships["enemies"].append(encounter)
+                            case _:
+                                relationships["neutrals"].append(encounter)
+
+                    case "Isengard" | "Mordor":
+                        match encounter_faction:
+                            case "Isengard" | "Mordor":
+                                relationships["allies"].append(encounter)
+                            case _:
+                                relationships["enemies"].append(encounter)
+
+                    case "Rivendel":
+                        match encounter_faction:
+                            case "Rivendel" | "La Comunidad del Anillo":
+                                relationships["allies"].append(encounter)
+                            case "Isengard" | "Mordor":
+                                relationships["enemies"].append(encounter)
+                            case _:
+                                relationships["neutrals"].append(encounter)
+
+                    case "Lothlorien":
+                        match encounter_faction:
+                            case "Lothlorien":
+                                relationships["allies"].append(encounter)
+                            case "Isengard" | "Mordor":
+                                relationships["enemies"].append(encounter)
+                            case _:
+                                relationships["neutrals"].append(encounter)
+
+            context["character"] = character
+            context["location"] = location
+            context["relationships"] = relationships
+
+        except Character.DoesNotExist:
+            messages.error(self.request, "El personaje no existe.")
+            context["relationships"] = {"allies": [], "enemies": [], "neutrals": []}
+
+        return context
+
+
+class EncounterAlly(LoginRequiredMixin, UpdateView):
+    template_name = "encounters/ally.html"
+    model = Character
+    context_object_name = "character"
+    fields = []
+
+    def get_object(self):
+        return get_object_or_404(
+            Character, pk=self.kwargs["pk"], user=self.request.user
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        character = self.get_object()
+        ally_id = self.kwargs.get("ally_id")
+        ally = get_object_or_404(Character, pk=ally_id)
+
+        # Si la vida del personaje utilizado está por debajo del 50%, entonces será más probable que nos ofrezcan curación.
+        if character.health < character.health / 2:
+            healing = random.choices([True, False], weights=[75, 25])[0]
+        else:
+            healing = random.choice([True, False])
+
+        if healing:
+            healing_amount = random.randrange(50, 250)
+            # Con min nos encargamos de que la vida actual no supere la vida máxima del personaje.
+            character.health = min(
+                character.health + healing_amount, character.max_health
+            )
+            character.save()
+            messages.success(
+                self.request, f"Se han restaurado {healing_amount} puntos de salud."
+            )
+        else:
+            # TODO: Implementar selección de arma
+            pass
+
+        context["ally"] = ally
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy("encounters:encounter", kwargs={"pk": self.object.pk})
