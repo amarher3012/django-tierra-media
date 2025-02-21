@@ -3,6 +3,8 @@ import random
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.http import urlencode
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
@@ -15,8 +17,30 @@ from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
 from django.forms.models import model_to_dict
-from .models import Character, Weapon, Armor, Location, Faction, Race, Relationship
+from .models import (
+    Character,
+    Weapon,
+    Armor,
+    Location,
+    Faction,
+    Race,
+    Relationship,
+    Backpack,
+)
 from .constants import npc_init, weapons_init, armors_init
+
+
+@receiver(post_save, sender=Character)
+def create_backpack_for_character(sender, instance, created, **kwargs):
+    if created:
+        # Crear un backpack vacío para el personaje recién creado
+        Backpack.objects.create(owner=instance)
+
+
+@receiver(post_save, sender=Character)
+def save_backpack_for_character(sender, instance, **kwargs):
+    # Asegurarse de que el backpack del personaje se guarda
+    instance.backpack.save()
 
 
 class RegisterView(FormView):
@@ -416,9 +440,10 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
         decline = False
         healed_amount = 0
         weapon = False
+        gift = None
 
         # Si la vida del personaje utilizado está por debajo del 50%, entonces será más probable que nos ofrezcan curación.
-        if character.health < character.health / 2:
+        if character.health < character.max_health / 2:
             healing = random.choices([True, False], weights=[75, 25])[0]
         else:
             healing = random.choice([True, False])
@@ -433,9 +458,6 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
             healed_amount = min(character.health + healing_amount, character.max_health)
             character.health = healed_amount
             character.save()
-            messages.success(
-                self.request, f"Se han restaurado {healing_amount} puntos de salud."
-            )
         else:
             gift_is_weapon = random.choice([True, False])
 
@@ -456,14 +478,13 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
             if gift:
                 gift.backpack = character.backpack
                 gift.save()
-                messages.success(self.request, f"¡Has recibido {gift.name}!")
-            else:
-                messages.info(self.request, "No hay objetos disponibles.")
 
-        context["weapon"] = weapon
+        context["healing"] = healing
         context["decline"] = decline
         context["healed_amount"] = healed_amount
+        context["weapon"] = weapon
         context["ally"] = ally
+        context["gift"] = gift
         return context
 
     def get_success_url(self):

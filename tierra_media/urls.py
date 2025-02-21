@@ -33,7 +33,7 @@ urlpatterns = [
     ),
     path("characters/<int:pk>/encounter", Encounter.as_view(), name="encounter"),
     path(
-        "characters/<int:pk>/encounter_ally/<int:ally_id>",
+        "characters/<int:pk>/encounter_ally/<int:ally_id>/",
         EncounterAlly.as_view(),
         name="encounter_ally",
     ),
