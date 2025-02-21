@@ -438,7 +438,8 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
         ally_id = self.kwargs.get("ally_id")
         ally = get_object_or_404(Character, pk=ally_id)
         decline = False
-        healed_amount = 0
+        crit_healing = False
+        healing_amount = 0
         weapon = False
         gift = None
 
@@ -453,11 +454,19 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
             decline = True
 
         if healing:
-            healing_amount = random.randrange(50, 250)
-            # Con min nos encargamos de que la vida actual no supere la vida máxima del personaje.
-            healed_amount = min(character.health + healing_amount, character.max_health)
-            character.health = healed_amount
-            character.save()
+            crit_healing = random.choices([True, False], weights=[10, 90])[0]
+
+            if crit_healing:
+                character.health = character.max_health
+                character.save()
+            else:
+                healing_amount = random.randrange(10, 100)
+                # Con min nos encargamos de que la vida actual no supere la vida máxima del personaje.
+                healed_amount = min(
+                    character.health + healing_amount, character.max_health
+                )
+                character.health = healed_amount
+                character.save()
         else:
             gift_is_weapon = random.choice([True, False])
 
@@ -480,11 +489,13 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
                 gift.save()
 
         context["healing"] = healing
+        context["crit_healing"] = crit_healing
+        context["healing_amount"] = healing_amount
         context["decline"] = decline
-        context["healed_amount"] = healed_amount
         context["weapon"] = weapon
         context["ally"] = ally
         context["gift"] = gift
+        context["character"] = character
         return context
 
     def get_success_url(self):

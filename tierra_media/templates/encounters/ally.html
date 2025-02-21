@@ -13,13 +13,19 @@
         {% if decline %}
         	<p>Pese a su amabilidad, te encuentras en buen estado, así que decides rechazar cordialmente su ayuda.</p>
         {% else %}
-            <p>¡Te curas <strong>{{ healed_amount }}</strong> puntos de salud! Salud actual: <strong>{{ character.health }}</strong></p>
+            {% if crit_healing %}
+                <p>El efecto del ungüento no es solo amable para con tu cuerpo, sino también para con tu alma. Te sientes increíblemente bien. Renovado.</p>
+                <p><strong>Recuperas toda tu salud</strong>. Salud actual: <strong>{{ character.health }}</strong>.</p>
+            {% else %}
+                <p>¡Te curas <strong>{{ healing_amount }}</strong> puntos de salud! Salud actual: <strong>{{ character.health }}</strong></p>
+            {% endif %}
         {% endif %}
     {% else %}
         {% if gift %}
             <p>Tras una amistosa y duradera conversación y al conocer lo peligroso de tu empresa, {{ ally.name }} decide ofrecerte un objeto valioso
             que ha encontrado durante sus aventuras a modo de obsequio, para celebrar vuestra amistad.</p>
-            <p>¡Has recibido el objeto {{ gift.name }}! Un <strong>{{ gift.type }}</strong> que cuenta con <strong>{{ gift.damage }}</strong> puntos de {% if weapon %}daño{% else %}defensa{% endif %}.</p>
+            <p>¡Has recibido el objeto {{ gift.name }}! Un <strong>{{ gift.type }}</strong> que cuenta con
+                <strong>{% if weapon %}{{ gift.damage }}{% else %}{{ gift.defense }}{% endif %}</strong> puntos de {% if weapon %}daño{% else %}defensa{% endif %}.</p>
         {% else %}
             <p>Tras una amistosa y duradera conversación que sana el ánimo a ambos, {{ ally.name }} te desea la mayor de las suertes en tu empresa,
             lamentándose por no poder ofrecerte ningún tipo de ayuda.</p>

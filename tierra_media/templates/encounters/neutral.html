@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}
+	Encuentro neutral con {{ neutral.name }}
+{% endblock %}
+{% block content %}
+	<h1>Encuentro neutral con {{ neutral.name }}</h1>
+    <p>
+        Puedes ver en la distancia un rostro que te resulta familiar. Se trata de {{ neutral.name }}.
+        Ni aliado ni enemigo, {{ neutral.name }} parece preferir evitar relacionarse contigo.</p>
+    <p>¿Qué quieres hacer?</p>
 
-</body>
-</html>
+{% endblock %}
