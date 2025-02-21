@@ -1,10 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}
+	Encuentro aliado con {{ ally.name }}
+{% endblock %}
+{% block content %}
+	<h1>Encuentro aliado con {{ ally.name }}</h1>
+    <p>Tras escuchar que se encontraba por los alrededores, te reúnes con {{ ally.name }}. Después de saludaros y
+    poneros al día, os sentáis a compartir algo de beber y un poco de pan de lembas.</p>
 
-</body>
-</html>
+    {% if healing %}
+    	<p>Durante una amistosa conversación {{ ally.name }} no puede evitar fijarse en tus heridas y rasguños.</p>
+        <p>Te ofrece un ungüento especial para curar tus heridas.</p>
+        {% if decline %}
+        	<p>Pese a su amabilidad, te encuentras en buen estado, así que decides rechazar cordialmente su ayuda.</p>
+        {% else %}
+            <p>¡Te curas <strong>{{ healed_amount }}</strong> puntos de salud! Salud actual: <strong>{{ character.health }}</strong></p>
+        {% endif %}
+    {% else %}
+        {% if gift %}
+            <p>Tras una amistosa y duradera conversación y al conocer lo peligroso de tu empresa, {{ ally.name }} decide ofrecerte un objeto valioso
+            que ha encontrado durante sus aventuras a modo de obsequio, para celebrar vuestra amistad.</p>
+            <p>¡Has recibido el objeto {{ gift.name }}!</p>
+            <p>Un <strong>{{ gift.type }}</strong> que cuenta con <strong>{{ gift.damage }}</strong> puntos de {% if weapon %}daño{% else %}defensa{% endif %}.</p>
+        {% else %}
+            <p>Tras una amistosa y duradera conversación que sana el ánimo a ambos, {{ ally.name }} te desea la mayor de las suertes en tu empresa,
+            lamentándose por no poder ofrecerte ningún tipo de ayuda.</p>
+            <p>Tranquilizas a tu amigo quitándole hierro a sus preocupaciones.</p>
+        {% endif %}
+    {% endif %}
+
+    <p>Finalmente, os despedís efusivamente no sin antes desearos la mejor de la suerte y esperar un encuentro próximo.</p>
+{% endblock %}

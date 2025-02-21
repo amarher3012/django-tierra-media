@@ -413,6 +413,9 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
         character = self.get_object()
         ally_id = self.kwargs.get("ally_id")
         ally = get_object_or_404(Character, pk=ally_id)
+        decline = False
+        healed_amount = 0
+        weapon = False
 
         # Si la vida del personaje utilizado está por debajo del 50%, entonces será más probable que nos ofrezcan curación.
         if character.health < character.health / 2:
@@ -420,22 +423,52 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
         else:
             healing = random.choice([True, False])
 
+        # Si el personaje va a recibir curación pero ya se encuentra con la vida máxima,
+        if healing and character.health == character.max_health:
+            decline = True
+
         if healing:
             healing_amount = random.randrange(50, 250)
             # Con min nos encargamos de que la vida actual no supere la vida máxima del personaje.
-            character.health = min(
-                character.health + healing_amount, character.max_health
-            )
+            healed_amount = min(character.health + healing_amount, character.max_health)
+            character.health = healed_amount
             character.save()
             messages.success(
                 self.request, f"Se han restaurado {healing_amount} puntos de salud."
             )
         else:
-            # TODO: Implementar selección de arma
-            pass
+            gift_is_weapon = random.choice([True, False])
 
+            if gift_is_weapon:
+                gift = (
+                    Weapon.objects.filter(user=self.request.user, backpack=None)
+                    .order_by("?")
+                    .first()
+                )
+                weapon = True
+            else:
+                gift = (
+                    Armor.objects.filter(user=self.request.user, backpack=None)
+                    .order_by("?")
+                    .first()
+                )
+
+            if gift:
+                gift.backpack = character.backpack
+                gift.save()
+                messages.success(self.request, f"¡Has recibido {gift.name}!")
+            else:
+                messages.info(self.request, "No hay objetos disponibles.")
+
+        context["weapon"] = weapon
+        context["decline"] = decline
+        context["healed_amount"] = healed_amount
         context["ally"] = ally
         return context
 
     def get_success_url(self):
         return reverse_lazy("encounters:encounter", kwargs={"pk": self.object.pk})
+
+
+class EncounterNeutral(LoginRequiredMixin, TemplateView):
+    template_name = "encounters/neutral.html"
