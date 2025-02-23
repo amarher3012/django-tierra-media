@@ -24,7 +24,7 @@ class RegisterView(FormView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
-        user.is_active = False
+        user.is_active = True
         user.save()
 
         token = default_token_generator.make_token(user)
@@ -33,7 +33,7 @@ class RegisterView(FormView):
 
         token_url = self.build_activation_url(uid, token)
 
-        self.send_activation_email(user, token_url)
+        #self.send_activation_email(user, token_url)
 
         messages.success(
             self.request,
