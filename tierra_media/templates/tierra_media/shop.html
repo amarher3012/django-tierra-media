@@ -8,15 +8,15 @@
     {% bootstrap_css %}
     {% bootstrap_javascript %}
     <style>
-        .container {
+        .container-fluid {
             width: 100vh;
             height: 100vh;
         }
     </style>
 </head>
 <body>
-<div class="container d-flex justify-content-center">
-    <img src="{% static "tienda.png" %}">
+<div class="container-fluid d-flex align-items-center w-100 overflow-hidden p-0">
+    <img src="{% static "tienda.png" %}" class="img-fluid w-100">
 </div>
 </body>
 </html>
