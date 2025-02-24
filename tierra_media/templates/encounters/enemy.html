@@ -1,12 +1,42 @@
 {% extends 'base.html' %}
 {% block title %}
-	Encuentro enemigo con {{ enemy.name }}
+    Enfrentamiento con {{ enemy.name }}
 {% endblock %}
 {% block content %}
-	<h1>Encuentro enemigo con {{ enemy.name }}</h1>
+    <h1>Enfrentamiento con {{ enemy.name }}</h1>
+    <p>
+        El destino parece haber confabulado para cruzar tu camino y el de {{enemy.name}}.
+        Antes de que te des cuenta, os encontráis cara a cara. Parece que {{enemy.name}} también te estaba buscando.
+        Ambos desenvaináis vuestras armas sin mediar palabra.
+        Antes de que las hojas que caen de los árboles toquen el suelo, el combate comienza.
+    </p>
 
-    <div class="d-flex align-items-center justify-content-start gap-2">
-        <a href="{% url 'tierra_media:encounter_enemy' character.pk encounter.pk%}" class="text-decoration-none">Plantarle cara y enfrentarte a él</a>
-        <a href="{% url 'tierra_media:encounter' character.pk %}" class="text-decoration-none">Seguir tu camino y evitar problemas</a>
-    </div>
+    {% if not has_weapon %}
+
+    {% endif %}
+
+    <h2>Estado de {{ enemy.name }}</h2>
+    <p>Salud: {{ enemy.health }}/{{ enemy.max_health }}</p>
+    <p>Defensa: {{ enemy.defense }}</p>
+
+    <h2>Tu estado:</h2>
+    <p>Salud: {{ character.health }}/{{ character.max_health }}</p>
+    <p>Defensa: {{ character.defense }}</p>
+
+    <h2>¿Qué deseas hacer?</h2>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="action" value="attack" class="btn btn-danger">Atacar</button>
+        <button type="submit" name="action" value="defend" class="btn btn-warning">Defender</button>
+        <button type="submit" name="action" value="flee" class="btn btn-secondary">Huir</button>
+    </form>
+
+    <!-- Mostrar mensajes de retroalimentación -->
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 {% endblock %}

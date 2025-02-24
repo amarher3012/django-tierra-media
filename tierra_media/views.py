@@ -359,15 +359,19 @@ class Encounter(LoginRequiredMixin, TemplateView):
         character_id = self.kwargs.get("pk")
 
         try:
+            # Obtener el personaje del usuario actual
             character = Character.objects.select_related(
                 "location", "faction", "race"
             ).get(pk=character_id, user=self.request.user)
             location = character.location
 
+            # Filtrar los encuentros para que solo sean personajes del usuario actual
             encounters = (
                 Character.objects.select_related("faction", "race")
-                .filter(location=location)
-                .exclude(user=self.request.user)
+                .filter(
+                    location=location, user=self.request.user
+                )  # Solo personajes del usuario actual
+                .exclude(pk=character_id)  # Excluir al personaje actual
             )
 
             faction = character.faction.name
@@ -511,12 +515,127 @@ class EncounterNeutral(LoginRequiredMixin, TemplateView):
         character_id = self.kwargs.get("pk")
         neutral_id = self.kwargs.get("neutral_id")
 
-        character = get_object_or_404(Character, pk=character_id)
-        neutral = get_object_or_404(Character, pk=neutral_id)
-
-        context["character"] = character
-        context["neutral"] = neutral
+        context["character"] = get_object_or_404(
+            Character, pk=character_id, user=self.request.user
+        )
+        context["neutral"] = get_object_or_404(Character, pk=neutral_id)
+        context["encounter"] = context["neutral"]
         return context
+
+
+class CombatManager:
+    def __init__(self, character, enemy):
+        self.character = character
+        self.enemy = enemy
+
+    def calculate_damage(self, attacker, defender):
+        """Calcula el daño infligido por el atacante al defensor."""
+        weapon_damage = (
+            attacker.equipped_weapon.damage if attacker.equipped_weapon else 0
+        )
+        defense = defender.defense + (
+            defender.equipped_armor.defense if defender.equipped_armor else 0
+        )
+        return max(weapon_damage - defense, 0)
+
+    def perform_attack(self, attacker, defender):
+        """Realiza un ataque y devuelve el daño infligido."""
+        damage = self.calculate_damage(attacker, defender)
+        defender.health = max(defender.health - damage, 0)
+        defender.save()
+        return damage
+
+    def perform_defend(self, defender):
+        """Aumenta la defensa del defensor y devuelve el bono de defensa."""
+        defense_bonus = random.randint(5, 15)
+        defender.defense += defense_bonus
+        defender.save()
+        return defense_bonus
+
+    def perform_flee(self, flee_chance):
+        """Intenta huir y devuelve si tuvo éxito."""
+        return random.choices([True, False], weights=[flee_chance, 100 - flee_chance])[
+            0
+        ]
+
+    def get_racial_bonus(self, character):
+        """Devuelve los bonos raciales para iniciativa, daño y defensa."""
+        bonuses = {
+            "initiative": 0,
+            "damage_multiplier": 1.0,
+            "defense_multiplier": 1.0,
+            "flee_chance": 0,
+        }
+
+        if character.race.name == "Humano":
+            bonuses["initiative"] += 5
+            bonuses["damage_multiplier"] = 1.20
+        elif character.race.name == "Elfo":
+            bonuses["initiative"] += 20
+            bonuses["damage_multiplier"] = 1.10
+        elif character.race.name == "Enano":
+            bonuses["defense_multiplier"] = 1.20
+            bonuses["damage_multiplier"] = 1.10
+        elif character.race.name == "Hobbit":
+            bonuses["flee_chance"] += 20
+            bonuses["initiative"] += 15
+        elif character.race.name == "Orco":
+            bonuses["damage_multiplier"] = 1.50
+
+        return bonuses
+
+    def combat_turn(self, action):
+        """Maneja un turno de combate."""
+        character_bonus = self.get_racial_bonus(self.character)
+        enemy_bonus = self.get_racial_bonus(self.enemy)
+
+        # Determinar quién ataca primero
+        character_initiative = 50 + character_bonus["initiative"]
+        enemy_initiative = 50 + enemy_bonus["initiative"]
+        first = random.choices(
+            [True, False], weights=[character_initiative, enemy_initiative]
+        )[0]
+
+        active_turn = "character" if first else "enemy"
+
+        while self.character.health > 0 and self.enemy.health > 0:
+            if active_turn == "character":
+                if action == "defend":
+                    defense_bonus = self.perform_defend(self.character)
+                    result = {"action": "defend", "defense_bonus": defense_bonus}
+                elif action == "flee":
+                    flee_success = self.perform_flee(character_bonus["flee_chance"])
+                    result = {"action": "flee", "success": flee_success}
+                else:
+                    damage = self.perform_attack(self.character, self.enemy)
+                    result = {"action": "attack", "damage": damage}
+            else:
+                if self.enemy.health > self.enemy.max_health * 0.5:
+                    enemy_action = "attack"
+                else:
+                    enemy_action = random.choices(
+                        ["defend", "attack"], weights=[75, 25]
+                    )[0]
+
+                if enemy_action == "defend":
+                    defense_bonus = self.perform_defend(self.enemy)
+                    result = {
+                        "action": "defend",
+                        "defense_bonus": defense_bonus,
+                        "actor": "enemy",
+                    }
+                else:
+                    damage = self.perform_attack(self.enemy, self.character)
+                    result = {"action": "attack", "damage": damage, "actor": "enemy"}
+
+            # Cambiar el turno después de cada acción
+            active_turn = "enemy" if active_turn == "character" else "character"
+
+            # Retornar el resultado de la acción actual
+            return result
+
+        # Si el bucle termina, el combate ha finalizado
+        return {"result": "combat_over"}
 
 
 class EncounterEnemy(LoginRequiredMixin, TemplateView):
@@ -527,16 +646,125 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
         character_id = self.kwargs.get("pk")
         enemy_id = self.kwargs.get("enemy_id")
 
-        character = get_object_or_404(Character, pk=character_id)
+        character = get_object_or_404(
+            Character, pk=character_id, user=self.request.user
+        )
         enemy = get_object_or_404(Character, pk=enemy_id)
+
+        has_weapon = character.equipped_weapon is not None
+
+        context["character"] = character
+        context["enemy"] = enemy
+        context["has_weapon"] = has_weapon
         return context
 
     def post(self, request, *args, **kwargs):
         character_id = self.kwargs.get("pk")
-        enemy_id = self.kwargs.get("")
+        enemy_id = self.kwargs.get("enemy_id")
 
-        character = get_object_or_404(Character, pk=character_id)
+        character = get_object_or_404(
+            Character, pk=character_id, user=self.request.user
+        )
         enemy = get_object_or_404(Character, pk=enemy_id)
 
-        if action == "attack":
-            pass
+        action = request.POST.get("action")
+
+        if action not in ["attack", "defend", "flee"]:
+            messages.error(request, "Acción no válida.")
+            return redirect(
+                "tierra_media:encounter_enemy", pk=character_id, enemy_id=enemy_id
+            )
+
+        # Inicializar el CombatManager
+        combat_manager = CombatManager(character, enemy)
+
+        # Determinar quién ataca primero
+        character_bonus = combat_manager.get_racial_bonus(character)
+        enemy_bonus = combat_manager.get_racial_bonus(enemy)
+
+        character_initiative = 50 + character_bonus["initiative"]
+        enemy_initiative = 50 + enemy_bonus["initiative"]
+        first = random.choices(
+            [True, False], weights=[character_initiative, enemy_initiative]
+        )[0]
+
+        active_turn = "character" if first else "enemy"
+
+        # Bucle de combate
+        while character.health > 0 and enemy.health > 0:
+            if active_turn == "character":
+                # Turno del personaje
+                if action == "attack":
+                    if not character.equipped_weapon:
+                        messages.error(
+                            request, "¡Necesitas un arma equipada para atacar!"
+                        )
+                        return redirect(
+                            "tierra_media:encounter_enemy",
+                            pk=character_id,
+                            enemy_id=enemy_id,
+                        )
+
+                    damage = combat_manager.perform_attack(character, enemy)
+                    messages.success(
+                        request,
+                        f"¡Has infligido {damage} puntos de daño a {enemy.name}!",
+                    )
+                elif action == "defend":
+                    defense_bonus = combat_manager.perform_defend(character)
+                    messages.info(
+                        request, f"¡Has aumentado tu defensa en {defense_bonus} puntos!"
+                    )
+                elif action == "flee":
+                    flee_success = combat_manager.perform_flee(
+                        character_bonus["flee_chance"]
+                    )
+                    if flee_success:
+                        messages.success(request, "¡Has logrado huir!")
+                        return redirect("tierra_media:index")
+                    else:
+                        messages.error(request, "¡No has logrado huir!")
+
+            else:
+                # Turno del enemigo
+                if enemy.health > enemy.max_health * 0.5:
+                    enemy_action = "attack"
+                else:
+                    enemy_action = random.choices(
+                        ["defend", "attack"], weights=[75, 25]
+                    )[0]
+
+                if enemy_action == "defend":
+                    defense_bonus = combat_manager.perform_defend(enemy)
+                    messages.warning(
+                        request,
+                        f"¡{enemy.name} se ha defendido y aumentó su defensa en {defense_bonus} puntos!",
+                    )
+                else:
+                    damage = combat_manager.perform_attack(enemy, character)
+                    messages.warning(
+                        request,
+                        f"¡{enemy.name} te ha infligido {damage} puntos de daño!",
+                    )
+
+            active_turn = "enemy" if active_turn == "character" else "character"
+
+            character.save()
+            enemy.save()
+
+            if character.health <= 0 or enemy.health <= 0:
+                break
+
+        # Verificar el resultado del combate
+        if character.health <= 0:
+            messages.error(request, "¡Has sido derrotado!")
+            character.delete()
+            return redirect("tierra_media:index")
+        elif enemy.health <= 0:
+            messages.success(request, f"¡Has derrotado a {enemy.name}!")
+            enemy.delete()
+            return redirect("tierra_media:index")
+
+        return redirect(
+            "tierra_media:encounter_enemy", pk=character_id, enemy_id=enemy_id
+        )
