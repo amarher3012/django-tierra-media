@@ -12,9 +12,14 @@
             <li><a href="{% url 'tierra_media:shop' character.id %}" class="text-decoration-none">Tienda</a></li>
             <li><a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Cambiar de personaje</a></li>
         </ul>
-        {% for field,value in character.items %}
-            <li>{{ field|title }}: {{ value }}</li>
-        {% endfor %}
+        <li>Nombre: {{ character.name }}</li>
+        <li>Vida maxima: {{ character.max_health }}</li>
+        <li>Vida: {{ character.health }}</li>
+        <li>Defensa: {{ character.defense }}</li>
+        <li>Localización: {{ character.location.name}}</li>
+        <li>Raza: {{ character.race.name }}</li>
+        <li>Arma equipada: {{ character.equiped_weapon.name }}</li>
+        <li>Armadura equipada: {{ character.equiped_armor.name }}</li>
 
         <!--Modal que muestra las relaciones-->
         <div class="modal fade" id="relationshipsModal" tabindex="-1" aria-labelledby="relationshipsModalLabel" aria-hidden="true">

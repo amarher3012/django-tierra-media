@@ -197,7 +197,8 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         character = self.get_object()
-        context["character"] = model_to_dict(character, exclude=["user"])
+        #context["character"] = model_to_dict(character, exclude=["user"])
+        context["character"] = Character.objects.get(pk=character.pk)
 
         user = self.request.user
         user_characters = Character.objects.filter(user=user)
