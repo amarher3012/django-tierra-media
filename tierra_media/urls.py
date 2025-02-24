@@ -37,4 +37,14 @@ urlpatterns = [
         EncounterAlly.as_view(),
         name="encounter_ally",
     ),
+    path(
+        "characters/<int:pk>/encounter_neutral/<int:neutral_id>/",
+        EncounterNeutral.as_view(),
+        name="encounter_neutral",
+    ),
+    path(
+        "characters/<int:pk>/encounter_enemy/<int:enemy_id>/",
+        EncounterEnemy.as_view(),
+        name="encounter_enemy",
+    ),
 ]

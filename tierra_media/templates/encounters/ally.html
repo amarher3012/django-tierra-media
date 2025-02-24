@@ -34,4 +34,9 @@
     {% endif %}
 
     <p>Finalmente, os despedís efusivamente no sin antes desearos la mejor de la suerte y esperar un encuentro próximo.</p>
+    <div class="d-flex align-items-center justify-content-start gap-2">
+        <a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Volver a Inicio</a>
+        <a href="{% url 'tierra_media:character_details' character.pk %}" class="text-decoration-none">Volver al menú de personaje</a>
+        <a href="{% url 'tierra_media:encounter' character.pk %}" class="text-decoration-none">Volver al menú Encuentros</a>
+    </div>
 {% endblock %}

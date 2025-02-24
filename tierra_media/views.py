@@ -504,3 +504,12 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
 
 class EncounterNeutral(LoginRequiredMixin, TemplateView):
     template_name = "encounters/neutral.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        character_id = self.kwargs.get("pk")
+        neutral_id = self.kwargs.get("neutral_id")
+
+
+class EncounterEnemy(LoginRequiredMixin, UpdateView):
+    pass
