@@ -5,6 +5,18 @@
     <title>Title</title>
 </head>
 <body>
+    <h1>weapons</h1>
+    {% if weapons %}
+        {% for weapon in weapons %}
+            <li>{{ weapon.name }}</li>
+        {% endfor %}
+    {% endif %}
 
+    <h1>armors</h1>
+    {% if armors %}
+        {% for armor in armors %}
+            <li>{{ armor.name }}</li>
+        {% endfor %}
+{% endif %}
 </body>
 </html>

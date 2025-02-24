@@ -1,3 +1,5 @@
+from gc import get_objects
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
@@ -13,7 +15,7 @@ from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
 from django.forms.models import model_to_dict
-from .models import Character, Weapon, Armor, Location, Faction, Race, Relationship
+from .models import Character, Weapon, Armor, Location, Faction, Race, Relationship, Backpack
 from .constants import npc_init, weapons_init, armors_init
 
 
@@ -281,9 +283,20 @@ class GetWeapons(LoginRequiredMixin, ListView):
         return context
 
 
-class EquipWeapon(LoginRequiredMixin, TemplateView):
+class EquipWeapon(LoginRequiredMixin, DetailView):
+    model = Character
     template_name = "tierra_media/equip_weapon.html"
+    context_object_name = "objects"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        character = self.get_object()
+        backpack = Backpack.objects.get(owner=character.pk)
+        weapons = Weapon.objects.filter(user=self.request.user, backpack=backpack)
+        armors = Armor.objects.filter(user=self.request.user, backpack=backpack)
+        context['weapons'] = weapons
+        context['armors'] = armors
+        return context
 
 class Shop(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/shop.html"
