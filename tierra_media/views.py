@@ -7,9 +7,10 @@ from django.utils.http import urlencode
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.conf import settings
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.utils.translation.template import context_re
 from django.views import View
 from django.views.generic import *
 from .forms import CustomUserCreationForm
@@ -283,10 +284,14 @@ class GetWeapons(LoginRequiredMixin, ListView):
         return context
 
 
-class EquipWeapon(LoginRequiredMixin, DetailView):
+class EquipWeapon(LoginRequiredMixin, UpdateView):
     model = Character
+    fields = []
     template_name = "tierra_media/equip_weapon.html"
     context_object_name = "objects"
+
+    def get_success_url(self):
+        return reverse_lazy("tierra_media:character_details", kwargs={"pk": self.get_object().pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -297,6 +302,24 @@ class EquipWeapon(LoginRequiredMixin, DetailView):
         context['weapons'] = weapons
         context['armors'] = armors
         return context
+
+    def post(self, request, *args, **kwargs):
+        character = self.get_object()
+        if 'weapon' in request.POST:
+            item_selected = request.POST.get('weapon')
+            item_found = Weapon.objects.get(pk=item_selected)
+            character.equipped_weapon = item_found
+            character.save()
+            messages.success(request,"Arma equipada con éxito")
+            return redirect(self.get_success_url())
+
+        item_selected = request.POST.get('armor')
+        item_found = Armor.objects.get(pk=item_selected)
+        character.equipped_armor = item_found
+        character.save()
+        messages.success(request, "Armadura equipada con éxito")
+        return redirect(self.get_success_url())
+
 
 class Shop(LoginRequiredMixin, TemplateView):
     template_name = "tierra_media/shop.html"

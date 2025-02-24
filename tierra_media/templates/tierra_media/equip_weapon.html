@@ -3,19 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    {% load bootstrap5 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
 </head>
 <body>
     <h1>weapons</h1>
     {% if weapons %}
         {% for weapon in weapons %}
-            <li>{{ weapon.name }}</li>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="weapon" value="{{ weapon.id }}">
+                    <button type="submit" class="btn btn-link text-decoration-none p-0">{{ weapon.name }}</button>
+                </form>
         {% endfor %}
     {% endif %}
 
     <h1>armors</h1>
     {% if armors %}
         {% for armor in armors %}
-            <li>{{ armor.name }}</li>
+            <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="armor" value="{{ armor.id }}">
+                    <button type="submit" class="btn btn-link text-decoration-none p-0">{{ armor.name }}</button>
+                </form>
         {% endfor %}
 {% endif %}
 </body>

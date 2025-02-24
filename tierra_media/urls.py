@@ -23,7 +23,7 @@ urlpatterns = [
         "characters/<int:pk>", CharacterDetailsView.as_view(), name="character_details"
     ),
     path(
-        "characters/<int:pk>/equip-weapon", EquipWeapon.as_view(), name="equip_weapon"
+        "characters/<int:pk>/equip-objects", EquipWeapon.as_view(), name="equip_objects"
     ),
     path("characters/<int:pk>/get-weapons", GetWeapons.as_view(), name="get_weapons"),
     path("characters/<int:pk>/shop", Shop.as_view(), name="shop"),
