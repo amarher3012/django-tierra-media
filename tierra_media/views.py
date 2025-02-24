@@ -510,6 +510,13 @@ class EncounterNeutral(LoginRequiredMixin, TemplateView):
         character_id = self.kwargs.get("pk")
         neutral_id = self.kwargs.get("neutral_id")
 
+        character = get_object_or_404(Character, pk=character_id)
+        neutral = get_object_or_404(Character, pk=neutral_id)
+
+        context["character"] = character
+        context["neutral"] = neutral
+        return context
+
 
 class EncounterEnemy(LoginRequiredMixin, UpdateView):
     pass

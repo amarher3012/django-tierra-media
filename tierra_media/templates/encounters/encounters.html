@@ -38,7 +38,7 @@
         <ul>
         {% for encounter in relationships.neutrals %}
             <li>
-                <a href="#"><strong>{{ encounter.name }}</strong></a> - {{ encounter.race.name }} de {{ encounter.faction.name }}
+                <a href="{% url 'tierra_media:encounter_neutral' character.pk encounter.pk %}"><strong>{{ encounter.name }}</strong></a> - {{ encounter.race.name }} de {{ encounter.faction.name }}
                 <p>Salud: {{ encounter.health }}/{{ encounter.max_health }}</p>
             </li>
         {% endfor %}

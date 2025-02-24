@@ -6,12 +6,14 @@
 	<h1>Encuentro neutral con {{ neutral.name }}</h1>
     <p>
         Puedes ver en la distancia un rostro que te resulta familiar. Se trata de {{ neutral.name }}.
+    </p>
+    <p>
         Ni aliado ni enemigo, {{ neutral.name }} parece preferir evitar relacionarse contigo y te mira con recelo.
         Parece estar preparado para cualquier cosa.
     </p>
-    <p>¿Qué quieres hacer?</p>
+    <p>¿Qué quieres hacer? Acercarte a él podría suponer entrar en combate.</p>
     <div class="d-flex align-items-center justify-content-start gap-2">
-        <a href="{% url 'tierra_media:encounter_enemy' %}" class="text-decoration-none">Plantarle cara y enfrentarte a él</a>
+        <a href="#" class="text-decoration-none">Plantarle cara y enfrentarte a él</a>
         <a href="{% url 'tierra_media:encounter' character.pk %}" class="text-decoration-none">Seguir tu camino y evitar problemas</a>
     </div>
 {% endblock %}
