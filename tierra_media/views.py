@@ -16,7 +16,7 @@ from django.views.generic import *
 from .forms import CustomUserCreationForm
 from .forms import CreateCharacterForm
 from django.forms.models import model_to_dict
-from .models import Character, Weapon, Armor, Location, Faction, Race, Relationship, Backpack
+from .models import Character, Weapon, Armor, Location, Faction, Race, Backpack
 from .constants import npc_init, weapons_init, armors_init
 
 

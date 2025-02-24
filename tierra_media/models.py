@@ -42,21 +42,6 @@ class Character(models.Model):
         return self.name
 
 
-class Relationship(models.Model):
-    type = models.CharField(max_length=50)
-    character_1 = models.ForeignKey(
-        Character, related_name="character", on_delete=models.CASCADE
-    )
-    character_2 = models.ForeignKey(
-        Character, related_name="relation_with", on_delete=models.CASCADE
-    )
-
-    def __str__(self):
-        return (
-            self.character_1.name + " -> " + self.character_2.name + " -> " + self.type
-        )
-
-
 class Backpack(models.Model):
     owner = models.OneToOneField(Character, on_delete=models.CASCADE)
 
@@ -80,7 +65,6 @@ class Armor(models.Model):
     name = models.CharField(max_length=50)
     icon = models.ImageField(blank=True, upload_to="uploads/armor-icons/")
     defense = models.IntegerField()
-    type = models.CharField(max_length=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     backpack = models.ForeignKey(Backpack, on_delete=models.DO_NOTHING, null=True)
 
