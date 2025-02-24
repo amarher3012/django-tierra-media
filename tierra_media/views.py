@@ -1,5 +1,6 @@
 import random
 
+from django.contrib.admin import action
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
@@ -518,5 +519,24 @@ class EncounterNeutral(LoginRequiredMixin, TemplateView):
         return context
 
 
-class EncounterEnemy(LoginRequiredMixin, UpdateView):
-    pass
+class EncounterEnemy(LoginRequiredMixin, TemplateView):
+    template_name = "encounters/enemy.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        character_id = self.kwargs.get("pk")
+        enemy_id = self.kwargs.get("enemy_id")
+
+        character = get_object_or_404(Character, pk=character_id)
+        enemy = get_object_or_404(Character, pk=enemy_id)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        character_id = self.kwargs.get("pk")
+        enemy_id = self.kwargs.get("")
+
+        character = get_object_or_404(Character, pk=character_id)
+        enemy = get_object_or_404(Character, pk=enemy_id)
+
+        if action == "attack":
+            pass

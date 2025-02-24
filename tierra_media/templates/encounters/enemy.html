@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}
+	Encuentro enemigo con {{ enemy.name }}
+{% endblock %}
+{% block content %}
+	<h1>Encuentro enemigo con {{ enemy.name }}</h1>
 
-</body>
-</html>
+    <div class="d-flex align-items-center justify-content-start gap-2">
+        <a href="{% url 'tierra_media:encounter_enemy' character.pk encounter.pk%}" class="text-decoration-none">Plantarle cara y enfrentarte a él</a>
+        <a href="{% url 'tierra_media:encounter' character.pk %}" class="text-decoration-none">Seguir tu camino y evitar problemas</a>
+    </div>
+{% endblock %}

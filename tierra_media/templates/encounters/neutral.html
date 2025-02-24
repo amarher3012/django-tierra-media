@@ -13,7 +13,7 @@
     </p>
     <p>¿Qué quieres hacer? Acercarte a él podría suponer entrar en combate.</p>
     <div class="d-flex align-items-center justify-content-start gap-2">
-        <a href="#" class="text-decoration-none">Plantarle cara y enfrentarte a él</a>
+        <a href="{% url 'tierra_media:encounter_enemy' character.pk encounter.pk%}" class="text-decoration-none">Plantarle cara y enfrentarte a él</a>
         <a href="{% url 'tierra_media:encounter' character.pk %}" class="text-decoration-none">Seguir tu camino y evitar problemas</a>
     </div>
 {% endblock %}
