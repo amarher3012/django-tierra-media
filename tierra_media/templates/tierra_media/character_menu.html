@@ -31,6 +31,7 @@
     {% if character %}
         <ul>
             <li><a href="{% url 'tierra_media:equip_objects' character.id %}" class="text-decoration-none">Equipar objetos</a></li>
+            <li><a href="{% url 'tierra_media:encounter' character.id %}" class="text-decoration-none">Comprobar encuentros cercanos</a></li>
             <li><a href="{% url 'tierra_media:move' character.id %}" class="text-decoration-none">Mover personaje</a></li>
             <li><a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#relationshipsModal">Mostrar relaciones</a></li>
             <li><a href="{% url 'tierra_media:shop' character.id %}" class="text-decoration-none">Tienda</a></li>

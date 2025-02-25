@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Enfrentamiento con {{ enemy.name }}
+{% endblock %}
+
+{% block content %}
+    <h1>Enfrentamiento con {{ enemy.name }}</h1>
+
+    <!-- Advertencia cuando no hay arma equipada -->
+    {% if not has_weapon %}
+        <div id="weapon-warning" class="alert alert-danger mb-4 col-8">
+            <h4 class="alert-heading">¡Advertencia!</h4>
+            <p>No tienes ningún arma equipada. Si decides continuar, es probable que seas derrotado inmediatamente.</p>
+            <hr>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'tierra_media:character_details' character.pk %}" class="btn btn-secondary">Volver atrás</a>
+                <button id="continue-anyway" class="btn btn-danger">Pelear igualmente</button>
+            </div>
+        </div>
+    {% endif %}
+
+    <p id="intro-text" {% if not has_weapon %}style="display:none;"{% endif %}>
+        El destino parece haber confabulado para cruzar tu camino y el de {{enemy.name}}.
+        <br>
+        Antes de que te des cuenta, os encontráis cara a cara. Parece que {{enemy.name}} también te estaba buscando.
+        <br>
+        Ambos desenvaináis vuestras armas sin mediar palabra.
+        Antes de que las hojas que caen de los árboles toquen el suelo, el combate comienza.
+    </p>
+
+    <div id="combat-interface" style="display:none;">
+        <!-- El resto del HTML de la interfaz de combate permanece igual -->
+        <div class="row my-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="mb-0">{{ enemy.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <img src="/api/placeholder/120/120" alt="{{ enemy.name }}" class="img-fluid rounded-circle border border-danger">
+                        </div>
+                        <div class="progress mb-3">
+                            <div id="enemy-health-bar" class="progress-bar bg-success" role="progressbar"
+                                style="width: {{ enemy.health|floatformat:0 }}%;"
+                                aria-valuenow="{{ enemy.health }}"
+                                aria-valuemin="0"
+                                aria-valuemax="{{ enemy.max_health }}">
+                            </div>
+                        </div>
+                        <p id="enemy-health" class="text-center">Salud: {{ enemy.health }}/{{ enemy.max_health }}</p>
+                        <p id="enemy-defense" class="text-center">Defensa: {{ enemy.defense }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">{{ character.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <img src="/api/placeholder/120/120" alt="{{ character.name }}" class="img-fluid rounded-circle border border-primary">
+                        </div>
+                        <div class="progress mb-3">
+                            <div id="character-health-bar" class="progress-bar bg-success" role="progressbar"
+                                style="width: {{ character.health|floatformat:0 }}%;"
+                                aria-valuenow="{{ character.health }}"
+                                aria-valuemin="0"
+                                aria-valuemax="{{ character.max_health }}">
+                            </div>
+                        </div>
+                        <p id="character-health" class="text-center">Salud: {{ character.health }}/{{ character.max_health }}</p>
+                        <p id="character-defense" class="text-center">Defensa: {{ character.defense }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4 mb-4">
+            <div class="col-8 mx-auto">
+                <div id="combat-feedback"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-8 mx-auto">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h2 class="mb-0">¿Qué deseas hacer?</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="combat-actions" class="d-flex justify-content-center">
+                            {% csrf_token %}
+                            <button id="attack-btn" class="btn btn-danger mx-2">
+                                <i class="fas fa-sword"></i> Atacar
+                            </button>
+                            <button id="defend-btn" class="btn btn-warning mx-2">
+                                <i class="fas fa-shield"></i> Defender
+                            </button>
+                            <button id="flee-btn" class="btn btn-secondary mx-2">
+                                <i class="fas fa-running"></i> Huir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            // Variable para guardar el token CSRF
+            const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+
+            // NUEVO: Manejar el botón de "Pelear igualmente" cuando no hay arma
+            $("#continue-anyway").click(function() {
+                $("#weapon-warning").fadeOut(500, function() {
+                    $("#intro-text").fadeIn(500);
+                    // Iniciar el combate tras la intro
+                    startCombatAfterIntro();
+                });
+            });
+
+            // MODIFICACIÓN: Solo iniciar automáticamente si hay arma equipada
+            {% if has_weapon %}
+            startCombatAfterIntro();
+            {% endif %}
+
+            // Función para iniciar el combate después de la intro
+            function startCombatAfterIntro() {
+                setTimeout(function() {
+                    let introText = $('#intro-text');
+                    introText.addClass('fade');
+                    introText.fadeOut(1000);  // Hacer desaparecer el texto
+                    $('#combat-interface').fadeIn(1000);  // Mostrar la interfaz de combate
+
+                    // Inicializar las barras de vida al cargar
+                    updateHealthBars(
+                        {{ character.health }},
+                        {{ character.max_health }},
+                        {{ enemy.health }},
+                        {{ enemy.max_health }}
+                    );
+
+                    // Si no tiene arma equipada, ejecutar automáticamente un ataque
+                    // lo que resultará en derrota inmediata según la lógica del CombatManager
+                    {% if not has_weapon %}
+                    setTimeout(function() {
+                        handleCombatAction('attack');
+                    }, 1000);
+                    {% endif %}
+                }, 5000);
+            }
+
+            // Actualizar barras de salud - Barras de vida ahora verdes
+            function updateHealthBars(characterHealth, characterMaxHealth, enemyHealth, enemyMaxHealth) {
+                // Calcular porcentajes
+                const characterHealthPercent = (characterHealth / characterMaxHealth) * 100;
+                const enemyHealthPercent = (enemyHealth / enemyMaxHealth) * 100;
+
+                // Actualizar barras de progreso
+                $('#character-health-bar').css('width', characterHealthPercent + '%')
+                    .attr('aria-valuenow', characterHealth);
+
+                $('#enemy-health-bar').css('width', enemyHealthPercent + '%')
+                    .attr('aria-valuenow', enemyHealth);
+
+                // Resetear clases primero
+                $('#character-health-bar').removeClass('bg-primary bg-warning bg-danger bg-success');
+                $('#enemy-health-bar').removeClass('bg-danger bg-warning bg-success');
+
+                // CAMBIO: Usar verde para salud completa, amarillo para <50%, rojo para <25%
+                if (characterHealthPercent < 25) {
+                    $('#character-health-bar').addClass('bg-danger');
+                } else if (characterHealthPercent < 50) {
+                    $('#character-health-bar').addClass('bg-warning');
+                } else {
+                    $('#character-health-bar').addClass('bg-success'); // Cambiado a verde
+                }
+
+                if (enemyHealthPercent < 25) {
+                    $('#enemy-health-bar').addClass('bg-danger');
+                } else if (enemyHealthPercent < 50) {
+                    $('#enemy-health-bar').addClass('bg-warning');
+                } else {
+                    $('#enemy-health-bar').addClass('bg-success'); // Cambiado a verde
+                }
+
+                // Actualizar los textos de salud
+                $('#character-health').text(`Salud: ${characterHealth}/${characterMaxHealth}`);
+                $('#enemy-health').text(`Salud: ${enemyHealth}/${enemyMaxHealth}`);
+            }
+
+            // El resto del código JavaScript permanece igual
+            $('#attack-btn').click(function(e) {
+                e.preventDefault();
+                handleCombatAction('attack');
+            });
+
+            $('#defend-btn').click(function(e) {
+                e.preventDefault();
+                handleCombatAction('defend');
+            });
+
+            $('#flee-btn').click(function(e) {
+                e.preventDefault();
+                handleCombatAction('flee');
+            });
+
+            function handleCombatAction(action) {
+                // Deshabilitar botones durante la acción
+                $('#combat-actions button').prop('disabled', true);
+
+                $.ajax({
+                    url: window.location.href,
+                    type: 'POST',
+                    data: {
+                        'action': action,
+                        'csrfmiddlewaretoken': csrfToken
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log('Respuesta del servidor:', response);
+
+                        if (response.status === 'success') {
+                            // Actualizar la interfaz con los nuevos valores
+                            $('#character-health').text('Salud: ' + response.character_health + '/' + response.character_max_health);
+                            $('#enemy-health').text('Salud: ' + response.enemy_health + '/' + response.enemy_max_health);
+                            $('#character-defense').text('Defensa: ' + response.character_defense);
+                            $('#enemy-defense').text('Defensa: ' + response.enemy_defense);
+
+                            // Actualizar barras de salud
+                            updateHealthBars(
+                                response.character_health,
+                                response.character_max_health,
+                                response.enemy_health,
+                                response.enemy_max_health
+                            );
+
+                            // Crear el mensaje de combate con la clase de alerta correcta
+                            let alertHtml = `
+                                <div class="alert alert-${response.message_tag} alert-dismissible fade show" role="alert">
+                                    ${response.message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            `;
+                            $('#combat-feedback').html(alertHtml);
+
+                            // Hacer que el mensaje desaparezca automáticamente después de 5 segundos
+                            setTimeout(function() {
+                                $('.alert').alert('close');
+                            }, 5000);
+
+                            // Si el personaje está muerto o ha ganado, redireccionar después de un tiempo
+                            if (response.character_health <= 0 || response.enemy_health <= 0) {
+                                // Deshabilitar los botones de acción inmediatamente
+                                $('#combat-actions button').prop('disabled', true);
+
+                                setTimeout(function() {
+                                    // Mostrar mensaje de resultado
+                                    let resultMessage;
+                                    if (response.character_health <= 0) {
+                                        // Verificar si es una derrota por falta de arma
+                                        if (response.message && response.message.includes("Al estar desarmado")) {
+                                            resultMessage = response.message + " Tu personaje ha sido derrotado.";
+                                        } else if (!{{ has_weapon|yesno:"true,false" }} && action === 'attack') {
+                                            resultMessage = "Al estar desarmado, has sido derrotado rápidamente. Tu personaje ha sido derrotado.";
+                                        } else {
+                                            resultMessage = "Has sido derrotado. Tu personaje ha sido derrotado.";
+                                        }
+                                    } else {
+                                        // Victoria
+                                        if (response.message && response.message.includes("no tiene un arma equipada")) {
+                                            resultMessage = `¡Victoria! ${response.enemy_name || 'Tu oponente'} no tenía un arma y ha sido derrotado rápidamente.`;
+                                        } else if (response.message && response.message.includes("desarmado")) {
+                                            resultMessage = `¡Victoria! ${response.enemy_name || 'Tu oponente'} estaba desarmado y ha sido derrotado fácilmente.`;
+                                        } else {
+                                            resultMessage = `¡Victoria! Has derrotado a ${response.enemy_name || 'tu oponente'}.`;
+                                        }
+                                    }
+
+                                    alertHtml = `
+                                        <div class="alert alert-${response.character_health <= 0 ? 'danger' : 'success'} alert-dismissible fade show" role="alert">
+                                            ${resultMessage}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    `;
+                                    $('#combat-feedback').html(alertHtml);
+
+                                    // Redireccionar según el resultado
+                                    setTimeout(function() {
+                                        const characterId = response.character_id || {{ character.pk }};
+                                        console.log("ID del personaje para redirección:", characterId);
+
+                                        if (response.outcome === "defeat") {
+                                            // Si el personaje es derrotado, ir a la página principal
+                                            console.log("Redirigiendo a la página principal (personaje derrotado)");
+                                            window.location.href = '/tierra-media/';
+                                        } else if (response.outcome === "victory" || response.enemy_health <= 0) {
+                                            // Si el personaje gana el combate, ir a la página de encuentros
+                                            console.log("Redirigiendo a la página de encuentros (victoria)");
+                                            window.location.href = `/tierra-media/characters/${characterId}/encounter`;
+                                        }
+                                    }, 5000);
+                                }, 1000);
+                            }
+
+                            // Si el jugador logró huir
+                            if (action === 'flee' && response.success) {
+                                // Deshabilitar los botones de acción
+                                $('#combat-actions button').prop('disabled', true);
+
+                                // Obtener el ID del personaje
+                                const characterId = response.character_id || {{ character.pk }};
+                                console.log("ID del personaje para redirección (huir):", characterId);
+
+                                setTimeout(function() {
+                                    // Redirigir a la página de encuentros
+                                    console.log("Redirigiendo a la página de encuentros (huida)");
+                                    window.location.href = `/tierra-media/characters/${characterId}/encounter`;
+                                }, 2000);
+                            }
+
+                            // Habilitar los botones de nuevo si el combate continúa
+                            if (!(response.character_health <= 0 || response.enemy_health <= 0 || (action === 'flee' && response.success))) {
+                                $('#combat-actions button').prop('disabled', false);
+                            }
+                        } else {
+                            // Mostrar mensaje de error
+                            let alertHtml = `
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ${response.message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            `;
+                            $('#combat-feedback').html(alertHtml);
+
+                            // Habilitar los botones de nuevo
+                            $('#combat-actions button').prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr, errmsg, err) {
+                        console.error('Error en la solicitud AJAX:', err);
+                        alert('Error al procesar la acción. Intenta nuevamente.');
+                        $('#combat-actions button').prop('disabled', false);
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
