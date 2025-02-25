@@ -29,7 +29,7 @@
 
         {% if user.is_authenticated %}
             <div class="col-md-3 text-end pe-4 d-flex align-items-center justify-content-end">
-                <div>Bienvenido,  <b>{{ user.username }}</b></div>
+                <div>Bienvenido, <b>{{ user.username }}</b></div>
                 <form action="{% url 'tierra_media:logout' %}" method="POST">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-primary ms-2">Cerrar sesión</button>
@@ -38,7 +38,7 @@
         {% else %}
             <div class="col-md-3 text-end pe-4">
                 <a href="{% url 'tierra_media:login' %}" type="button" class="btn btn-outline-primary me-2">Iniciar sesión</a>
-                <a href="{% url 'tierra_media:register' %}"  type="button" class="btn btn-primary">Registrarse</a>
+                <a href="{% url 'tierra_media:register' %}" type="button" class="btn btn-primary">Registrarse</a>
             </div>
         {% endif %}
     </header>
