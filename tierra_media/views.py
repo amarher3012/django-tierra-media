@@ -163,10 +163,6 @@ class AddBackpack(View):
         return redirect(reverse_lazy("tierra_media:character_details", kwargs={"pk": character.id}))
 
 
-class CharacterCreationSuccess(TemplateView):
-    template_name = "character-creation/success.html"
-
-
 class NPC_preparations:
     def create_npcs(user):
         npcs = npc_init()
