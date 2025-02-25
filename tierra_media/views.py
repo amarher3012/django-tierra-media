@@ -4,8 +4,10 @@ from django.contrib.admin import action
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.http import JsonResponse
 from django.utils.http import urlencode
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
@@ -529,18 +531,164 @@ class CombatManager:
         self.enemy = enemy
         self.request = request
 
+        # Inicializar estados de defensa
+        self.character.critical_defense = False
+        self.enemy.critical_defense = False
+        self.character.defense_reduction = 0
+        self.enemy.defense_reduction = 0
+
     def calculate_damage(self, attacker, defender):
-        """Calcula el daño infligido por el atacante al defensor."""
-        weapon_damage = (
-            attacker.equipped_weapon.damage if attacker.equipped_weapon else 0
-        )
-        defense = defender.defense + (
-            defender.equipped_armor.defense if defender.equipped_armor else 0
-        )
-        return max(weapon_damage - defense, 0)
+        """Calcula el daño infligido por el atacante al defensor con valores más altos."""
+        # Verificar si el atacante tiene un arma equipada
+        if not attacker.equipped_weapon:
+            return 0
+
+        # Verificar si el defensor tiene defensa crítica activada
+        if hasattr(defender, 'critical_defense') and defender.critical_defense:
+            return 0
+
+        # Obtener el daño base del arma y aplicar un multiplicador general para aumentar el daño
+        # CAMBIO: Multiplicador de daño base para aumentar todos los daños
+        base_damage_multiplier = 2.5  # Multiplicador para escalar el daño
+        weapon_damage = attacker.equipped_weapon.damage * base_damage_multiplier
+
+        # Añadir daño base adicional independiente del arma
+        # CAMBIO: Añadir un daño base adicional
+        additional_base_damage = 10
+        weapon_damage += additional_base_damage
+
+        # Obtener bonificaciones raciales del atacante
+        racial_bonus = self.get_racial_bonus(attacker)
+
+        # Aplicar multiplicador de daño racial
+        weapon_damage = int(weapon_damage * racial_bonus["damage_multiplier"])
+
+        # Calcular defensa total del defensor
+        defense = defender.defense
+        if defender.equipped_armor:
+            defense += defender.equipped_armor.defense
+
+        # Aplicar bonificaciones de defensa raciales al defensor
+        defense_multiplier = self.get_racial_bonus(defender)["defense_multiplier"]
+        defense = int(defense * defense_multiplier)
+
+        # CAMBIO: Ajustar el cálculo de la reducción de daño para que la defensa tenga menos impacto
+        # y permita daños más altos mientras sigue siendo relevante
+        defense_percentage = min(defense / 300, 0.65)  # Máximo 65% de reducción (antes era 80%)
+
+        # Aplicar reducción de daño si el defensor está en posición defensiva
+        if hasattr(defender, 'defense_reduction') and defender.defense_reduction > 0:
+            weapon_damage = int(weapon_damage * (1 - defender.defense_reduction))
+
+        # El daño final es el daño del arma menos la defensa porcentual (mínimo 1)
+        final_damage = max(int(weapon_damage * (1 - defense_percentage)), 1)
+
+        # CAMBIO: Añadir variabilidad al daño final con un factor aleatorio
+        damage_variance = random.uniform(0.9, 1.3)  # -10% a +30% de variación
+        final_damage = int(final_damage * damage_variance)
+
+        return final_damage
 
     def perform_attack(self, attacker, defender):
         """Realiza un ataque y devuelve el daño infligido."""
+        # Verificar si el atacante tiene un arma equipada
+        if not attacker.equipped_weapon:
+            if self.request:
+                messages.error(self.request, f"{attacker.name} no tenía un arma equipada y ha perdido automáticamente.")
+            defender.health = 0
+            defender.save()
+            return {
+                "action": "attack",
+                "damage": 0,
+                "crit": False,
+                "attacker": attacker.name,
+                "defender": defender.name,
+            }
+
+        # Calcular si el ataque es crítico
+        attacker_bonus = self.get_racial_bonus(attacker)
+
+        # CAMBIO: Aumentar ligeramente la probabilidad base de crítico
+        crit_chance = 18  # Probabilidad base de crítico (antes 15%)
+        crit_chance += attacker_bonus["crit"]
+
+        # Calcular si el ataque es crítico
+        crit = random.choices([True, False], weights=[crit_chance, 100 - crit_chance])[0]
+
+        # Calcular el daño base
+        base_damage = self.calculate_damage(attacker, defender)
+
+        # CAMBIO: Aumentar el multiplicador de daño crítico
+        crit_multiplier = 1.8  # Antes era 1.5
+        damage = int(base_damage * crit_multiplier) if crit else base_damage
+
+        # Reducir la salud del defensor
+        defender.health = max(defender.health - damage, 0)
+        defender.save()
+
+        # Retornar el resultado del ataque
+        return {
+            "action": "attack",
+            "damage": damage,
+            "crit": crit,
+            "attacker": attacker.name,
+            "defender": defender.name,
+        }
+
+    def perform_defend(self, defender):
+        """Prepara la defensa del defensor con valores mejorados."""
+        # CAMBIO: Aumentar ligeramente la probabilidad de defensa crítica
+        crit_chance = 22 + (defender.defense * 0.1)  # Antes 20%
+        crit_chance = min(crit_chance, 100)
+
+        crit_defense = random.choices(
+            [True, False], weights=[crit_chance, 100 - crit_chance]
+        )[0]
+
+        if crit_defense:
+            # Defensa crítica: anula todo el daño
+            defender.critical_defense = True
+            defender.defense_reduction = 1.0
+
+            # CAMBIO: Aumentar el bono de defensa para defensas críticas
+            defense_bonus = defender.defense * 3  # Antes era 2
+            return {
+                "action": "defend",
+                "crit_defense": True,
+                "defense_reduction": 1.0,
+                "defense_bonus": defense_bonus
+            }
+        else:
+            # CAMBIO: Aumentar la reducción de daño para defensa normal
+            defender.defense_reduction = 0.45  # Antes 0.3 (30% → 45%)
+            defender.critical_defense = False
+
+            # CAMBIO: Aumentar el bono de defensa para defensas normales
+            defense_bonus = int(defender.defense * 0.5)  # Antes 0.3
+            return {
+                "action": "defend",
+                "crit_defense": False,
+                "defense_reduction": 0.45,
+                "defense_bonus": defense_bonus
+            }
+
+    def perform_attack(self, attacker, defender):
+        """Realiza un ataque y devuelve el daño infligido."""
+
+        # Verificar si el atacante tiene un arma equipada
+        if not attacker.equipped_weapon:
+            if self.request:
+                messages.error(self.request, f"{attacker.name} no tenía un arma equipada y ha perdido automáticamente.")
+            defender.health = 0  # El defensor gana, ya que el atacante no tiene arma
+            defender.save()
+            return {
+                "action": "attack",
+                "damage": 0,
+                "crit": False,
+                "attacker": attacker.name,
+                "defender": defender.name,
+            }
+
         # Calcular si el ataque es crítico
         attacker_bonus = self.get_racial_bonus(attacker)
 
@@ -549,103 +697,87 @@ class CombatManager:
         crit_chance += attacker_bonus["crit"]  # Sumar el bono de crítico racial
 
         # Calcular si el ataque es crítico
-        crit = random.choices([True, False], weights=[crit_chance, 100 - crit_chance])[
-            0
-        ]
+        crit = random.choices([True, False], weights=[crit_chance, 100 - crit_chance])[0]
 
-        # Calcular el daño base
-        weapon_damage = attacker.equipped_weapon.damage
-        damage = weapon_damage
+        # Calcular el daño base usando el método de cálculo
+        base_damage = self.calculate_damage(attacker, defender)
 
-        # Aplicar multiplicador de daño crítico
-        if crit:
-            damage *= 1.33  # Aumentar el daño en un 33% si es crítico
+        # Aplicar multiplicador de daño crítico si corresponde
+        damage = int(base_damage * 1.5) if crit else base_damage
 
-        # Calcular el daño final teniendo en cuenta la defensa del defensor
-        defense = defender.defense + (
-            defender.equipped_armor.defense if defender.equipped_armor else 0
-        )
-        damage_received = max(damage - defense, 0)  # El daño no puede ser negativo
-
-        # Reducir la salud del defensor
-        defender.health = max(
-            defender.health - damage_received, 0
-        )  # La salud no puede ser negativa
+        # Reducir la salud del defensor (asegurando que no sea negativa)
+        defender.health = max(defender.health - damage, 0)
         defender.save()
-
-        # Mostrar mensajes de retroalimentación
-        if self.request:
-            if crit:
-                messages.success(
-                    self.request,
-                    f"¡Ataque crítico! Has infligido {damage_received} puntos de daño a {defender.name}.",
-                )
-            else:
-                messages.success(
-                    self.request,
-                    f"Has infligido {damage_received} puntos de daño a {defender.name}.",
-                )
 
         # Retornar el resultado del ataque
         return {
             "action": "attack",
-            "damage": damage_received,
+            "damage": damage,
             "crit": crit,
             "attacker": attacker.name,
             "defender": defender.name,
         }
 
     def perform_defend(self, defender):
-        """Aumenta la defensa del defensor y devuelve el bono de defensa."""
-        # Calcular si la defensa es crítica
+        """Prepara la defensa del defensor.
+        Si es crítica, anulará todo el daño.
+        Si no, reducirá el daño recibido en un 30%."""
+
+        # Calcular la probabilidad de defensa crítica: 20% base + 10% de la defensa del personaje
+        crit_chance = 20 + (defender.defense * 0.1)
+        # Asegurar que la probabilidad no exceda el 100%
+        crit_chance = min(crit_chance, 100)
+
+        # Determinar si la defensa es crítica basada en la probabilidad calculada
         crit_defense = random.choices(
-            [True, False], weights=[10 + defender.defense * 0.2, 90]
+            [True, False], weights=[crit_chance, 100 - crit_chance]
         )[0]
 
         if crit_defense:
-            # Si la defensa es crítica, el defensor no recibe daño
-            if self.request:
-                messages.success(
-                    self.request,
-                    f"¡{defender.name} desvía con habilidad el ataque y no sufre daño!",
-                )
-            return {"action": "defend", "crit_defense": True, "damage_received": 0}
+            # Si la defensa es crítica, el defensor no recibirá daño este turno
+            defender.critical_defense = True
+            defender.defense_reduction = 1.0  # 100% de reducción
+            defense_bonus = defender.defense * 2  # Un bono alto para defensa crítica
+            return {
+                "action": "defend",
+                "crit_defense": True,
+                "defense_reduction": 1.0,
+                "defense_bonus": defense_bonus
+            }
         else:
-            # Si la defensa no es crítica, aumentar la defensa del defensor
-            defense_bonus = defender.defense * 0.5
-            defender.defense += defense_bonus
-            defender.save()
+            # Si la defensa no es crítica, se reducirá el daño recibido en un 30%
+            defender.defense_reduction = 0.3  # Reducción del 30%
+            defender.critical_defense = False
+            defense_bonus = int(defender.defense * 0.3)  # Un bono del 30% para defensa normal
+            return {
+                "action": "defend",
+                "crit_defense": False,
+                "defense_reduction": 0.3,
+                "defense_bonus": defense_bonus
+            }
 
-            if self.request:
-                messages.info(
-                    self.request,
-                    f"¡{defender.name} ha aumentado su defensa en {defense_bonus} puntos!",
-                )
-            return {"action": "defend", "defense_bonus": defense_bonus}
-
-    def perform_flee(self, flee_chance, defender):
+    def perform_flee(self, flee_chance, character, opponent):
         """Intenta huir y devuelve si tuvo éxito."""
-        # Dificultad base para huir
-        base_flee_chance = flee_chance
+        # Probabilidad base de huir (50%)
+        base_flee_chance = 50
 
-        # Aumentar la dificultad si el defensor es un elfo
-        if defender.race.name == "Orco":
+        # Obtener bonos raciales
+        char_bonus = self.get_racial_bonus(character)
+
+        # Aplicar bonificación racial
+        base_flee_chance += char_bonus["flee_chance"]
+
+        # Aumentar la dificultad si el oponente es un orco
+        if opponent.race.name == "Orco":
             base_flee_chance -= 20  # Reducir la probabilidad de huir en 20%
 
-        # Asegurarse de que la probabilidad no sea negativa
-        base_flee_chance = max(base_flee_chance, 0)
+        # Asegurarse de que la probabilidad esté entre 0 y 100
+        base_flee_chance = max(min(base_flee_chance, 100), 0)
 
         # Intentar huir
         flee_success = random.choices(
             [True, False], weights=[base_flee_chance, 100 - base_flee_chance]
         )[0]
-
-        # Mostrar mensaje de retroalimentación
-        if self.request:
-            if flee_success:
-                messages.success(self.request, "¡Has logrado huir!")
-            else:
-                messages.error(self.request, "¡No has logrado huir!")
 
         return flee_success
 
@@ -659,76 +791,220 @@ class CombatManager:
             "crit": 0,
         }
 
-        if character.race.name == "Humano":
+        # Verificar que character.race existe
+        if not hasattr(character, 'race') or not character.race:
+            return bonuses
+
+        race_name = character.race.name
+
+        if race_name == "Humano":
             bonuses["initiative"] += 5
             bonuses["damage_multiplier"] = 1.20
-        elif character.race.name == "Elfo":
+        elif race_name == "Elfo":
             bonuses["initiative"] += 20
             bonuses["damage_multiplier"] = 1.10
             bonuses["crit"] = 15
-        elif character.race.name == "Enano":
+        elif race_name == "Enano":
             bonuses["defense_multiplier"] = 1.20
             bonuses["damage_multiplier"] = 1.10
-        elif character.race.name == "Hobbit":
+        elif race_name == "Hobbit":
             bonuses["flee_chance"] += 20
             bonuses["initiative"] += 15
-        elif character.race.name == "Orco":
+        elif race_name == "Orco":
             bonuses["damage_multiplier"] = 1.50
 
         return bonuses
 
+    def reset_defense_after_turn(self):
+        """Restaura el estado de defensa después de un turno de combate."""
+        # Eliminar el estado de defensa crítica
+        self.character.critical_defense = False
+        self.enemy.critical_defense = False
+
+        # Eliminar la reducción de daño por defensa
+        if hasattr(self.character, 'defense_reduction'):
+            self.character.defense_reduction = 0
+
+        if hasattr(self.enemy, 'defense_reduction'):
+            self.enemy.defense_reduction = 0
+
     def combat_turn(self, action):
         """Maneja un turno de combate."""
-        character_bonus = self.get_racial_bonus(self.character)
-        enemy_bonus = self.get_racial_bonus(self.enemy)
+        # IMPORTANTE: Restaurar la defensa a su valor original al inicio de cada turno
+        # Esta línea es crucial para evitar que la defensa se acumule infinitamente
+        self.reset_defense_after_turn()
 
-        # Determinar quién ataca primero
-        character_initiative = 50 + character_bonus["initiative"]
-        enemy_initiative = 50 + enemy_bonus["initiative"]
-        first = random.choices(
-            [True, False], weights=[character_initiative, enemy_initiative]
-        )[0]
+        # Log para depuración
+        print(f"Defensas restablecidas: Character={self.character.defense}, Enemy={self.enemy.defense}")
 
-        active_turn = "character" if first else "enemy"
+        # Manejar la acción de huir
+        if action == "flee":
+            flee_success = self.perform_flee(20, self.character, self.enemy)
 
-        while self.character.health > 0 and self.enemy.health > 0:
-            if active_turn == "character":
-                if action == "defend":
-                    defense_bonus = self.perform_defend(self.character)
-                    result = {"action": "defend", "defense_bonus": defense_bonus}
-                elif action == "flee":
-                    flee_success = self.perform_flee(character_bonus["flee_chance"])
-                    result = {"action": "flee", "success": flee_success}
+            # Si el intento de huida falla, el enemigo ataca
+            if not flee_success:
+                # El enemigo ataca
+                enemy_attack_result = self.perform_attack(self.enemy, self.character)
+                enemy_damage = enemy_attack_result["damage"]
+                enemy_crit = enemy_attack_result["crit"]
+
+                # Crear mensaje sobre el ataque del enemigo
+                if enemy_crit:
+                    enemy_message = f"¡No has logrado huir! {self.enemy.name} te ha hecho un golpe crítico de {enemy_damage} puntos de daño."
                 else:
-                    damage = self.perform_attack(self.character, self.enemy)
-                    result = {"action": "attack", "damage": damage}
+                    enemy_message = f"¡No has logrado huir! {self.enemy.name} te ha atacado y te ha hecho {enemy_damage} puntos de daño."
+
+                # Determinar el resultado final
+                message_tag = "danger"
+                outcome = None
+
+                if self.character.health <= 0:
+                    enemy_message += f" ¡Has sido derrotado por {self.enemy.name}!"
+                    outcome = "defeat"
+                    self.character.delete()
+
+                return {
+                    "action": "flee",
+                    "success": flee_success,
+                    "message": enemy_message,
+                    "message_tag": message_tag,
+                    "outcome": outcome,
+                    "character_id": self.character.pk  # Añadir ID del personaje
+                }
             else:
-                if self.enemy.health > self.enemy.max_health * 0.5:
-                    enemy_action = "attack"
+                # Si la huida tiene éxito, solo retornar el mensaje de éxito
+                return {
+                    "action": "flee",
+                    "success": flee_success,
+                    "message": "¡Has logrado huir!",
+                    "message_tag": "success",
+                    "outcome": "flee",
+                    "character_id": self.character.pk  # Añadir explícitamente el ID del personaje aquí
+                }
+
+        # Manejar la acción de defenderse
+        if action == "defend":
+            # El personaje se defiende
+            defense_result = self.perform_defend(self.character)
+
+            # Mensaje según el resultado
+            if defense_result["crit_defense"]:
+                message = f"¡{self.character.name} ha realizado una defensa crítica y no recibirá daño este turno!"
+            else:
+                # Usar get() para evitar KeyError si defense_bonus no está en el resultado
+                defense_bonus = defense_result.get("defense_bonus", int(self.character.defense * 0.3))
+                message = f"¡{self.character.name} se pone en posición defensiva y aumenta su defensa en {defense_bonus} puntos para este turno!"
+
+            # El enemigo también toma su decisión
+            if self.enemy.health <= (self.enemy.max_health * 0.5) and random.random() < 0.33:
+                enemy_action = "defend"
+                enemy_defense_result = self.perform_defend(self.enemy)
+
+                # Actualizar mensaje
+                if enemy_defense_result["crit_defense"]:
+                    message += f" ¡{self.enemy.name} también ha ejecutado una defensa crítica!"
                 else:
-                    enemy_action = random.choices(
-                        ["defend", "attack"], weights=[75, 25]
-                    )[0]
+                    # Usar get() para evitar KeyError
+                    enemy_defense_bonus = enemy_defense_result.get("defense_bonus", int(self.enemy.defense * 0.3))
+                    message += f" ¡{self.enemy.name} también ha aumentado su defensa en {enemy_defense_bonus} puntos!"
+            else:
+                # El enemigo decide atacar - SIEMPRE DESPUÉS de que el personaje se defienda
+                enemy_action = "attack"
+                enemy_attack_result = self.perform_attack(self.enemy, self.character)
+                enemy_damage = enemy_attack_result["damage"]
+                enemy_crit = enemy_attack_result["crit"]
 
-                if enemy_action == "defend":
-                    defense_bonus = self.perform_defend(self.enemy)
-                    result = {
-                        "action": "defend",
-                        "defense_bonus": defense_bonus,
-                        "actor": "enemy",
-                    }
+                # Agregar al mensaje - el ataque ocurre después de la defensa
+                if enemy_crit:
+                    message += f" ¡Después de tu defensa, {self.enemy.name} te ha hecho un golpe crítico de {enemy_damage} puntos de daño!"
                 else:
-                    damage = self.perform_attack(self.enemy, self.character)
-                    result = {"action": "attack", "damage": damage, "actor": "enemy"}
+                    message += f" Después de tu defensa, {self.enemy.name} te ha atacado y te ha hecho {enemy_damage} puntos de daño."
 
-            # Cambiar el turno después de cada acción
-            active_turn = "enemy" if active_turn == "character" else "character"
+            # Establecer el tipo de mensaje y verificar el resultado
+            message_tag = "warning"  # Cambié a "warning" para que coincida con el color del botón
+            outcome = None
 
-            # Retornar el resultado de la acción actual
-            return result
+            if self.character.health <= 0:
+                message += f" ¡Has sido derrotado por {self.enemy.name}!"
+                message_tag = "danger"
+                outcome = "defeat"
+                self.character.delete()
+            elif self.enemy.health <= 0:
+                message += f" ¡Has derrotado a {self.enemy.name}!"
+                message_tag = "success"
+                outcome = "victory"
+                self.enemy.delete()
 
-        # Si el bucle termina, el combate ha finalizado
-        return {"result": "combat_over"}
+            return {
+                "action": "defend",
+                "message": message,
+                "message_tag": message_tag,
+                "outcome": outcome,
+                "character_id": self.character.pk  # Asegurar que siempre se incluya
+            }
+
+        # Manejar la acción de atacar
+        if action == "attack":
+            # El personaje ataca primero siempre
+            character_attack_result = self.perform_attack(self.character, self.enemy)
+            character_damage = character_attack_result["damage"]
+            character_crit = character_attack_result["crit"]
+
+            # Construir mensaje para el ataque del personaje
+            if character_crit:
+                message = f"¡Has realizado un golpe crítico! Has infligido {character_damage} puntos de daño a {self.enemy.name}."
+            else:
+                message = f"Has atacado y has infligido {character_damage} puntos de daño a {self.enemy.name}."
+
+            # Verificar si el enemigo ha sido derrotado
+            if self.enemy.health <= 0:
+                message += f" ¡Has derrotado a {self.enemy.name}!"
+                message_tag = "success"
+                outcome = "victory"
+                self.enemy.delete()
+
+                return {
+                    "action": "attack",
+                    "message": message,
+                    "message_tag": message_tag,
+                    "outcome": outcome,
+                    "character_id": self.character.pk  # Añadir ID del personaje
+                }
+
+            # Si el enemigo sigue vivo, contraataca
+            enemy_attack_result = self.perform_attack(self.enemy, self.character)
+            enemy_damage = enemy_attack_result["damage"]
+            enemy_crit = enemy_attack_result["crit"]
+
+            if enemy_crit:
+                message += f" ¡En respuesta, {self.enemy.name} te ha hecho un golpe crítico de {enemy_damage} puntos de daño!"
+            else:
+                message += f" En respuesta, {self.enemy.name} te ha atacado y te ha hecho {enemy_damage} puntos de daño."
+
+            # Determinar el resultado final
+            message_tag = "danger"
+            outcome = None
+
+            if self.character.health <= 0:
+                message += f" ¡Has sido derrotado por {self.enemy.name}!"
+                outcome = "defeat"
+                self.character.delete()
+
+            return {
+                "action": "attack",
+                "message": message,
+                "message_tag": message_tag,
+                "outcome": outcome,
+                "character_id": self.character.pk  # Añadir ID del personaje
+            }
+
+        # Si llegamos aquí, algo salió mal
+        return {
+            "action": "error",
+            "message": "Acción no reconocida",
+            "message_tag": "danger",
+            "character_id": self.character.pk  # Añadir ID del personaje incluso en caso de error
+        }
 
 
 class EncounterEnemy(LoginRequiredMixin, TemplateView):
@@ -739,9 +1015,7 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
         character_id = self.kwargs.get("pk")
         enemy_id = self.kwargs.get("enemy_id")
 
-        character = get_object_or_404(
-            Character, pk=character_id, user=self.request.user
-        )
+        character = get_object_or_404(Character, pk=character_id, user=self.request.user)
         enemy = get_object_or_404(Character, pk=enemy_id)
 
         has_weapon = character.equipped_weapon is not None
@@ -751,113 +1025,89 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
         context["has_weapon"] = has_weapon
         return context
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         character_id = self.kwargs.get("pk")
         enemy_id = self.kwargs.get("enemy_id")
 
-        character = get_object_or_404(
-            Character, pk=character_id, user=self.request.user
-        )
+        character = get_object_or_404(Character, pk=character_id, user=request.user)
         enemy = get_object_or_404(Character, pk=enemy_id)
 
         action = request.POST.get("action")
 
+        print(f"Acción recibida: {action}")
+        print(f"Personaje: {character.name}, Salud: {character.health}, Defensa: {character.defense}")
+        print(f"Enemigo: {enemy.name}, Salud: {enemy.health}, Defensa: {enemy.defense}")
+
         if action not in ["attack", "defend", "flee"]:
-            messages.error(request, "Acción no válida.")
-            return redirect(
-                "tierra_media:encounter_enemy", pk=character_id, enemy_id=enemy_id
-            )
+            return JsonResponse({
+                "status": "error",
+                "message": "Acción no válida.",
+                "character_id": character.pk
+            })
 
-        # Inicializar el CombatManager
-        combat_manager = CombatManager(character, enemy)
+        # Guardar el ID del personaje antes de que pueda ser eliminado
+        character_id = character.pk
 
-        # Determinar quién ataca primero
-        character_bonus = combat_manager.get_racial_bonus(character)
-        enemy_bonus = combat_manager.get_racial_bonus(enemy)
+        # Crear el gestor de combate
+        combat_manager = CombatManager(character, enemy, request)
 
-        character_initiative = 50 + character_bonus["initiative"]
-        enemy_initiative = 50 + enemy_bonus["initiative"]
-        first = random.choices(
-            [True, False], weights=[character_initiative, enemy_initiative]
-        )[0]
+        # Ejecutar el turno de combate
+        result = combat_manager.combat_turn(action)
 
-        active_turn = "character" if first else "enemy"
+        print(f"Resultado del turno: {result}")
 
-        # Bucle de combate
-        while character.health > 0 and enemy.health > 0:
-            if active_turn == "character":
-                # Turno del personaje
-                if action == "attack":
-                    if not character.equipped_weapon:
-                        messages.error(
-                            request, "¡Necesitas un arma equipada para atacar!"
-                        )
-                        return redirect(
-                            "tierra_media:encounter_enemy",
-                            pk=character_id,
-                            enemy_id=enemy_id,
-                        )
+        # Obtener el mensaje y tipo de alerta
+        message = result.get("message", "")
+        message_tag = result.get("message_tag", "info")
+        outcome = result.get("outcome")
 
-                    damage = combat_manager.perform_attack(character, enemy)
-                    messages.success(
-                        request,
-                        f"¡Has infligido {damage} puntos de daño a {enemy.name}!",
-                    )
-                elif action == "defend":
-                    defense_bonus = combat_manager.perform_defend(character)
-                    messages.info(
-                        request, f"¡Has aumentado tu defensa en {defense_bonus} puntos!"
-                    )
-                elif action == "flee":
-                    flee_success = combat_manager.perform_flee(
-                        character_bonus["flee_chance"]
-                    )
-                    if flee_success:
-                        messages.success(request, "¡Has logrado huir!")
-                        return redirect("tierra_media:index")
-                    else:
-                        messages.error(request, "¡No has logrado huir!")
+        # Verificar si hay que redireccionar debido a la eliminación de un personaje
+        character_exists = Character.objects.filter(pk=character_id).exists()
 
-            else:
-                # Turno del enemigo
-                if enemy.health > enemy.max_health * 0.5:
-                    enemy_action = "attack"
-                else:
-                    enemy_action = random.choices(
-                        ["defend", "attack"], weights=[75, 25]
-                    )[0]
+        # Preparar la respuesta JSON
+        response_data = {
+            "status": "success",
+            "message": message,
+            "message_tag": message_tag,
+            "action": result.get("action"),
+            "character_id": character_id,
+            "success": result.get("success", False) if action == "flee" else None,
+            "outcome": outcome
+        }
 
-                if enemy_action == "defend":
-                    defense_bonus = combat_manager.perform_defend(enemy)
-                    messages.warning(
-                        request,
-                        f"¡{enemy.name} se ha defendido y aumentó su defensa en {defense_bonus} puntos!",
-                    )
-                else:
-                    damage = combat_manager.perform_attack(enemy, character)
-                    messages.warning(
-                        request,
-                        f"¡{enemy.name} te ha infligido {damage} puntos de daño!",
-                    )
+        # Si el personaje aún existe, incluir sus estadísticas actualizadas
+        if character_exists:
+            character_refreshed = Character.objects.get(pk=character_id)
+            response_data.update({
+                "character_health": character_refreshed.health,
+                "character_max_health": character_refreshed.max_health,
+                "character_defense": character_refreshed.defense,
+            })
+        else:
+            # Si el personaje fue eliminado, establecer la salud en 0
+            response_data.update({
+                "character_health": 0,
+                "character_max_health": character.max_health,  # Usar el valor previo
+                "character_defense": character.defense,  # Usar el valor previo
+            })
 
-            active_turn = "enemy" if active_turn == "character" else "character"
+        # Comprobar si el enemigo aún existe
+        enemy_exists = Character.objects.filter(pk=enemy_id).exists()
 
-            character.save()
-            enemy.save()
+        if enemy_exists:
+            enemy_refreshed = Character.objects.get(pk=enemy_id)
+            response_data.update({
+                "enemy_health": enemy_refreshed.health,
+                "enemy_max_health": enemy_refreshed.max_health,
+                "enemy_defense": enemy_refreshed.defense,
+            })
+        else:
+            # Si el enemigo fue eliminado, establecer la salud en 0
+            response_data.update({
+                "enemy_health": 0,
+                "enemy_max_health": enemy.max_health,  # Usar el valor previo
+                "enemy_defense": enemy.defense,  # Usar el valor previo
+            })
 
-            if character.health <= 0 or enemy.health <= 0:
-                break
-
-        # Verificar el resultado del combate
-        if character.health <= 0:
-            messages.error(request, "¡Has sido derrotado!")
-            character.delete()
-            return redirect("tierra_media:index")
-        elif enemy.health <= 0:
-            messages.success(request, f"¡Has derrotado a {enemy.name}!")
-            enemy.delete()
-            return redirect("tierra_media:index")
-
-        return redirect(
-            "tierra_media:encounter_enemy", pk=character_id, enemy_id=enemy_id
-        )
+        return JsonResponse(response_data)
