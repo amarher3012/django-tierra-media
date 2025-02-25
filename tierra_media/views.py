@@ -95,7 +95,7 @@ class ActivateAccount(View):
             return redirect("tierra_media:register")
 
 
-class IndexView(LoginRequiredMixin, ListView):
+class IndexView(ListView):
     model = Character
     template_name = "tierra_media/index.html"
     context_object_name = "characters"
@@ -308,6 +308,7 @@ class EquipWeapon(LoginRequiredMixin, UpdateView):
         if 'weapon' in request.POST:
             item_selected = request.POST.get('weapon')
             item_found = Weapon.objects.get(pk=item_selected)
+            print(item_found)
             character.equipped_weapon = item_found
             character.save()
             messages.success(request,"Arma equipada con éxito")

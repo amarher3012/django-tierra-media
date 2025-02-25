@@ -22,6 +22,9 @@
         #items {
             visibility: hidden;
         }
+        .btn {
+            background-color: gray;
+        }
         * {
             font-size: 25px;
         }
@@ -30,8 +33,8 @@
 <body>
 <div class="container-fluid d-flex align-items-center w-100 overflow-hidden p-0">
     <img src="{% static "backpack.png" %}" id="backpack" class="position-absolute top-100 start-50 translate-middle">
-    <div class="container d-flex bg-secondary justify-content-center" id="items">
-        <div class="row">
+    <div class="container d-flex justify-content-center" id="items">
+        <div class="row gap-4 text-center">
             {% if weapons %}
                 {% for weapon in weapons %}
                     <div class="col-3">
