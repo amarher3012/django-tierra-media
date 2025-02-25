@@ -22,4 +22,9 @@
     {% else %}
         <p>En este momento no hay localizaciones disponibles.</p>
     {% endif %}
+    
+    <div class="d-flex align-items-center justify-content-start gap-2">
+        <a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Volver a Inicio</a>
+        <a href="{% url 'tierra_media:character_details' view.kwargs.pk %}" class="text-decoration-none">Volver al menú de personaje</a>
+    </div>
 {% endblock %}

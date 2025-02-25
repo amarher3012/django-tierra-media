@@ -31,6 +31,10 @@ class Character(models.Model):
     health = models.IntegerField(default=250)
     defense = models.IntegerField(default=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    equipped_weapon = models.OneToOneField(
+        "Weapon", on_delete=models.SET_NULL, null=True
+    )
+    equipped_armor = models.OneToOneField("Armor", on_delete=models.SET_NULL, null=True)
     faction = models.ForeignKey(Faction, on_delete=models.DO_NOTHING)
     location = models.ForeignKey(Location, on_delete=models.DO_NOTHING)
     race = models.ForeignKey(Race, on_delete=models.DO_NOTHING)
@@ -38,6 +42,10 @@ class Character(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def health_percentage(self):
+        return (self.health / self.max_health) * 100
 
 
 class Relationship(models.Model):
