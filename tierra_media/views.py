@@ -593,100 +593,42 @@ class CombatManager:
         """Realiza un ataque y devuelve el daño infligido."""
         # Verificar si el atacante tiene un arma equipada
         if not attacker.equipped_weapon:
-            if self.request:
-                messages.error(self.request, f"{attacker.name} no tenía un arma equipada y ha perdido automáticamente.")
+            # Mensaje personalizado cuando el atacante no tiene arma
+            if attacker == self.character:
+                message = f"Al estar desarmado, apenas puedes acercarte a {defender.name} antes de caer derrotado."
+            else:
+                # Mensaje para cuando el enemigo está desarmado
+                message = f"{attacker.name} está desarmado y es derrotado rápidamente."
+
+            # El atacante pierde automáticamente por no tener arma (marcamos como sin salud en lugar de eliminar)
+            attacker.health = 0
+            attacker.delete()
+
+            return {
+                "action": "attack",
+                "damage": 0,
+                "crit": False,
+                "attacker": attacker.name,
+                "defender": defender.name,
+                "message": message  # Incluir el mensaje en el resultado
+            }
+
+        # Verificar si el defensor no tiene arma equipada
+        # (esto es para cuando el personaje ataca a un enemigo desarmado)
+        if defender == self.enemy and not defender.equipped_weapon:
+            message = f"{defender.name} está desarmado y es derrotado rápidamente."
+
+            # El defensor pierde automáticamente por no tener arma (marcamos como sin salud en lugar de eliminar)
             defender.health = 0
-            defender.save()
+            defender.delete()
+
             return {
                 "action": "attack",
                 "damage": 0,
                 "crit": False,
                 "attacker": attacker.name,
                 "defender": defender.name,
-            }
-
-        # Calcular si el ataque es crítico
-        attacker_bonus = self.get_racial_bonus(attacker)
-
-        # CAMBIO: Aumentar ligeramente la probabilidad base de crítico
-        crit_chance = 18  # Probabilidad base de crítico (antes 15%)
-        crit_chance += attacker_bonus["crit"]
-
-        # Calcular si el ataque es crítico
-        crit = random.choices([True, False], weights=[crit_chance, 100 - crit_chance])[0]
-
-        # Calcular el daño base
-        base_damage = self.calculate_damage(attacker, defender)
-
-        # CAMBIO: Aumentar el multiplicador de daño crítico
-        crit_multiplier = 1.8  # Antes era 1.5
-        damage = int(base_damage * crit_multiplier) if crit else base_damage
-
-        # Reducir la salud del defensor
-        defender.health = max(defender.health - damage, 0)
-        defender.save()
-
-        # Retornar el resultado del ataque
-        return {
-            "action": "attack",
-            "damage": damage,
-            "crit": crit,
-            "attacker": attacker.name,
-            "defender": defender.name,
-        }
-
-    def perform_defend(self, defender):
-        """Prepara la defensa del defensor con valores mejorados."""
-        # CAMBIO: Aumentar ligeramente la probabilidad de defensa crítica
-        crit_chance = 22 + (defender.defense * 0.1)  # Antes 20%
-        crit_chance = min(crit_chance, 100)
-
-        crit_defense = random.choices(
-            [True, False], weights=[crit_chance, 100 - crit_chance]
-        )[0]
-
-        if crit_defense:
-            # Defensa crítica: anula todo el daño
-            defender.critical_defense = True
-            defender.defense_reduction = 1.0
-
-            # CAMBIO: Aumentar el bono de defensa para defensas críticas
-            defense_bonus = defender.defense * 3  # Antes era 2
-            return {
-                "action": "defend",
-                "crit_defense": True,
-                "defense_reduction": 1.0,
-                "defense_bonus": defense_bonus
-            }
-        else:
-            # CAMBIO: Aumentar la reducción de daño para defensa normal
-            defender.defense_reduction = 0.45  # Antes 0.3 (30% → 45%)
-            defender.critical_defense = False
-
-            # CAMBIO: Aumentar el bono de defensa para defensas normales
-            defense_bonus = int(defender.defense * 0.5)  # Antes 0.3
-            return {
-                "action": "defend",
-                "crit_defense": False,
-                "defense_reduction": 0.45,
-                "defense_bonus": defense_bonus
-            }
-
-    def perform_attack(self, attacker, defender):
-        """Realiza un ataque y devuelve el daño infligido."""
-
-        # Verificar si el atacante tiene un arma equipada
-        if not attacker.equipped_weapon:
-            if self.request:
-                messages.error(self.request, f"{attacker.name} no tenía un arma equipada y ha perdido automáticamente.")
-            defender.health = 0  # El defensor gana, ya que el atacante no tiene arma
-            defender.save()
-            return {
-                "action": "attack",
-                "damage": 0,
-                "crit": False,
-                "attacker": attacker.name,
-                "defender": defender.name,
+                "message": message  # Incluir el mensaje en el resultado
             }
 
         # Calcular si el ataque es crítico
@@ -719,25 +661,22 @@ class CombatManager:
         }
 
     def perform_defend(self, defender):
-        """Prepara la defensa del defensor.
-        Si es crítica, anulará todo el daño.
-        Si no, reducirá el daño recibido en un 30%."""
-
-        # Calcular la probabilidad de defensa crítica: 20% base + 10% de la defensa del personaje
-        crit_chance = 20 + (defender.defense * 0.1)
-        # Asegurar que la probabilidad no exceda el 100%
+        """Prepara la defensa del defensor con valores más robustos."""
+        # Aumentar la probabilidad de defensa crítica
+        crit_chance = 25 + (defender.defense * 0.12)  # Antes 22%
         crit_chance = min(crit_chance, 100)
 
-        # Determinar si la defensa es crítica basada en la probabilidad calculada
         crit_defense = random.choices(
             [True, False], weights=[crit_chance, 100 - crit_chance]
         )[0]
 
         if crit_defense:
-            # Si la defensa es crítica, el defensor no recibirá daño este turno
+            # Defensa crítica: anula todo el daño
             defender.critical_defense = True
-            defender.defense_reduction = 1.0  # 100% de reducción
-            defense_bonus = defender.defense * 2  # Un bono alto para defensa crítica
+            defender.defense_reduction = 1.0
+
+            # Aumentar el bono de defensa para defensas críticas
+            defense_bonus = defender.defense * 4  # Antes era 3
             return {
                 "action": "defend",
                 "crit_defense": True,
@@ -745,16 +684,67 @@ class CombatManager:
                 "defense_bonus": defense_bonus
             }
         else:
-            # Si la defensa no es crítica, se reducirá el daño recibido en un 30%
-            defender.defense_reduction = 0.3  # Reducción del 30%
+            # Aumentar la reducción de daño para defensa normal
+            defender.defense_reduction = 0.6  # Antes 0.45 (45% → 60%)
             defender.critical_defense = False
-            defense_bonus = int(defender.defense * 0.3)  # Un bono del 30% para defensa normal
+
+            # Aumentar el bono de defensa para defensas normales
+            defense_bonus = int(defender.defense * 0.8)  # Antes 0.5
             return {
                 "action": "defend",
                 "crit_defense": False,
-                "defense_reduction": 0.3,
+                "defense_reduction": 0.6,
                 "defense_bonus": defense_bonus
             }
+
+    def calculate_damage(self, attacker, defender):
+        """Calcula el daño infligido por el atacante al defensor con mejor defensa."""
+        # Verificar si el atacante tiene un arma equipada
+        if not attacker.equipped_weapon:
+            return 0
+
+        # Verificar si el defensor tiene defensa crítica activada
+        if hasattr(defender, 'critical_defense') and defender.critical_defense:
+            return 0
+
+        # Obtener el daño base del arma y aplicar un multiplicador general para aumentar el daño
+        base_damage_multiplier = 2.5
+        weapon_damage = attacker.equipped_weapon.damage * base_damage_multiplier
+
+        # Añadir daño base adicional independiente del arma
+        additional_base_damage = 10
+        weapon_damage += additional_base_damage
+
+        # Obtener bonificaciones raciales del atacante
+        racial_bonus = self.get_racial_bonus(attacker)
+
+        # Aplicar multiplicador de daño racial
+        weapon_damage = int(weapon_damage * racial_bonus["damage_multiplier"])
+
+        # Calcular defensa total del defensor
+        defense = defender.defense
+        if defender.equipped_armor:
+            defense += defender.equipped_armor.defense
+
+        # Aplicar bonificaciones de defensa raciales al defensor
+        defense_multiplier = self.get_racial_bonus(defender)["defense_multiplier"]
+        defense = int(defense * defense_multiplier)
+
+        # CAMBIO: Mejorar la reducción de daño por defensa
+        defense_percentage = min(defense / 250, 0.75)  # Máximo 75% de reducción (antes era 65%)
+
+        # Aplicar reducción de daño si el defensor está en posición defensiva
+        if hasattr(defender, 'defense_reduction') and defender.defense_reduction > 0:
+            weapon_damage = int(weapon_damage * (1 - defender.defense_reduction))
+
+        # El daño final es el daño del arma menos la defensa porcentual (mínimo 1)
+        final_damage = max(int(weapon_damage * (1 - defense_percentage)), 1)
+
+        # Añadir variabilidad al daño final con un factor aleatorio
+        damage_variance = random.uniform(0.9, 1.3)  # -10% a +30% de variación
+        final_damage = int(final_damage * damage_variance)
+
+        return final_damage
 
     def perform_flee(self, flee_chance, character, opponent):
         """Intenta huir y devuelve si tuvo éxito."""
@@ -861,7 +851,7 @@ class CombatManager:
                 if self.character.health <= 0:
                     enemy_message += f" ¡Has sido derrotado por {self.enemy.name}!"
                     outcome = "defeat"
-                    self.character.delete()
+                    # No eliminamos al personaje, solo lo marcamos como derrotado
 
                 return {
                     "action": "flee",
@@ -928,12 +918,12 @@ class CombatManager:
                 message += f" ¡Has sido derrotado por {self.enemy.name}!"
                 message_tag = "danger"
                 outcome = "defeat"
-                self.character.delete()
+                # No eliminamos al personaje, solo lo marcamos como derrotado
             elif self.enemy.health <= 0:
                 message += f" ¡Has derrotado a {self.enemy.name}!"
                 message_tag = "success"
                 outcome = "victory"
-                self.enemy.delete()
+                # No eliminamos al enemigo, solo lo marcamos como derrotado
 
             return {
                 "action": "defend",
@@ -947,6 +937,50 @@ class CombatManager:
         if action == "attack":
             # El personaje ataca primero siempre
             character_attack_result = self.perform_attack(self.character, self.enemy)
+
+            # Verificar si el personaje no tenía arma
+            if not self.character.equipped_weapon:
+                # Usar el mensaje personalizado del resultado
+                message = character_attack_result.get("message",
+                                                      f"Al estar desarmado, apenas puedes acercarte a {self.enemy.name} antes de caer derrotado.")
+                message_tag = "danger"
+                outcome = "defeat"
+
+                # En lugar de eliminar, marcamos el personaje como completamente sin salud
+                self.character.health = 0
+                self.character.save()
+
+                return {
+                    "action": "attack",
+                    "message": message,
+                    "message_tag": message_tag,
+                    "outcome": outcome,
+                    "character_id": self.character.pk
+                }
+
+            # Verificar si el enemigo no tenía arma o ha sido derrotado
+            if not self.enemy.equipped_weapon or self.enemy.health <= 0:
+                # Si el enemigo estaba desarmado o ha sido derrotado, verificamos el mensaje
+                if character_attack_result.get("message") and "desarmado" in character_attack_result.get(
+                        "message") or self.enemy.health <= 0:
+                    message = character_attack_result.get("message") or f"Has derrotado a {self.enemy.name}."
+                    message_tag = "success"
+                    outcome = "victory"
+
+                    # En lugar de eliminar, marcamos el enemigo como completamente sin salud
+                    self.enemy.health = 0
+                    self.enemy.save()
+
+                    return {
+                        "action": "attack",
+                        "message": message,
+                        "message_tag": message_tag,
+                        "outcome": outcome,
+                        "character_id": self.character.pk,
+                        "enemy_name": self.enemy.name
+                    }
+
+            # Continuar con el flujo normal si el personaje tenía arma y el enemigo no fue derrotado
             character_damage = character_attack_result["damage"]
             character_crit = character_attack_result["crit"]
 
@@ -961,7 +995,7 @@ class CombatManager:
                 message += f" ¡Has derrotado a {self.enemy.name}!"
                 message_tag = "success"
                 outcome = "victory"
-                self.enemy.delete()
+                # No eliminamos al enemigo, solo lo marcamos como derrotado
 
                 return {
                     "action": "attack",
@@ -988,7 +1022,7 @@ class CombatManager:
             if self.character.health <= 0:
                 message += f" ¡Has sido derrotado por {self.enemy.name}!"
                 outcome = "defeat"
-                self.character.delete()
+                # No eliminamos al personaje, solo lo marcamos como derrotado
 
             return {
                 "action": "attack",
@@ -1046,9 +1080,6 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
                 "character_id": character.pk
             })
 
-        # Guardar el ID del personaje antes de que pueda ser eliminado
-        character_id = character.pk
-
         # Crear el gestor de combate
         combat_manager = CombatManager(character, enemy, request)
 
@@ -1062,8 +1093,28 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
         message_tag = result.get("message_tag", "info")
         outcome = result.get("outcome")
 
-        # Verificar si hay que redireccionar debido a la eliminación de un personaje
-        character_exists = Character.objects.filter(pk=character_id).exists()
+        # Refrescar los objetos desde la base de datos para obtener los valores actualizados
+        try:
+            character_refreshed = Character.objects.get(pk=character_id)
+            character_health = character_refreshed.health
+            character_max_health = character_refreshed.max_health
+            character_defense = character_refreshed.defense
+        except Character.DoesNotExist:
+            # Si el personaje ya no existe, usamos los valores anteriores
+            character_health = 0
+            character_max_health = character.max_health
+            character_defense = character.defense
+
+        try:
+            enemy_refreshed = Character.objects.get(pk=enemy_id)
+            enemy_health = enemy_refreshed.health
+            enemy_max_health = enemy_refreshed.max_health
+            enemy_defense = enemy_refreshed.defense
+        except Character.DoesNotExist:
+            # Si el enemigo ya no existe, usamos los valores anteriores
+            enemy_health = 0
+            enemy_max_health = enemy.max_health
+            enemy_defense = enemy.defense
 
         # Preparar la respuesta JSON
         response_data = {
@@ -1072,42 +1123,15 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
             "message_tag": message_tag,
             "action": result.get("action"),
             "character_id": character_id,
+            "enemy_name": enemy.name,
             "success": result.get("success", False) if action == "flee" else None,
-            "outcome": outcome
+            "outcome": outcome,
+            "character_health": character_health,
+            "character_max_health": character_max_health,
+            "character_defense": character_defense,
+            "enemy_health": enemy_health,
+            "enemy_max_health": enemy_max_health,
+            "enemy_defense": enemy_defense
         }
-
-        # Si el personaje aún existe, incluir sus estadísticas actualizadas
-        if character_exists:
-            character_refreshed = Character.objects.get(pk=character_id)
-            response_data.update({
-                "character_health": character_refreshed.health,
-                "character_max_health": character_refreshed.max_health,
-                "character_defense": character_refreshed.defense,
-            })
-        else:
-            # Si el personaje fue eliminado, establecer la salud en 0
-            response_data.update({
-                "character_health": 0,
-                "character_max_health": character.max_health,  # Usar el valor previo
-                "character_defense": character.defense,  # Usar el valor previo
-            })
-
-        # Comprobar si el enemigo aún existe
-        enemy_exists = Character.objects.filter(pk=enemy_id).exists()
-
-        if enemy_exists:
-            enemy_refreshed = Character.objects.get(pk=enemy_id)
-            response_data.update({
-                "enemy_health": enemy_refreshed.health,
-                "enemy_max_health": enemy_refreshed.max_health,
-                "enemy_defense": enemy_refreshed.defense,
-            })
-        else:
-            # Si el enemigo fue eliminado, establecer la salud en 0
-            response_data.update({
-                "enemy_health": 0,
-                "enemy_max_health": enemy.max_health,  # Usar el valor previo
-                "enemy_defense": enemy.defense,  # Usar el valor previo
-            })
 
         return JsonResponse(response_data)
