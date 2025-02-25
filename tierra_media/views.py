@@ -282,10 +282,10 @@ class WeaponPreparations:
     def create_weapons(user):
         weapons = weapons_init()
         for weapon in weapons:
-            weapon_name = weapon.get("name")
+            weapon_type = weapon.get("type")
             try:
                 with open(
-                    f"static/icons/weapon-icons/{weapon_name.lower()}.png",
+                    f"static/icons/weapon-icons/{weapon_type.lower()}.png",
                     "rb",
                 ) as weapon_icon:
                     weapon.update(
