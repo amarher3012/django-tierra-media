@@ -35,7 +35,7 @@ class RegisterView(FormView):
 
         token_url = self.build_activation_url(uid, token)
 
-        # self.send_activation_email(user, token_url)
+        #self.send_activation_email(user, token_url)
 
         messages.success(
             self.request,
@@ -113,7 +113,7 @@ class IndexView(ListView):
 class CharacterCreation(LoginRequiredMixin, CreateView):
     template_name = "character-creation/character-creation.html"
     form_class = CreateCharacterForm
-    success_url = "/tierra-media/character-creation/success/"
+    success_url = '/tierra-media/character-creation/add-backpack'
 
     def check_name(self, form):
         name = form.cleaned_data.get("name")
@@ -153,6 +153,14 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
 
         messages.error(self.request, "Ocurrió un error al intentar crear el personaje.")
         return super().form_invalid(form)
+
+
+class AddBackpack(View):
+    def get(self, request):
+        character = Character.objects.all().last()
+        Backpack.objects.create(owner=character)
+        messages.success(request, "Backpack creada con exito.")
+        return redirect(reverse_lazy("tierra_media:character_details", kwargs={"pk": character.id}))
 
 
 class CharacterCreationSuccess(TemplateView):

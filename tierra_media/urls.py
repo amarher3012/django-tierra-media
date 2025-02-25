@@ -13,6 +13,7 @@ urlpatterns = [
         CharacterCreation.as_view(),
         name="character_creation",
     ),
+    path("character-creation/add-backpack", AddBackpack.as_view(), name="add_backpack"),
     path(
         "character-creation/success/",
         CharacterCreationSuccess.as_view(),
