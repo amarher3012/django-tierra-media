@@ -8,6 +8,8 @@ from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.utils.http import urlencode
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
@@ -194,6 +196,10 @@ class CharactersView(LoginRequiredMixin, ListView):
     template_name = "tierra_media/characters.html"
     context_object_name = "characters"
 
+    @method_decorator(cache_page(60*5))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get_queryset(self):
         key_user = self.request.user.pk
         characters = Character.objects.filter(user=key_user)
@@ -298,9 +304,9 @@ class GetWeapons(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user.pk
-        weapons = Weapon.objects.filter(user=user, backpack=None).order_by("?")[
-            :3
-        ]  # Ordenar aleatoriamente y escoger 3
+        weapons = Weapon.objects.filter(user=user, backpack=None).order_by("?")[:3]
+        # Ordenar aleatoriamente y escoger 3
+        print(weapons)
         return weapons
 
     def get_context_data(self, **kwargs):
