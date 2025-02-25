@@ -13,6 +13,7 @@
         {% if characters %}
         	<div class="d-flex justify-content-center">
                 <div class="row">
+                <h1 class="h1">Elige a tu personaje</h1>
                     {% for character in characters %}
                         {% if not character.npc %}
                             <div class="card mb-3" style="max-width: 540px;">
@@ -33,8 +34,11 @@
                     {% endfor %}
                 </div>
             </div>
+        {% else %}
+            <h3 class="h3">Parece que aún no tienes ningún personaje, comienza creando uno</h3>
+            <a href="{% url 'tierra_media:character_creation' %}">Crear personaje</a>
         {% endif %}
-        <a href="{% url 'tierra_media:character_creation' %}">Crear personaje</a>
+            <a href="{% url 'tierra_media:character_creation' %}">Crear personaje</a>
     {% else %}
         <div class="container">
             <h1>TIERRA MEDIA CON DJANGO</h1>

@@ -113,8 +113,20 @@ class IndexView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["characters"] = self.get_queryset()
+        context['active_page'] = 'index'
         return context
 
+
+class InfoView(TemplateView):
+    template_name = "nav/info.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_page'] = 'info'
+        return context
+
+class ContactView(FormView):
+    pass
 
 class CharacterCreation(LoginRequiredMixin, CreateView):
     template_name = "character-creation/character-creation.html"

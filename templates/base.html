@@ -21,10 +21,10 @@
         </div>
 
         <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-            <li><a href="{% url 'tierra_media:index' %}" class="nav-link px-2 link-secondary">Inicio</a></li>
-            <li><a href="#" class="nav-link px-2">Información</a></li>
-            <li><a href="#" class="nav-link px-2">Contacto</a></li>
-            <li><a href="#" class="nav-link px-2">Sobre nosotros</a></li>
+            <li><a href="{% url 'tierra_media:index' %}" class="nav-link px-2 {% if active_page == 'index' %}link-secondary{% endif %}">Inicio</a></li>
+            <li><a href="{% url 'tierra_media:info' %}" class="nav-link px-2 {% if active_page == 'info' %}link-secondary{% endif %}">Información</a></li>
+            <li><a href="#" class="nav-link px-2 {% if active_page == 'contact' %}link-secondary{% endif %}">Contacto</a></li>
+            <li><a href="#" class="nav-link px-2 {% if active_page == 'about-us' %}link-secondary{% endif %}">Sobre nosotros</a></li>
         </ul>
 
         {% if user.is_authenticated %}
@@ -37,8 +37,8 @@
             </div>
         {% else %}
             <div class="col-md-3 text-end pe-4">
-                <a href="{% url 'tierra_media:login' %}" type="button" class="btn btn-outline-primary me-2">Iniciar sesión</a>
-                <a href="{% url 'tierra_media:register' %}" type="button" class="btn btn-primary">Registrarse</a>
+                <a href="{% url 'tierra_media:login' %}" type="button" class="btn btn-outline-primary me-2 {% if request.resolver_match.url_name == 'login' %}active{% endif %}">Iniciar sesión</a>
+                <a href="{% url 'tierra_media:register' %}" type="button" class="btn btn-primary {% if request.resolver_match.url_name == 'register' %}btn-secondary{% endif %}">Registrarse</a>
             </div>
         {% endif %}
     </header>

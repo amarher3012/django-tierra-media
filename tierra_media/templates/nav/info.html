@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}
+    Información
+{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Información sobre el juego</h1>
+    <p>Tierra Media es un juego simulador inspirado en la obra de Tolkien: <strong>El Señor de los anillos</strong>.</p>
+    <p>En él podrás crear distintos y elegir su sexo, su raza e incluso la facción a la que pertenece. Podrás equiparle diferentes armas y armaduras que
+    encontrarás y comprarás durante tu aventura.</p>
+    <p>También podrás recorrer la Tierra Media y visitar algunas de sus localizaciones más emblemáticas como Minas Tirith o Mordor, donde puedes acabar encontrándote
+    con otros personajes y, además, algunos de los héroes legendarios que protagonizan esta increíble historia: Aragorn, Legolas, Frodo e incluso Sauron.</p>
+    <p>Dependiendo de tu relación con ellos, podrás interactuar de distintas maneras:</p>
+    <p>Algunos querrán <strong>ayudarte</strong> y te tratarán con amabilidad y respeto.</p>
+    <p>Otros desearán enfrentarse a ti y <strong>poner fin a tu vida</strong> de manera despiadada.</p>
+    <p>O puede que haya personajes con motivos ocultos que prefieran <strong>evitarte</strong>, ya que no te consideran ni enemigo ni aliado.</p>
+    <p>¡Eres libre de decidir cómo quieres vivir esta aventura! Enfréntate a tus enemigos, explora a tu antojo y ayuda a tus aliados.</p>
+    <p>Pero, recuerda, debes tener cuidado o tu periplo podría acabar de manera trágica. Aquí la muerte es permanente.</p>
+    <a href="{% url 'tierra_media:index' %}">Volver a Inicio</a>
+{% endblock %}
