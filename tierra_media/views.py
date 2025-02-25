@@ -1,3 +1,5 @@
+from gc import get_objects
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.core.files import File
@@ -11,10 +13,9 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.views import View
 from django.views.generic import *
-from django.forms.models import model_to_dict
 
 from .forms import CustomUserCreationForm, CreateCharacterForm
-from .models import Character, Weapon, Armor, Location, Faction, Race
+from .models import Character, Weapon, Armor, Location, Faction, Race, Backpack
 from .constants import npc_init, weapons_init, armors_init
 
 
@@ -25,7 +26,7 @@ class RegisterView(FormView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
-        user.is_active = False
+        user.is_active = True
         user.save()
 
         token = default_token_generator.make_token(user)
@@ -34,7 +35,7 @@ class RegisterView(FormView):
 
         token_url = self.build_activation_url(uid, token)
 
-        self.send_activation_email(user, token_url)
+        # self.send_activation_email(user, token_url)
 
         messages.success(
             self.request,
@@ -93,7 +94,7 @@ class ActivateAccount(View):
             return redirect("tierra_media:register")
 
 
-class IndexView(LoginRequiredMixin, ListView):
+class IndexView(ListView):
     model = Character
     template_name = "tierra_media/index.html"
     context_object_name = "characters"
@@ -224,7 +225,8 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         character = self.get_object()
-        context["character"] = model_to_dict(character, exclude=["user"])
+        # context["character"] = model_to_dict(character, exclude=["user"])
+        context["character"] = Character.objects.get(pk=character.pk)
 
         user = self.request.user
         user_characters = Character.objects.filter(user=user)
@@ -350,8 +352,44 @@ class GetWeapons(LoginRequiredMixin, ListView):
         return context
 
 
-class EquipWeapon(LoginRequiredMixin, TemplateView):
+class EquipWeapon(LoginRequiredMixin, UpdateView):
+    model = Character
+    fields = []
     template_name = "tierra_media/equip_weapon.html"
+    context_object_name = "objects"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "tierra_media:character_details", kwargs={"pk": self.get_object().pk}
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        character = self.get_object()
+        backpack = Backpack.objects.get(owner=character.pk)
+        weapons = Weapon.objects.filter(user=self.request.user, backpack=backpack)
+        armors = Armor.objects.filter(user=self.request.user, backpack=backpack)
+        context["weapons"] = weapons
+        context["armors"] = armors
+        return context
+
+    def post(self, request, *args, **kwargs):
+        character = self.get_object()
+        if "weapon" in request.POST:
+            item_selected = request.POST.get("weapon")
+            item_found = Weapon.objects.get(pk=item_selected)
+            print(item_found)
+            character.equipped_weapon = item_found
+            character.save()
+            messages.success(request, "Arma equipada con éxito")
+            return redirect(self.get_success_url())
+
+        item_selected = request.POST.get("armor")
+        item_found = Armor.objects.get(pk=item_selected)
+        character.equipped_armor = item_found
+        character.save()
+        messages.success(request, "Armadura equipada con éxito")
+        return redirect(self.get_success_url())
 
 
 class Shop(LoginRequiredMixin, TemplateView):
