@@ -524,9 +524,10 @@ class EncounterNeutral(LoginRequiredMixin, TemplateView):
 
 
 class CombatManager:
-    def __init__(self, character, enemy):
+    def __init__(self, character, enemy, request=None):
         self.character = character
         self.enemy = enemy
+        self.request = request
 
     def calculate_damage(self, attacker, defender):
         """Calcula el daño infligido por el atacante al defensor."""
@@ -540,23 +541,113 @@ class CombatManager:
 
     def perform_attack(self, attacker, defender):
         """Realiza un ataque y devuelve el daño infligido."""
-        damage = self.calculate_damage(attacker, defender)
-        defender.health = max(defender.health - damage, 0)
+        # Calcular si el ataque es crítico
+        attacker_bonus = self.get_racial_bonus(attacker)
+
+        # Calcular la probabilidad de crítico (base + bono racial)
+        crit_chance = 15  # Probabilidad base de crítico (15%)
+        crit_chance += attacker_bonus["crit"]  # Sumar el bono de crítico racial
+
+        # Calcular si el ataque es crítico
+        crit = random.choices([True, False], weights=[crit_chance, 100 - crit_chance])[
+            0
+        ]
+
+        # Calcular el daño base
+        weapon_damage = attacker.equipped_weapon.damage
+        damage = weapon_damage
+
+        # Aplicar multiplicador de daño crítico
+        if crit:
+            damage *= 1.33  # Aumentar el daño en un 33% si es crítico
+
+        # Calcular el daño final teniendo en cuenta la defensa del defensor
+        defense = defender.defense + (
+            defender.equipped_armor.defense if defender.equipped_armor else 0
+        )
+        damage_received = max(damage - defense, 0)  # El daño no puede ser negativo
+
+        # Reducir la salud del defensor
+        defender.health = max(
+            defender.health - damage_received, 0
+        )  # La salud no puede ser negativa
         defender.save()
-        return damage
+
+        # Mostrar mensajes de retroalimentación
+        if self.request:
+            if crit:
+                messages.success(
+                    self.request,
+                    f"¡Ataque crítico! Has infligido {damage_received} puntos de daño a {defender.name}.",
+                )
+            else:
+                messages.success(
+                    self.request,
+                    f"Has infligido {damage_received} puntos de daño a {defender.name}.",
+                )
+
+        # Retornar el resultado del ataque
+        return {
+            "action": "attack",
+            "damage": damage_received,
+            "crit": crit,
+            "attacker": attacker.name,
+            "defender": defender.name,
+        }
 
     def perform_defend(self, defender):
         """Aumenta la defensa del defensor y devuelve el bono de defensa."""
-        defense_bonus = random.randint(5, 15)
-        defender.defense += defense_bonus
-        defender.save()
-        return defense_bonus
+        # Calcular si la defensa es crítica
+        crit_defense = random.choices(
+            [True, False], weights=[10 + defender.defense * 0.2, 90]
+        )[0]
 
-    def perform_flee(self, flee_chance):
+        if crit_defense:
+            # Si la defensa es crítica, el defensor no recibe daño
+            if self.request:
+                messages.success(
+                    self.request,
+                    f"¡{defender.name} desvía con habilidad el ataque y no sufre daño!",
+                )
+            return {"action": "defend", "crit_defense": True, "damage_received": 0}
+        else:
+            # Si la defensa no es crítica, aumentar la defensa del defensor
+            defense_bonus = defender.defense * 0.5
+            defender.defense += defense_bonus
+            defender.save()
+
+            if self.request:
+                messages.info(
+                    self.request,
+                    f"¡{defender.name} ha aumentado su defensa en {defense_bonus} puntos!",
+                )
+            return {"action": "defend", "defense_bonus": defense_bonus}
+
+    def perform_flee(self, flee_chance, defender):
         """Intenta huir y devuelve si tuvo éxito."""
-        return random.choices([True, False], weights=[flee_chance, 100 - flee_chance])[
-            0
-        ]
+        # Dificultad base para huir
+        base_flee_chance = flee_chance
+
+        # Aumentar la dificultad si el defensor es un elfo
+        if defender.race.name == "Orco":
+            base_flee_chance -= 20  # Reducir la probabilidad de huir en 20%
+
+        # Asegurarse de que la probabilidad no sea negativa
+        base_flee_chance = max(base_flee_chance, 0)
+
+        # Intentar huir
+        flee_success = random.choices(
+            [True, False], weights=[base_flee_chance, 100 - base_flee_chance]
+        )[0]
+
+        # Mostrar mensaje de retroalimentación
+        if self.request:
+            if flee_success:
+                messages.success(self.request, "¡Has logrado huir!")
+            else:
+                messages.error(self.request, "¡No has logrado huir!")
+
+        return flee_success
 
     def get_racial_bonus(self, character):
         """Devuelve los bonos raciales para iniciativa, daño y defensa."""
@@ -565,6 +656,7 @@ class CombatManager:
             "damage_multiplier": 1.0,
             "defense_multiplier": 1.0,
             "flee_chance": 0,
+            "crit": 0,
         }
 
         if character.race.name == "Humano":
@@ -573,6 +665,7 @@ class CombatManager:
         elif character.race.name == "Elfo":
             bonuses["initiative"] += 20
             bonuses["damage_multiplier"] = 1.10
+            bonuses["crit"] = 15
         elif character.race.name == "Enano":
             bonuses["defense_multiplier"] = 1.20
             bonuses["damage_multiplier"] = 1.10
