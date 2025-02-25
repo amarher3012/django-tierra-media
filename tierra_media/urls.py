@@ -31,4 +31,8 @@ urlpatterns = [
     path(
         "characters/<int:pk>/move/success/", MoveSuccess.as_view(), name="move_success"
     ),
+    path("api/characters/", CharacterList.as_view(), name="character-list"),
+    path(
+        "api/characters/<int:pk>/", CharacterDetail.as_view(), name="character-detail"
+    ),
 ]

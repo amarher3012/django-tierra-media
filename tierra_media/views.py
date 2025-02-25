@@ -1,5 +1,5 @@
-from gc import get_objects
-
+from rest_framework import generics
+from .serializers import CharacterSerializer
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.core.files import File
@@ -35,7 +35,7 @@ class RegisterView(FormView):
 
         token_url = self.build_activation_url(uid, token)
 
-        # self.send_activation_email(user, token_url)
+        self.send_activation_email(user, token_url)
 
         messages.success(
             self.request,
@@ -430,3 +430,17 @@ class Move(LoginRequiredMixin, UpdateView):
 
 class MoveSuccess(LoginRequiredMixin, TemplateView):
     template_name = "move/success.html"
+
+
+class CharacterList(generics.ListAPIView):
+    serializer_class = CharacterSerializer
+
+    def get_queryset(self):
+        return Character.objects.filter(npc=False)
+
+
+class CharacterDetail(generics.RetrieveAPIView):
+    serializer_class = CharacterSerializer
+
+    def get_queryset(self):
+        return Character.objects.filter(npc=False)
