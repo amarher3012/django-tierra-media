@@ -26,7 +26,7 @@ class RegisterView(FormView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
-        user.is_active = True
+        user.is_active = False
         user.save()
 
         token = default_token_generator.make_token(user)
@@ -35,7 +35,7 @@ class RegisterView(FormView):
 
         token_url = self.build_activation_url(uid, token)
 
-        #self.send_activation_email(user, token_url)
+        self.send_activation_email(user, token_url)
 
         messages.success(
             self.request,
@@ -342,24 +342,6 @@ class ArmorPreparations:
                 armor_object.save()
 
 
-class GetWeapons(LoginRequiredMixin, ListView):
-    model = Weapon
-    template_name = "tierra_media/get_weapons.html"
-    context_object_name = "weapons"
-
-    def get_queryset(self):
-        user = self.request.user.pk
-        weapons = Weapon.objects.filter(user=user, backpack=None).order_by("?")[
-            :3
-        ]  # Ordenar aleatoriamente y escoger 3
-        return weapons
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["weapons"] = self.get_queryset()
-        return context
-
-
 class EquipWeapon(LoginRequiredMixin, UpdateView):
     model = Character
     fields = []
@@ -386,7 +368,6 @@ class EquipWeapon(LoginRequiredMixin, UpdateView):
         if "weapon" in request.POST:
             item_selected = request.POST.get("weapon")
             item_found = Weapon.objects.get(pk=item_selected)
-            print(item_found)
             character.equipped_weapon = item_found
             character.save()
             messages.success(request, "Arma equipada con éxito")
@@ -400,9 +381,43 @@ class EquipWeapon(LoginRequiredMixin, UpdateView):
         return redirect(self.get_success_url())
 
 
-class Shop(LoginRequiredMixin, TemplateView):
+class Shop(LoginRequiredMixin, UpdateView):
+    model = Character
+    fields = []
     template_name = "tierra_media/shop.html"
+    context_object_name = "objects"
 
+    def get_success_url(self):
+        return reverse_lazy(
+            "tierra_media:character_details", kwargs={"pk": self.get_object().pk}
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        weapons = Weapon.objects.filter(user=self.request.user, backpack=None)
+        armors = Armor.objects.filter(user=self.request.user, backpack=None)
+        context["weapons"] = weapons
+        context["armors"] = armors
+        return context
+
+    def post(self, request, *args, **kwargs):
+        character = self.get_object()
+        backpack = Backpack.objects.get(owner=character.pk)
+        if 'weapon' in request.POST:
+            item_selected = request.POST.get("weapon")
+            print(item_selected)
+            item_found = Weapon.objects.get(pk=item_selected)
+            item_found.backpack = backpack
+            item_found.save()
+            messages.success(request,f'{item_found.name} enviado al inventario')
+            return redirect(self.get_success_url())
+
+        item_selected = request.POST.get("armor")
+        item_found = Armor.objects.get(pk=item_selected)
+        item_found.backpack = backpack
+        item_found.save()
+        messages.success(request, f'{item_found.name} enviado al inventario')
+        return redirect(self.get_success_url())
 
 class Move(LoginRequiredMixin, UpdateView):
     model = Character
