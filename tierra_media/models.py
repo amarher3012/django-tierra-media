@@ -32,7 +32,9 @@ class Character(models.Model):
     health = models.IntegerField(default=250)
     defense = models.IntegerField(default=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    equipped_weapon = models.OneToOneField("Weapon", on_delete=models.SET_NULL, null=True)
+    equipped_weapon = models.OneToOneField(
+        "Weapon", on_delete=models.SET_NULL, null=True
+    )
     equipped_armor = models.OneToOneField("Armor", on_delete=models.SET_NULL, null=True)
     faction = models.ForeignKey(Faction, on_delete=models.DO_NOTHING)
     location = models.ForeignKey(Location, on_delete=models.DO_NOTHING)
@@ -52,11 +54,11 @@ class Backpack(models.Model):
 
 class Weapon(models.Model):
     name = models.CharField(max_length=50)
-    icon = models.ImageField(blank=True, upload_to="uploads/weapon-icons/")
+    icon = models.ImageField(blank=True, upload_to="uploads/")
     damage = models.IntegerField()
     type = models.CharField(max_length=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    backpack = models.ForeignKey(Backpack, on_delete=models.DO_NOTHING, null=True)
+    backpack = models.ForeignKey(Backpack, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name
@@ -64,10 +66,10 @@ class Weapon(models.Model):
 
 class Armor(models.Model):
     name = models.CharField(max_length=50)
-    icon = models.ImageField(blank=True, upload_to="uploads/armor-icons/")
+    icon = models.ImageField(blank=True, upload_to="uploads/")
     defense = models.IntegerField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    backpack = models.ForeignKey(Backpack, on_delete=models.DO_NOTHING, null=True)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    backpack = models.ForeignKey(Backpack, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name

@@ -42,7 +42,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="weapon" value="{{ weapon.id }}">
                                 <button type="submit" class="btn btn-link text-decoration-none p-0">
-                                        <img src="{% static 'weapon-icons/8348232.png' %}" class="icons">
+                                        <img src="{{weapon.icon.url}}" class="icons">
                                 </button>
                         </form>
                     </div>
