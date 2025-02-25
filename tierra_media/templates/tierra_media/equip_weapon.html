@@ -39,7 +39,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="weapon" value="{{ weapon.id }}">
                                 <button type="submit" class="btn btn-link text-decoration-none p-0">
-                                    <img src="{% static 'weapon-icons/8348232.png' %}" class="icons">
+                                        <img src="{% static 'weapon-icons/8348232.png' %}" class="icons">
                                 </button>
                         </form>
                     </div>
@@ -65,6 +65,7 @@
         items = document.getElementById('items')
         backpack.addEventListener('click', ()=>{
             items.style.visibility = 'visible'
+            console.log()
         })
         backpack.addEventListener("dblclick", ()=>{
             items.style.visibility = 'hidden'
