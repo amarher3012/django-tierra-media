@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from .constants import FACTION_CHOICES, LOCATION_CHOICES, RACE_CHOICES
+from .constants import FACTION_CHOICES, LOCATION_CHOICES, RACE_CHOICES, SEX_CHOICES
 
 
 class Faction(models.Model):
@@ -25,8 +25,9 @@ class Race(models.Model):
 
 
 class Character(models.Model):
-    icon = models.ImageField(blank=True, upload_to="uploads/character-icons/")
+    icon = models.ImageField(blank=True, upload_to="uploads/")
     name = models.CharField(max_length=50)
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     max_health = models.IntegerField(default=250)
     health = models.IntegerField(default=250)
     defense = models.IntegerField(default=50)
@@ -48,21 +49,6 @@ class Character(models.Model):
         return (self.health / self.max_health) * 100
 
 
-class Relationship(models.Model):
-    type = models.CharField(max_length=50)
-    character_1 = models.ForeignKey(
-        Character, related_name="character", on_delete=models.CASCADE
-    )
-    character_2 = models.ForeignKey(
-        Character, related_name="relation_with", on_delete=models.CASCADE
-    )
-
-    def __str__(self):
-        return (
-            self.character_1.name + " -> " + self.character_2.name + " -> " + self.type
-        )
-
-
 class Backpack(models.Model):
     owner = models.OneToOneField(Character, on_delete=models.CASCADE)
 
@@ -72,11 +58,11 @@ class Backpack(models.Model):
 
 class Weapon(models.Model):
     name = models.CharField(max_length=50)
-    icon = models.ImageField(blank=True, upload_to="uploads/weapon-icons/")
+    icon = models.ImageField(blank=True, upload_to="uploads/")
     damage = models.IntegerField()
     type = models.CharField(max_length=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    backpack = models.ForeignKey(Backpack, on_delete=models.DO_NOTHING, null=True)
+    backpack = models.ForeignKey(Backpack, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name
@@ -84,11 +70,10 @@ class Weapon(models.Model):
 
 class Armor(models.Model):
     name = models.CharField(max_length=50)
-    icon = models.ImageField(blank=True, upload_to="uploads/armor-icons/")
+    icon = models.ImageField(blank=True, upload_to="uploads/")
     defense = models.IntegerField()
-    type = models.CharField(max_length=50)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    backpack = models.ForeignKey(Backpack, on_delete=models.DO_NOTHING, null=True)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    backpack = models.ForeignKey(Backpack, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name

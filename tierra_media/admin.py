@@ -7,7 +7,6 @@ admin.site.register(
         Character,
         Faction,
         Location,
-        Relationship,
         Race,
         Backpack,
         Weapon,

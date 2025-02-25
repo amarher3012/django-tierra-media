@@ -13,19 +13,14 @@ urlpatterns = [
         CharacterCreation.as_view(),
         name="character_creation",
     ),
-    path(
-        "character-creation/success/",
-        CharacterCreationSuccess.as_view(),
-        name="success",
-    ),
+    path("character-creation/add-backpack", AddBackpack.as_view(), name="add_backpack"),
     path("characters/", CharactersView.as_view(), name="characters"),
     path(
         "characters/<int:pk>", CharacterDetailsView.as_view(), name="character_details"
     ),
     path(
-        "characters/<int:pk>/equip-weapon", EquipWeapon.as_view(), name="equip_weapon"
+        "characters/<int:pk>/equip-objects", EquipWeapon.as_view(), name="equip_objects"
     ),
-    path("characters/<int:pk>/get-weapons", GetWeapons.as_view(), name="get_weapons"),
     path("characters/<int:pk>/shop", Shop.as_view(), name="shop"),
     path("characters/<int:pk>/move/", Move.as_view(), name="move"),
     path(

@@ -12,24 +12,37 @@
     {% if user.is_authenticated %}
         {% if characters %}
         	<div class="d-flex justify-content-center">
-                {% for character in characters %}
-                    <div class="card mb-3" style="max-width: 540px;">
-                      <div class="row g-0">
-                        <div class="col-md-4">
-                          <img src="..." class="img-fluid rounded-start" alt="...">
-                        </div>
-                        <div class="col-md-8">
-                          <a href="{% url 'tierra_media:character_details' character.id %}" class="text-decoration-none">
-                              <div class="card-body">
-                                <h5 class="card-title">{{ character.name }}</h5>
+                <div class="row">
+                    {% for character in characters %}
+                        {% if not character.npc %}
+                            <div class="card mb-3" style="max-width: 540px;">
+                              <div class="row g-0">
+                                <div class="col-md-4">
+                                  <img src="{{ character.icon.url }}" class="img-fluid rounded-start" alt="...">
+                                </div>
+                                <div class="col-md-8">
+                                  <a href="{% url 'tierra_media:character_details' character.id %}" class="text-decoration-none">
+                                      <div class="card-body">
+                                        <h5 class="card-title">{{ character.name }}</h5>
+                                      </div>
+                                  </a>
+                                </div>
                               </div>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
         {% endif %}
+        <a href="{% url 'tierra_media:character_creation' %}">Crear personaje</a>
+    {% else %}
+        <div class="container">
+            <h1>TIERRA MEDIA CON DJANGO</h1>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium aliquid aperiam dolorum
+                in, incidunt, iusto minima porro provident, quam quas quo quos
+                reprehenderit rerum sapiente sequi tempore veniam voluptate voluptatem.
+            </p>
+        </div>
     {% endif %}
-    <h1 class="text-center">Hola.</h1>
 {% endblock %}

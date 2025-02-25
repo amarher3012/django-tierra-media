@@ -1,3 +1,7 @@
+SEX = ["M", "F"]
+
+SEX_CHOICES = [(SEX[0], "Hombre"), (SEX[1], "Mujer")]
+
 FACTIONS = [
     "La Comunidad del Anillo",
     "Lothlorien",
@@ -180,32 +184,26 @@ def armors_init():
         {
             "name": "Thalionir",
             "defense": 10,
-            "type": "helmet",
         },
         {
             "name": "Gorundor",
             "defense": 10,
-            "type": "helmet",
         },
         {
             "name": "Eldrinel",
             "defense": 10,
-            "type": "chest",
         },
         {
             "name": "Kaelorn",
             "defense": 10,
-            "type": "chest",
         },
         {
             "name": "Faethor",
             "defense": 10,
-            "type": "gloves",
         },
         {
             "name": "Ithilwen",
             "defense": 10,
-            "type": "gloves",
         },
     ]
 

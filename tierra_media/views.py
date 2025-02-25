@@ -1,8 +1,8 @@
 import random
-
 from django.contrib.admin import action
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
+from django.core.files import File
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import transaction
 from django.db.models.signals import post_save
@@ -16,22 +16,12 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.contrib import messages
+from .forms import CustomUserCreationForm, CreateCharacterForm
+from .models import Character, Weapon, Armor, Location, Faction, Race, Backpack
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.views.generic import *
-from .forms import CustomUserCreationForm
-from .forms import CreateCharacterForm
 from django.forms.models import model_to_dict
-from .models import (
-    Character,
-    Weapon,
-    Armor,
-    Location,
-    Faction,
-    Race,
-    Relationship,
-    Backpack,
-)
 from .constants import npc_init, weapons_init, armors_init
 
 
@@ -123,7 +113,7 @@ class ActivateAccount(View):
             return redirect("tierra_media:register")
 
 
-class IndexView(LoginRequiredMixin, ListView):
+class IndexView(ListView):
     model = Character
     template_name = "tierra_media/index.html"
     context_object_name = "characters"
@@ -142,7 +132,7 @@ class IndexView(LoginRequiredMixin, ListView):
 class CharacterCreation(LoginRequiredMixin, CreateView):
     template_name = "character-creation/character-creation.html"
     form_class = CreateCharacterForm
-    success_url = "/tierra-media/character-creation/success/"
+    success_url = '/tierra-media/character-creation/add-backpack'
 
     def check_name(self, form):
         name = form.cleaned_data.get("name")
@@ -153,8 +143,29 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
             return False
         return True
 
+    def add_icon(self, form):
+        sex = form.cleaned_data.get("sex")
+        race = form.cleaned_data.get("race")
+        if sex == "M":
+            male_icon = open(
+                f"static/icons/character-icons/male/{race.name.lower()}.png",
+                "rb",
+            )
+
+            obj = form.save(commit=False)
+            obj.icon = File(male_icon)
+        elif sex == "F":
+            female_icon = open(
+                f"static/icons/character-icons/female/{race.name.lower()}.png",
+                "rb",
+            )
+
+            obj = form.save(commit=False)
+            obj.icon = File(female_icon)
+
     def form_valid(self, form):
         if self.check_name(form):
+            self.add_icon(form)
             form.instance.user = self.request.user
             messages.success(self.request, "Personaje creado con éxito.")
             return super().form_valid(form)
@@ -163,14 +174,19 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
         return super().form_invalid(form)
 
 
-class CharacterCreationSuccess(TemplateView):
-    template_name = "character-creation/success.html"
+class AddBackpack(View):
+    def get(self, request):
+        character = Character.objects.all().last()
+        Backpack.objects.create(owner=character)
+        messages.success(request, "Backpack creada con exito.")
+        return redirect(reverse_lazy("tierra_media:character_details", kwargs={"pk": character.id}))
 
 
 class NPC_preparations:
     def create_npcs(user):
         npcs = npc_init()
         for npc in npcs:
+            npc_name = npc.get("name")
             faction_name = npc.pop("faction")
             location_name = npc.pop("location")
             race_name = npc.pop("race")
@@ -179,16 +195,33 @@ class NPC_preparations:
             location = Location.objects.get(name__iexact=location_name)
             race = Race.objects.get(name__iexact=race_name)
 
-            npc.update(
-                {
-                    "user": user,
-                    "faction": faction,
-                    "location": location,
-                    "race": race,
-                }
-            )
-            npc_object = Character(**npc)
-            npc_object.save()
+            try:
+                with open(
+                    f"static/icons/character-icons/npcs/{npc_name.lower()}.png",
+                    "rb",
+                ) as npc_icon:
+                    npc.update(
+                        {
+                            "icon": File(npc_icon),
+                            "user": user,
+                            "faction": faction,
+                            "location": location,
+                            "race": race,
+                        }
+                    )
+                    npc_object = Character(**npc)
+                    npc_object.save()
+            except FileNotFoundError:
+                npc.update(
+                    {
+                        "user": user,
+                        "faction": faction,
+                        "location": location,
+                        "race": race,
+                    }
+                )
+                npc_object = Character(**npc)
+                npc_object.save()
 
 
 class CharactersView(LoginRequiredMixin, ListView):
@@ -211,19 +244,6 @@ class CharactersView(LoginRequiredMixin, ListView):
         return context
 
 
-class WeaponPreparations:
-    def create_weapons(user):
-        weapons = weapons_init()
-        for weapon in weapons:
-            weapon.update(
-                {
-                    "user": user,
-                }
-            )
-            weapon_object = Weapon(**weapon)
-            weapon_object.save()
-
-
 class CharacterDetailsView(LoginRequiredMixin, DetailView):
     model = Character
     template_name = "tierra_media/character_menu.html"
@@ -232,7 +252,8 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         character = self.get_object()
-        context["character"] = model_to_dict(character, exclude=["user"])
+        # context["character"] = model_to_dict(character, exclude=["user"])
+        context["character"] = Character.objects.get(pk=character.pk)
 
         user = self.request.user
         user_characters = Character.objects.filter(user=user)
@@ -284,44 +305,138 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
         return context
 
 
+class WeaponPreparations:
+    def create_weapons(user):
+        weapons = weapons_init()
+        for weapon in weapons:
+            weapon_type = weapon.get("type")
+            try:
+                with open(
+                    f"static/icons/weapon-icons/{weapon_type.lower()}.png",
+                    "rb",
+                ) as weapon_icon:
+                    weapon.update(
+                        {
+                            "icon": File(weapon_icon),
+                            "user": user,
+                        }
+                    )
+                    weapon_object = Weapon(**weapon)
+                    weapon_object.save()
+            except FileNotFoundError:
+                weapon.update(
+                    {
+                        "user": user,
+                    }
+                )
+                weapon_object = Weapon(**weapon)
+                weapon_object.save()
+
+
 class ArmorPreparations:
     def create_armors(user):
         armors = armors_init()
         for armor in armors:
-            armor.update(
-                {
-                    "user": user,
-                }
-            )
-            armor_object = Armor(**armor)
-            armor_object.save()
+            armor_name = armor.get("name")
+            try:
+                with open(
+                    f"static/icons/armor-icons/{armor_name.lower()}.png",
+                    "rb",
+                ) as armor_icon:
+                    armor.update(
+                        {
+                            "icon": File(armor_icon),
+                            "user": user,
+                        }
+                    )
+                    armor_object = Armor(**armor)
+                    armor_object.save()
+            except FileNotFoundError:
+                armor.update(
+                    {
+                        "user": user,
+                    }
+                )
+                armor_object = Armor(**armor)
+                armor_object.save()
 
 
-class GetWeapons(LoginRequiredMixin, ListView):
-    model = Weapon
-    template_name = "tierra_media/get_weapons.html"
-    context_object_name = "weapons"
+class EquipWeapon(LoginRequiredMixin, UpdateView):
+    model = Character
+    fields = []
+    template_name = "tierra_media/equip_weapon.html"
+    context_object_name = "objects"
 
-    def get_queryset(self):
-        user = self.request.user.pk
-        weapons = Weapon.objects.filter(user=user, backpack=None).order_by("?")[:3]
-        # Ordenar aleatoriamente y escoger 3
-        print(weapons)
-        return weapons
+    def get_success_url(self):
+        return reverse_lazy(
+            "tierra_media:character_details", kwargs={"pk": self.get_object().pk}
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["weapons"] = self.get_queryset()
+        character = self.get_object()
+        backpack = Backpack.objects.get(owner=character.pk)
+        weapons = Weapon.objects.filter(user=self.request.user, backpack=backpack)
+        armors = Armor.objects.filter(user=self.request.user, backpack=backpack)
+        context["weapons"] = weapons
+        context["armors"] = armors
         return context
 
+    def post(self, request, *args, **kwargs):
+        character = self.get_object()
+        if "weapon" in request.POST:
+            item_selected = request.POST.get("weapon")
+            item_found = Weapon.objects.get(pk=item_selected)
+            character.equipped_weapon = item_found
+            character.save()
+            messages.success(request, "Arma equipada con éxito")
+            return redirect(self.get_success_url())
 
-class EquipWeapon(LoginRequiredMixin, TemplateView):
-    template_name = "tierra_media/equip_weapon.html"
+        item_selected = request.POST.get("armor")
+        item_found = Armor.objects.get(pk=item_selected)
+        character.equipped_armor = item_found
+        character.save()
+        messages.success(request, "Armadura equipada con éxito")
+        return redirect(self.get_success_url())
 
 
-class Shop(LoginRequiredMixin, TemplateView):
+class Shop(LoginRequiredMixin, UpdateView):
+    model = Character
+    fields = []
     template_name = "tierra_media/shop.html"
+    context_object_name = "objects"
 
+    def get_success_url(self):
+        return reverse_lazy(
+            "tierra_media:character_details", kwargs={"pk": self.get_object().pk}
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        weapons = Weapon.objects.filter(user=self.request.user, backpack=None)
+        armors = Armor.objects.filter(user=self.request.user, backpack=None)
+        context["weapons"] = weapons
+        context["armors"] = armors
+        return context
+
+    def post(self, request, *args, **kwargs):
+        character = self.get_object()
+        backpack = Backpack.objects.get(owner=character.pk)
+        if 'weapon' in request.POST:
+            item_selected = request.POST.get("weapon")
+            print(item_selected)
+            item_found = Weapon.objects.get(pk=item_selected)
+            item_found.backpack = backpack
+            item_found.save()
+            messages.success(request,f'{item_found.name} enviado al inventario')
+            return redirect(self.get_success_url())
+
+        item_selected = request.POST.get("armor")
+        item_found = Armor.objects.get(pk=item_selected)
+        item_found.backpack = backpack
+        item_found.save()
+        messages.success(request, f'{item_found.name} enviado al inventario')
+        return redirect(self.get_success_url())
 
 class Move(LoginRequiredMixin, UpdateView):
     model = Character
