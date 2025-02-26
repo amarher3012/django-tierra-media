@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}
+    Encuentros en {{ character.location.name }}
+{% endblock %}
+{% block content %}
+    <h1>Posibles encuentros en {{ character.location.name }}</h1>
+
+    <h2>Aliados</h2>
+    {% if relationships.allies %}
+        <ul>
+        {% for encounter in relationships.allies %}
+            <li>
+                <a href="{% url 'tierra_media:encounter_ally' character.pk encounter.pk %}"><strong>{{ encounter.name }}</strong></a> - {{ encounter.race.name }} de {{ encounter.faction.name }}
+                <p>Salud: {{ encounter.health }}/{{ encounter.max_health }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay aliados en esta ubicación.</p>
+    {% endif %}
+
+    <h2>Enemigos</h2>
+    {% if relationships.enemies %}
+        <ul>
+        {% for encounter in relationships.enemies %}
+            <li>
+                <a href="{% url 'tierra_media:encounter_enemy' character.pk encounter.pk %}"><strong>{{ encounter.name }}</strong></a> - {{ encounter.race.name }} de {{ encounter.faction.name }}
+                <p>Salud: {{ encounter.health }}/{{ encounter.max_health }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay enemigos en esta ubicación.</p>
+    {% endif %}
+
+    <h2>Neutrales</h2>
+    {% if relationships.neutrals %}
+        <ul>
+        {% for encounter in relationships.neutrals %}
+            <li>
+                <a href="{% url 'tierra_media:encounter_neutral' character.pk encounter.pk %}"><strong>{{ encounter.name }}</strong></a> - {{ encounter.race.name }} de {{ encounter.faction.name }}
+                <p>Salud: {{ encounter.health }}/{{ encounter.max_health }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay neutrales en esta ubicación.</p>
+    {% endif %}
+
+    <div class="d-flex align-items-center justify-content-start gap-2">
+        <a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Volver a Inicio</a>
+        <a href="{% url 'tierra_media:character_details' character.pk %}" class="text-decoration-none">Volver al menú de personaje</a>
+    </div>
+{% endblock %}

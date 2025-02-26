@@ -11,12 +11,47 @@
         .container-fluid {
             width: 100vh;
             height: 100vh;
+            background-image: url("{% static "tienda.png" %}");
+        }
+        img {
+            width: 400px;
+        }
+        .icons {
+            width: 50px;
         }
     </style>
 </head>
 <body>
 <div class="container-fluid d-flex align-items-center w-100 overflow-hidden p-0">
-    <img src="{% static "tienda.png" %}" class="img-fluid w-100">
+    <div class="container d-flex justify-content-center" id="items">
+        <div class="row gap-4 text-center">
+                {% if weapons %}
+                {% for weapon in weapons %}
+                    <div class="col-3">
+                        <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="weapon" value="{{ weapon.id }}">
+                                <button type="submit" class="btn btn-link text-decoration-none p-0">
+                                        <img src="{{weapon.icon.url}}" class="icons">
+                                </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if armors %}
+                {% for armor in armors %}
+                    <div class="col-3">
+                        <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="armor" value="{{ armor.id }}">
+                                <button type="submit" class="btn btn-link text-decoration-none p-0">{{ armor.name }}</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
 </div>
 </body>
 </html>
