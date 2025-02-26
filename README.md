@@ -22,28 +22,29 @@
     |/`--_                                                                 |
     ||[ ]||                                            ___________________/
     |===/___________________--------------------------
-
 ```
 
 ## 📜 Descripción
 
-## 📚 Guia
+Este es un proyecto inspirado en _El Señor de los Anillos_, desarrollado con Django, Bootstrap y algo de JavaScript para cosas visuales. Sus funcionalidades incluyen:
 
-1. Crear un usuario utilizando un e-mail valido.
+-   Moverse a través de las diferentes localizaciones.
+-   Elegir y equipar armas y armaduras.
+-   Tener encuentros aliados, neutrales y enemigos.
+-   Crear varios personajes.
+-   API para mostrar datos de personajes.
 
-2. Activar tu cuenta mediante el enlace de confirmacion en tu e-mail.
+## 📚 Guía
 
-3. Hacer login y crear tu personaje.
+Pasos básicos para comenzar a jugar:
 
-4. Entrar en la tienda y obtener arma/armadura.
-
-5. Equipar arma.
-
-6. Realizar encuentros/moverse/etc.
+1. Crear un usuario con un correo electrónico válido.
+2. Activar la cuenta mediante el enlace de confirmación enviado por correo.
+3. Iniciar sesión y crear un personaje.
 
 ## 📂 Estructura
 
-Se ha seguido la estructura basica de un proyecto de Django con una sola aplicacion (`tierra_media`).
+El proyecto sigue la estructura básica de Django con una sola aplicación (`tierra_media`).
 
 ```
 django-tierra-media
@@ -80,86 +81,119 @@ django-tierra-media
 └── requirements.txt
 ```
 
-### 🔧 Settings
+### 🔧 Configuración
 
-Se han instalado diferentes aplicaciones para utilizar en este proyecto, las cuales se han introducido en `INSTALLED_APPS`. Entre ellas:
+Se han instalado diversas aplicaciones en `INSTALLED_APPS`, entre ellas:
 
--   Django Bootstrap - Para utilizar estilos de bootstrap.
+-   **Django Bootstrap**: Para aplicar estilos de Bootstrap.
+-   **Django REST Framework**: Para la creación de APIs.
+-   **Debug Toolbar**: Para herramientas de depuración.
 
--   Django Rest Framework - Para la creacion de APIs.
-
--   Debug Toolbar - Para el uso de herramientas de debug.
+Además, en este archivo se configuran las credenciales necesarias para la verificación por correo electrónico, almacenadas en `.env`.
 
 ---
 
-### 🗄️Modelos
+### 🗄️ Modelos
 
-#### Faction, Location, Race
+#### **Faction, Location, Race**
 
-Modelo para facciones, localizaciones y razas de personajes. Se crean con `name` como único atributo. En un futuro da la posibilidad para expandir sobre esto, añadiendo otros atributos como buffs y debuffs de razas especificas.
+Modelo para facciones, ubicaciones y razas de personajes. Se crean con `name` como único atributo. En el futuro, podrían incluir atributos adicionales como _buffs_ y _debuffs_ específicos de cada raza.
 
-#### Character
+#### **Character**
 
-Este modelo tiene todos los atributos del personaje, con su usuario al que pertenece y atributos del personaje (vida, defensa, arma equipada, etc.)
+Modelo que contiene los atributos del personaje, el usuario al que pertenece y estadísticas como vida, defensa y arma equipada.
 
-#### Weapon, Armor, Backpack
+#### **Weapon, Armor, Backpack**
 
-Los modelos de armas y armaduras tienen todos sus detalles, incluyendo el usuario al que pertenecen las armas y armaduras y la mochila a la que pertenece, ya que pueden existir diferentes personajes para un mismo usuario.
+Los modelos de armas y armaduras contienen sus detalles específicos e incluyen una relación con el usuario propietario y la mochila a la que pertenecen. Un usuario puede tener varios personajes con distintos equipos.
+
+---
 
 ### 🖥️ Vistas
 
-#### CharacterCreation
+#### **RegisterView**
 
-La vista de crear personaje tiene varias funciones dentro de esta, una de ellas, `check_name` que comprueba si el nombre de ese personaje que se va a crear ya existe. Otra de las funciones, `add_icon`, sirve para añadir un icono al personaje dependiendo de su raza.
+Vista para el registro de usuarios. Se asigna un token y se construye la URL de verificación por correo.
 
-En esta vista se hace uso del ORM de Django para comprobar si un personaje tiene el mismo nombre. Ademas, esta vista hace uso del atributo `form_class` de `CreateView` para pasarle un formulario creado en un archivo aparte.
+---
+
+#### **ActivateAccount**
+
+Esta vista se encarga de activar al usuario una vez se haga clic en el enlace enviado al correo. `user.is_active` se convierte en `True` si el token es válido. Luego, se crean los NPCs del usuario junto con las armas y armaduras disponibles para este.
+
+---
+
+#### **IndexView/InfoView/ContactView**
+
+Vistas básicas para las páginas de Índice, Información y Contacto.
+
+---
+
+#### **AddBackpack**
+
+En esta vista se crea el objeto `Backpack`, que contiene todas las armas del usuario. Esto permite que diferentes personajes tengan diferentes _backpacks_.
+
+#### **CharacterCreation**
+
+Vista para la creación de personajes. Contiene varias funciones, entre ellas:
+
+-   **`check_name`**: Verifica si el nombre del personaje ya existe.
+-   **`add_icon`**: Asigna un icono al personaje según su raza.
+
+Se utiliza el ORM de Django para comprobar la existencia de nombres duplicados. Además, se emplea `form_class` de `CreateView` para gestionar los formularios desde un archivo separado.
 
 ---
 
 ### 🛠️ Extras
 
-#### Clases \_preparations
+#### **Clases \\\_preparations**
 
-Estas clases se encargan de inicializar los NPCs, armas y armaduras. Funcionan las tres que hay de la misma forma, como ejemplo podemos ver como se crean los NPCs.
+Estas clases inicializan NPCs, armas y armaduras de manera similar. Por ejemplo, para los NPCs:
 
-Por cada NPC en el archivo `constants.py` se le asigna a cada uno el objeto de su raza correspondiente, ademas, se le asigna su icono de personaje.
-
-Se hace uso del ORM de Django para encontrar el objeto `Faction` de la facción de ese NPC.
-
----
-
-#### Django REST Framework
-
-Este proyecto incluye una api utilizando Django REST Framework que devuelve todos los personajes de todos los usuarios. La idea en un futuro es que cuando los personajes ganen batallas se haga un ranking utilizando esa api que muestre en la pagina principal el personaje y su usuario que hayan
-ganado mas batallas.
+1. Se asigna la raza correspondiente desde `constants.py`.
+2. Se asigna un icono de personaje.
+3. Se usa el ORM de Django para vincular la facción de cada NPC.
 
 ---
 
-#### Tests
+#### **Django REST Framework**
 
-Se han realizado tests basicos que comprueban el flujo de crear un usuario, crear su personaje, entrar en `index.html`, comprobar que el personaje se ha creado correctamente y mover un personaje.
+El proyecto incluye una API con Django REST Framework que devuelve todos los personajes de los usuarios. En el futuro, se usará para crear un ranking de personajes basado en el número de batallas ganadas, que se mostrará en la página principal.
+
+---
+
+#### **Tests**
+
+Se han realizado pruebas básicas para verificar el flujo principal del juego:
+
+1. Creación de usuario.
+2. Creación de personaje.
+3. Acceso a `index.html`.
+4. Validación de la existencia del personaje.
+5. Movimiento del personaje.
 
 ## 🤝 División del trabajo
 
-Alejandro Martin Herrera:
+### Alejandro Martín Herrera
 
 ```
-Estructura del proyecto
-Creación de personajes
-Creación de NPCs
-Implementación de iconos para personajes, armas y armaduras
-Implementación de API para mostrar personajes con Django REST
-Tests
+- Estructura del proyecto
+- Creación de modelos
+- Creación de personajes
+- Implementación de NPCs
+- Implementación de iconos para personajes, armas y armaduras
+- Implementación de API con Django REST Framework
+- Tests
 ```
 
-Alexánder Drapala García:
+### Alexánder Drapala García
 
 ```
-
+(Pendiente de completar)
 ```
 
-Renato R. Romero Valencia:
+### Renato R. Romero Valencia
 
 ```
-
+(Pendiente de completar)
 ```
