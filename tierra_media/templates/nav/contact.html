@@ -1,48 +1,111 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Contacto{% endblock %}
 
+{% block style %}
+<style>
+    .contact-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .contact-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .contact-card {
+        border-radius: 10px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        border: none;
+    }
+
+    .contact-card-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        padding: 1.5rem;
+    }
+
+    .contact-form label {
+        font-weight: 500;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+        border-radius: 5px;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+    }
+
+    .contact-submit-btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .contact-submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-md-8 offset-md-2">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="mb-0">Formulario de Contacto</h3>
-                    </div>
-                    <div class="card-body">
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }}">
-                                    {{ message }}
-                                </div>
-                            {% endfor %}
-                        {% endif %}
+<div class="container py-5 contact-container">
+    <div class="contact-header">
+        <h1 class="display-4">Contacto</h1>
+        <p class="lead">¿Tienes alguna pregunta o sugerencia? ¡Nos encantaría escucharte!</p>
+        <hr class="my-4">
+    </div>
 
-                        <form method="post" novalidate>
-                            {% csrf_token %}
-
-                            {% for field in form %}
-                                <div class="mb-3">
-                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        <div class="text-danger">
-                                            {% for error in field.errors %}
-                                                <small>{{ error }}</small>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
-
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">Enviar mensaje</button>
-                            </div>
-                        </form>
-                    </div>
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card contact-card">
+                <div class="card-header contact-card-header">
+                    <h3 class="mb-0">Formulario de Contacto</h3>
                 </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate class="contact-form">
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                            <div class="mb-4">
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in field.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary contact-submit-btn">Enviar mensaje</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'tierra_media:index' %}" class="btn btn-primary">Volver a Inicio</a>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
