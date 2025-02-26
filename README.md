@@ -25,15 +25,15 @@
 
 ```
 
-## Descripción
+## 📜 Descripción
 
-## Estructura
+## 📂 Estructura
 
-### Settings
+### 🔧 Settings
 
 ---
 
-### Modelos
+### 🗄️Modelos
 
 #### Faction, Location, Race
 
@@ -51,7 +51,7 @@ Este modelo tiene todos los atributos del personaje, con su usuario al que perte
 
 Los modelos de armas y armaduras tienen todos sus detalles, incluyendo el usuario al que pertenecen las armas y armaduras y la mochila a la que pertenece, ya que pueden existir diferentes personajes para un mismo usuario.
 
-### Vistas
+### 🖥️ Vistas
 
 #### CharacterCreation
 
@@ -61,7 +61,7 @@ En esta vista se hace uso del ORM de Django para comprobar si un personaje tiene
 
 ---
 
-### Extras
+### 🛠️ Extras
 
 #### Clases \_preparations
 
@@ -75,6 +75,36 @@ Se hace uso del ORM de Django para encontrar el objeto `Faction` de la facción 
 
 #### Django REST Framework
 
-Este proyecto incluye una api utilizando Django REST Framework que devuelve todos los personajes de todos los usuarios. La idea en un futuro es que cuando los personajes ganen batallas se haga un ranking utilizando esa api que muestre en la pagina principal el personaje y su usuario que hayan ganado mas batallas.
+Este proyecto incluye una api utilizando Django REST Framework que devuelve todos los personajes de todos los usuarios. La idea en un futuro es que cuando los personajes ganen batallas se haga un ranking utilizando esa api que muestre en la pagina principal el personaje y su usuario que hayan
+ganado mas batallas.
 
-## División del trabajo
+---
+
+#### Tests
+
+Se han realizado tests basicos que comprueban el flujo de crear un usuario, crear su personaje, entrar en `index.html`, comprobar que el personaje se ha creado correctamente y mover un personaje.
+
+## 🤝 División del trabajo
+
+Alejandro Martin Herrera:
+
+```
+Estructura del proyecto
+Creación de personajes
+Creación de NPCs
+Implementación de iconos para personajes, armas y armaduras
+Implementación de API para mostrar personajes con Django REST
+Tests
+```
+
+Alexánder Drapala García:
+
+```
+
+```
+
+Renato R. Romero Valencia:
+
+```
+
+```
