@@ -5,7 +5,7 @@
 {% block script %}
 	<script defer>
         setTimeout(function(){
-            window.location.replace('{% url 'tierra_media:character_creation' %}')
+            window.location.replace('{% url 'tierra_media:index' %}')
         }, 3000);
     </script>
 {% endblock %}
@@ -17,5 +17,5 @@
             </div>
         {% endfor %}
     {% endif %}
-    <p>Redirigiendo a Creación de personaje en 3 segundos... <a href="{% url 'tierra_media:character_creation' %}" class="text-decoration-none">Haz click aquí para hacerlo manualmente.</a></p>
+    <p>Redirigiendo a Creación de personaje en 3 segundos... <a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Haz click aquí para hacerlo manualmente.</a></p>
 {% endblock %}

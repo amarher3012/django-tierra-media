@@ -44,6 +44,10 @@ class Character(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def health_percentage(self):
+        return (self.health / self.max_health) * 100
+
 
 class Backpack(models.Model):
     owner = models.OneToOneField(Character, on_delete=models.CASCADE)
