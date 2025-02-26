@@ -184,16 +184,35 @@ Se han realizado pruebas básicas para verificar el flujo principal del juego:
 - Implementación de iconos para personajes, armas y armaduras
 - Implementación de API con Django REST Framework
 - Tests
+- Aportación de ideas para el diseño de la visualización de algunas vistas.
 ```
 
 ### Alexánder Drapala García
 
 ```
-(Pendiente de completar)
+- Creación y modificación de modelos.
+- Creación de armas por defecto para npcs y equiparlas.
+- Creación de armaduras por defecto para npcs y equiparlas.
+- Implementación de tienda.
+- Implementación de listar personajes.
+- Implementación de listar las acciones de un personaje.
+- Implementación de equipación de objetos, tanto armas como armaduras.
+- Implementación de modal para los detalles de los objetos al pasar por encima de estos.
+- Búsqueda de iconos para los objetos y algunos fondos.
+- Aportación de ideas para el diseño de la visualización de algunas vistas.
 ```
 
 ### Renato R. Romero Valencia
 
 ```
-(Pendiente de completar)
+- Implementación del diseño.
+- Implementación de la lógica del combate.
+- Implementación de las relaciones.
+- Implementación de mover personajes entre localizaciones.
+- Implementacion de Login y registrar
+- Implementación de validar correo
+- Implementación de Messages.
+- Implementación de Mixin personalizado.
+- Implementación de LoginRequiredMixin.
+- Aportación de ideas para el diseño de la visualización de algunas vistas.
 ```
