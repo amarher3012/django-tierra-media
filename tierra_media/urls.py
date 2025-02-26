@@ -28,7 +28,8 @@ urlpatterns = [
     ),
     path("api/characters/", CharacterList.as_view(), name="character-list"),
     path(
-        "api/characters/<int:pk>/", CharacterDetail.as_view(), name="character-detail",
+        "api/characters/<int:pk>/", CharacterDetail.as_view(), name="character-detail"
+    ),
     path("characters/<int:pk>/encounter", Encounter.as_view(), name="encounter"),
     path(
         "characters/<int:pk>/encounter_ally/<int:ally_id>/",
