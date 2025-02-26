@@ -1,48 +1,406 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Inicio{% endblock %}
+
+{% block style %}
+<style>
+    .info-container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: justify;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+    .section-title {
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title:after {
+        content: "";
+        position: absolute;
+        width: 60%;
+        height: 2px;
+        bottom: -10px;
+        left: 20%;
+        background-color: var(--lotr-gold);
+    }
+
+    .text-justify {
+        text-align: justify;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    .register-btn {
+        display: inline-block;
+        padding: 0.8rem 2.5rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        border: 1px solid var(--lotr-gold);
+        margin-bottom: 1rem;
+    }
+
+    .register-btn:hover {
+        background-color: var(--lotr-green);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-link {
+        display: inline-block;
+        color: var(--lotr-dark-green);
+        text-decoration: none;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        position: relative;
+    }
+
+    .login-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: var(--lotr-gold);
+        transition: width 0.3s;
+    }
+
+    .login-link:hover {
+        color: var(--lotr-dark-gold);
+    }
+
+    .login-link:hover::after {
+        width: 100%;
+    }
+
+    .character-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .character-card {
+        background-color: rgba(255, 255, 255, 0.6);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s ease;
+        border: 1px solid var(--lotr-light-gold);
+        cursor: pointer;
+        position: relative;
+        transform-style: preserve-3d;
+        perspective: 1000px;
+    }
+
+    .character-card:hover {
+        transform: translateY(-10px) rotateX(5deg);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        border-color: var(--lotr-gold);
+    }
+
+    .character-card:hover::before {
+        opacity: 1;
+    }
+
+    .character-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(0, 0, 0, 0) 60%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+    }
+
+    .character-img-container {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .character-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .character-card:hover .character-img-container img {
+        transform: scale(1.1);
+    }
+
+    .character-info {
+        padding: 1.5rem;
+        border-top: 2px solid var(--lotr-gold);
+        background-color: rgba(255, 255, 255, 0.8);
+        position: relative;
+    }
+
+    .character-name {
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        color: var(--lotr-brown);
+        margin-bottom: 0.5rem;
+        text-align: center;
+        font-size: 1.25rem;
+    }
+
+    .character-select-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(44, 62, 23, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .character-card:hover .character-select-overlay {
+        opacity: 1;
+    }
+
+    .select-btn {
+        padding: 0.75rem 1.5rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        border: 1px solid var(--lotr-gold);
+        border-radius: 5px;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .select-btn:hover {
+        background-color: var(--lotr-gold);
+        color: var(--lotr-very-dark);
+        transform: scale(1.05);
+    }
+
+    .create-character-section {
+        text-align: center;
+        padding: 3rem 2rem;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border: 1px solid var(--lotr-light-gold);
+    }
+
+    .create-character-btn {
+        display: inline-block;
+        padding: 0.8rem 2.5rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        border: 1px solid var(--lotr-gold);
+        margin-top: 1.5rem;
+    }
+
+    .create-character-btn:hover {
+        background-color: var(--lotr-green);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .alert {
+        border-left: 4px solid;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.25rem;
+        background-color: rgba(255, 255, 255, 0.7);
+    }
+
+    .alert-danger {
+        border-color: #dc3545;
+        color: #b02a37;
+    }
+
+    .alert-success {
+        border-color: #198754;
+        color: #15803d;
+    }
+
+    .alert-info {
+        border-color: #0d6efd;
+        color: #084298;
+    }
+
+    .alert-warning {
+        border-color: #ffc107;
+        color: #997404;
+    }
+
+    .icon-custom {
+        color: var(--lotr-gold);
+        margin-right: 0.5rem;
+    }
+
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+        100% {
+            transform: translateY(0px);
+        }
+    }
+
+    .floating-icon {
+        animation: float 4s ease-in-out infinite;
+        display: block;
+        margin: 0 auto;
+        margin-bottom: 1.5rem;
+        width: 80px;
+        height: 80px;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script defer>
+    document.addEventListener('DOMContentLoaded', function () {
+        let alerts = document.querySelectorAll('.alert');
+
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                alert.classList.remove('show');
+                alert.classList.add('fade');
+            }, 5000);
+
+            setTimeout(function() {
+                alert.remove();
+            }, 5500);
+        });
+
+        // Efecto de selección al pasar el mouse por los personajes
+        const characterCards = document.querySelectorAll('.character-card');
+
+        characterCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const audio = new Audio('{% static "sounds/select.mp3" %}');
+                audio.volume = 0.2;
+                audio.play().catch(e => console.log('Audio play prevented:', e));
+            });
+        });
+    });
+</script>
+{% endblock %}
+
 {% block content %}
-    {% if messages %}
-    	{% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex justify-content-center col-4" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-    {% if user.is_authenticated %}
-        {% if characters %}
-        	<div class="d-flex justify-content-center">
-                <div class="row">
-                    {% for character in characters %}
-                        {% if not character.npc %}
-                            <div class="card mb-3" style="max-width: 540px;">
-                              <div class="row g-0">
-                                <div class="col-md-4">
-                                  <img src="{{ character.icon.url }}" class="img-fluid rounded-start" alt="...">
-                                </div>
-                                <div class="col-md-8">
-                                  <a href="{% url 'tierra_media:character_details' character.id %}" class="text-decoration-none">
-                                      <div class="card-body">
-                                        <h5 class="card-title">{{ character.name }}</h5>
-                                      </div>
-                                  </a>
-                                </div>
-                              </div>
+<div class="info-section">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 info-container">
+            {% if messages %}
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-10">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                <i class="bi bi-info-circle icon-custom"></i>{{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
-                        {% endif %}
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
-        {% endif %}
-        <a href="{% url 'tierra_media:character_creation' %}">Crear personaje</a>
-    {% else %}
-        <div class="container">
-            <h1>TIERRA MEDIA CON DJANGO</h1>
-            <p>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium aliquid aperiam dolorum
-                in, incidunt, iusto minima porro provident, quam quas quo quos
-                reprehenderit rerum sapiente sequi tempore veniam voluptate voluptatem.
-            </p>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+                {% if characters %}
+                    <div class="text-center mb-4">
+                        <h1 class="display-5">Elige a tu personaje</h1>
+                        <hr class="my-4" style="border-color: var(--lotr-gold); opacity: 0.7;">
+                    </div>
+
+                    <div class="character-grid">
+                        {% for character in characters %}
+                            {% if not character.npc %}
+                                <div class="character-card">
+                                    <a href="{% url 'tierra_media:character_details' character.id %}" class="text-decoration-none">
+                                        <div class="character-img-container">
+                                            <img src="{{ character.icon.url }}" alt="{{ character.name }}">
+                                            <div class="character-select-overlay">
+                                                <div class="select-btn">Seleccionar</div>
+                                            </div>
+                                        </div>
+                                        <div class="character-info">
+                                            <h3 class="character-name">{{ character.name }}</h3>
+                                        </div>
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div class="text-center mt-5">
+                        <a href="{% url 'tierra_media:character_creation' %}" class="create-character-btn">
+                            <i class="bi bi-plus-circle icon-custom"></i>Crear nuevo personaje
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="create-character-section">
+                        <img src="{% static 'icon.png' %}" alt="Tierra Media Icon" class="floating-icon">
+                        <h2 class="mb-4" style="font-family: 'Cinzel', serif; color: var(--lotr-brown);">Comienza tu aventura</h2>
+                        <p class="mb-4">Parece que aún no tienes ningún personaje. ¡Es hora de crear tu primer héroe para recorrer la Tierra Media!</p>
+                        <a href="{% url 'tierra_media:character_creation' %}" class="create-character-btn">
+                            <i class="bi bi-person-plus icon-custom"></i>Crear personaje
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center mb-4">
+                    <h1 class="display-4">Bienvenido a <br> Tierra Media</h1>
+                    <hr class="my-4" style="border-color: var(--lotr-gold); opacity: 0.7;">
+                </div>
+
+                <div class="text-justify mb-5">
+                    <p>Sumérgete en un mundo inspirado en la rica mitología de J.R.R. Tolkien. Crea tu propio personaje, elige su raza y facción, y embárcate en una aventura épica a través de las tierras más emblemáticas de la Tierra Media.</p>
+
+                    <p>Encontrarás amigos y enemigos en tu camino, podrás conseguir poderosas armas y armaduras, y tendrás que tomar decisiones que determinarán tu destino. ¿Te unirás a las fuerzas del bien o sucumbirás ante la oscuridad?</p>
+
+                    <p>Recuerda: en este mundo, la muerte es permanente. Cada decisión cuenta.</p>
+                </div>
+
+                <div class="text-center">
+                    <a href="{% url 'tierra_media:register' %}" class="register-btn">
+                        <i class="bi bi-person-plus icon-custom"></i>Regístrate
+                    </a>
+
+                    <p class="mt-3">
+                        <a href="{% url 'tierra_media:login' %}" class="login-link">
+                            <i class="bi bi-door-open icon-custom"></i>O si ya tienes una cuenta, inicia sesión
+                        </a>
+                    </p>
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
+    </div>
+</div>
 {% endblock %}

@@ -1,16 +1,304 @@
 {% extends "base.html" %}
-
-{% block script %}
-	<script defer>
-        //
-    </script>
-{% endblock %}
+{% load static %}
 
 {% block title %}Crear personaje{% endblock title %}
 
+{% block style %}
+<style>
+    .info-container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: justify;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+    .section-title {
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title:after {
+        content: "";
+        position: absolute;
+        width: 60%;
+        height: 2px;
+        bottom: -10px;
+        left: 20%;
+        background-color: var(--lotr-gold);
+    }
+
+    .character-form-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        border: 1px solid var(--lotr-light-gold);
+        background-color: rgba(255, 255, 255, 0.85);
+        margin: 2rem 0;
+        padding: 2rem;
+    }
+
+    .character-form label {
+        font-weight: 600;
+        color: var(--lotr-brown);
+        margin-bottom: 0.5rem;
+        font-family: 'Cinzel', serif;
+        display: block;
+    }
+
+    .character-form input[type="text"],
+    .character-form input[type="number"],
+    .character-form select,
+    .character-form textarea {
+        border-radius: 5px;
+        padding: 0.75rem;
+        border: 1px solid var(--lotr-light-gold);
+        background-color: rgba(255, 255, 255, 0.9);
+        transition: border-color 0.3s, box-shadow 0.3s;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .character-form input[type="file"] {
+        border: 1px solid var(--lotr-light-gold);
+        padding: 0.5rem;
+        border-radius: 5px;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .character-form input:focus,
+    .character-form select:focus,
+    .character-form textarea:focus {
+        border-color: var(--lotr-gold);
+        box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+        outline: none;
+    }
+
+    .character-submit-btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        background-color: var(--lotr-dark-green);
+        border: 1px solid var(--lotr-gold);
+        color: white;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        cursor: pointer;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .character-submit-btn:hover {
+        background-color: var(--lotr-green);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .helptext {
+        font-size: 0.85rem;
+        color: var(--lotr-gray);
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .errorlist {
+        color: #b02a37;
+        font-size: 0.85rem;
+        list-style-type: none;
+        padding-left: 0;
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .race-info-box,
+    .faction-info-box {
+        background-color: rgba(244, 231, 186, 0.3);
+        border-left: 4px solid var(--lotr-gold);
+        padding: 1rem;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+    }
+
+    .race-title,
+    .faction-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .icon-custom {
+        color: var(--lotr-gold);
+        margin-right: 0.5rem;
+    }
+
+    .form-row {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px dashed rgba(212, 175, 55, 0.3);
+        padding-bottom: 1.5rem;
+    }
+
+    .form-row:last-child {
+        border-bottom: none;
+    }
+
+    .race-descriptions, .faction-descriptions {
+        margin-top: 10px;
+    }
+
+    .return-btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        color: var(--lotr-dark-green);
+        text-decoration: none;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        position: relative;
+    }
+
+    .return-btn::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: var(--lotr-gold);
+        transition: width 0.3s;
+    }
+
+    .return-btn:hover {
+        color: var(--lotr-dark-gold);
+    }
+
+    .return-btn:hover::after {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mejorar la apariencia del formulario
+        const formParagraphs = document.querySelectorAll('form p');
+        formParagraphs.forEach(p => {
+            p.classList.add('form-row');
+        });
+
+        // Función para mostrar información sobre razas y facciones
+        const raceSelect = document.getElementById('id_race');
+        const factionSelect = document.getElementById('id_faction');
+        const raceDescriptions = document.getElementById('race-descriptions');
+        const factionDescriptions = document.getElementById('faction-descriptions');
+
+        if (raceSelect && raceDescriptions) {
+            raceSelect.addEventListener('change', function() {
+                // Oculta todas las descripciones de razas
+                const allRaceDescriptions = document.querySelectorAll('.race-description');
+                allRaceDescriptions.forEach(desc => {
+                    desc.style.display = 'none';
+                });
+
+                // Muestra la descripción de la raza seleccionada
+                const selectedRace = this.value;
+                if (selectedRace) {
+                    const selectedDescription = document.getElementById('race-' + selectedRace);
+                    if (selectedDescription) {
+                        selectedDescription.style.display = 'block';
+                    }
+                }
+            });
+
+            // Disparar el evento change para mostrar la descripción inicial si hay una raza seleccionada
+            if (raceSelect.value) {
+                raceSelect.dispatchEvent(new Event('change'));
+            }
+        }
+
+        if (factionSelect && factionDescriptions) {
+            factionSelect.addEventListener('change', function() {
+                // Oculta todas las descripciones de facciones
+                const allFactionDescriptions = document.querySelectorAll('.faction-description');
+                allFactionDescriptions.forEach(desc => {
+                    desc.style.display = 'none';
+                });
+
+                // Muestra la descripción de la facción seleccionada
+                const selectedFaction = this.value;
+                if (selectedFaction) {
+                    const selectedDescription = document.getElementById('faction-' + selectedFaction);
+                    if (selectedDescription) {
+                        selectedDescription.style.display = 'block';
+                    }
+                }
+            });
+
+            // Disparar el evento change para mostrar la descripción inicial si hay una facción seleccionada
+            if (factionSelect.value) {
+                factionSelect.dispatchEvent(new Event('change'));
+            }
+        }
+    });
+</script>
+{% endblock %}
+
 {% block content %}
-    <form enctype="multipart/form-data" method="post" action="{{ success_url }}">
-        {% csrf_token %} {{ form.as_p }}
-        <input type="submit" value="Crear personaje" />
-    </form>
+<div class="info-section">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 info-container">
+            <div class="text-center mb-4">
+                <h1 class="display-4">Crear personaje</h1>
+                <hr class="my-4" style="border-color: var(--lotr-gold); opacity: 0.7;">
+                <p class="lead">Define a tu héroe o villano para la aventura en la Tierra Media</p>
+            </div>
+
+            <div class="character-form-card">
+                <form enctype="multipart/form-data" method="post" action="{{ success_url }}" class="character-form">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                         {% if field.name != 'icon' %}
+                            <div class="form-row">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+
+
+                                {% if field.help_text %}
+                                    <small class="helptext">{{ field.help_text|safe }}</small>
+                                {% endif %}
+
+                                {% if field.errors %}
+                                    <ul class="errorlist">
+                                        {% for error in field.errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="text-center mt-5">
+                        <button type="submit" class="character-submit-btn">
+                            <i class="bi bi-person-plus-fill icon-custom"></i>Crear personaje
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'tierra_media:index' %}" class="return-btn">
+                    <i class="bi bi-arrow-left icon-custom"></i>Volver a Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

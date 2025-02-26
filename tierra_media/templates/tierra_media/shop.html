@@ -1,161 +1,433 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    {% load bootstrap5 %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-    <style>
-        #fondo {
-            width: 100%;
-            height: 100vh;
-        }
-        img {
-            width: 400px;
-        }
-        .icons {
-            width: 80px;
-            border-radius: 10px;
-            background-color: transparent;
-            transition: transform 0.1s ease;
-        }
-        .icons:active {
-            transform: scale(0.60);
-        }
-        .details {
-            display: none;
-        }
-        #items {
-            width: fit-content;
-            border-radius: 40px;
-            position: absolute;
-            left: 15%;
-            bottom: 35%;
-            background-color: rgba(0,0,0,0.75);
-            border-radius: 40px;
-        }
-    </style>
-</head>
-<body>
-<img src="{% static 'tienda.jpeg' %}" id="fondo">
-<div class="container d-flex justify-content-center" id="items">
-    <div class="row gap-4 d.flex justify-content-center text-center">
-            <!--
-                Si hay armas, por cada una de ellas guardamos sus detalles en un div que estará oculto y lo iremos
-                mostrando desde JS, ademas se generará un formulario que tiene un botón el cual tiene la foto de su icono
-                que actua como envío del formulario, este formulario se envia mediante JS, cuando hacemos click en el modal
-                que tiene un botón de enviar al inventario.
-            -->
-            {% if weapons %}
-            {% for weapon in weapons %}
-                <div id="{{ weapon.name }}" class="details">
-                    <ul>
-                        <li>Nombre: {{ weapon.name }}</li>
-                        <li>Daño: {{ weapon.damage }}</li>
-                        <li>Tipo: {{ weapon.type }}</li>
-                    </ul>
-                </div>
-                <div class="col-3 p-2">
-                    <form method="POST" id="form-{{ weapon.name }}">
-                            {% csrf_token %}
-                            <input type="hidden" name="weapon" value="{{ weapon.id }}">
-                            <button type="submit" value="{{ weapon.name }}" class="btn btn-link text-decoration-none p-0 objects">
-                                    <img src="{{weapon.icon.url}}" class="icons">
-                            </button>
-                    </form>
-                </div>
-            {% endfor %}
-        {% endif %}
 
-        <!--
-            Si hay armaduras, por cada una de ellas guardamos sus detalles en un div que estará oculto y lo iremos
-            mostrando desde JS, ademas se generará un formulario que tiene un botón el cual tiene la foto de su icono
-            que actua como envío del formulario, este formulario se envia mediante JS, cuando hacemos click en el modal
-            que tiene un botón de enviar al inventario.
-        -->
-        {% if armors %}
-            {% for armor in armors %}
-                <div id="{{ armor.name }}" class="details">
-                    <ul>
-                        <li>Nombre: {{ armor.name }}</li>
-                        <li>Defensa: {{ armor.defense }}</li>
-                    </ul>
-                </div>
-                <div class="col-3 p-2">
-                    <form method="POST" id="form-{{ armor.name }}">
-                            {% csrf_token %}
-                            <input type="hidden" name="armor" value="{{ armor.id }}">
-                            <button type="submit" value="{{ armor.name }}" class="btn btn-link text-decoration-none p-0 objects">
-                                <img src="{{armor.icon.url}}" class="icons">
-                            </button>
-                    </form>
-                </div>
-            {% endfor %}
-        {% endif %}
-    </div>
-</div>
-<!--Boton oculto que activa mostrar el modal desde JS-->
-<button type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#exampleModal" id="botonModal"
-style="display: none">
-  Launch demo modal
-</button>
+{% block title %}Tienda de {{ character.location.name }}{% endblock %}
 
-<!--Modal que usamos para mostrar los detalles del objeto por el cual pasamos desde JS-->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">DETALLES</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modal-body"></div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" id="equipar" class="btn btn-primary">Mover al inventario</button>
-      </div>
-    </div>
-  </div>
-</div>
-<script>
-        backpack = document.getElementById('backpack') //obtenemos el backpack
-        objects = document.querySelectorAll('.objects')
-        items = document.getElementById('items')
-        equipar = document.getElementById('equipar')
-        objects.forEach(object => {
-            object.addEventListener('mouseenter', (event)=>{
-                detalle = document.getElementById(event.target.value)
-                modalBody = document.getElementById('modal-body')
-                if (modalBody.hasChildNodes()) {
-                    hijo = modalBody.firstElementChild
-                    hijo.style.display = 'none'
-                    document.body.appendChild(hijo)
+{% block style %}
+<style>
+    /* Resetear el padding y margin de main para que la tienda ocupe todo el espacio */
+    main {
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden;
+    }
 
-                    detalle.style.display = 'block'
-                    modalBody.appendChild(detalle)
-                    equipar.onclick = () => {
-                        document.getElementById('form-'+event.target.value).lastElementChild.click()
-                    }
-                    document.getElementById('botonModal').click()
-                } else {
-                    detalle.style.display = 'block'
-                    modalBody.appendChild(detalle)
-                    equipar.onclick = () => {
-                        document.getElementById('form-'+event.target.value).lastElementChild.click()
-                    }
-                    document.getElementById('botonModal').click()
+    .content-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    .shop-container {
+        width: 100%;
+        height: 100vh;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .shop-panel {
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        padding: 2rem;
+        border-radius: 15px;
+        border: 2px solid var(--lotr-gold);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        width: 80%;
+        max-width: 900px;
+    }
+
+    .shop-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-gold);
+        text-align: center;
+        margin-bottom: 2rem;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    .shop-subtitle {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-light-gold);
+        border-bottom: 1px solid var(--lotr-gold);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .shop-section {
+        margin-bottom: 2rem;
+    }
+
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .item-card {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--lotr-light-gold);
+        transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .item-card:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        border-color: var(--lotr-gold);
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .item-card:active {
+        transform: scale(0.95);
+    }
+
+    .item-btn {
+        width: 100%;
+        padding: 1rem 0.5rem;
+        background: none;
+        border: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .item-img {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+        margin-bottom: 0.5rem;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+        transition: transform 0.3s;
+    }
+
+    .item-card:hover .item-img {
+        transform: scale(1.1);
+    }
+
+    .item-name {
+        color: white;
+        font-family: 'Lato', sans-serif;
+        font-size: 0.9rem;
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+
+    .item-price {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--lotr-gold);
+        font-size: 0.85rem;
+        margin-top: 0.3rem;
+    }
+
+    .gold-icon {
+        color: var(--lotr-gold);
+        margin-right: 0.3rem;
+    }
+
+    .item-type-badge {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border: 1px solid var(--lotr-gold);
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--lotr-gold);
+    }
+
+    .tooltip {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 0.8rem;
+        border-radius: 5px;
+        z-index: 100;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        border: 1px solid var(--lotr-gold);
+        max-width: 200px;
+        font-size: 0.9rem;
+    }
+
+    .tooltip-title {
+        color: var(--lotr-gold);
+        font-family: 'Cinzel', serif;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid var(--lotr-gold);
+        padding-bottom: 0.3rem;
+    }
+
+    .tooltip-stat {
+        display: flex;
+        justify-content: space-between;
+        margin: 0.2rem 0;
+    }
+
+    .tooltip-label {
+        color: var(--lotr-light-gold);
+        margin-right: 1rem;
+    }
+
+    .shop-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--lotr-gold);
+    }
+
+    .player-gold {
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+
+    .gold-amount {
+        color: var(--lotr-gold);
+        font-weight: bold;
+        margin-left: 0.5rem;
+    }
+
+    .shop-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .shop-btn {
+        padding: 0.6rem 1.2rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        border: 1px solid var(--lotr-gold);
+        border-radius: 5px;
+        font-family: 'Cinzel', serif;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+
+    .shop-btn:hover {
+        background-color: var(--lotr-green);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: white;
+    }
+
+    .empty-message {
+        color: white;
+        text-align: center;
+        font-style: italic;
+        padding: 1rem;
+    }
+
+    .shopkeeper {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 150px;
+        height: auto;
+        filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.7));
+    }
+
+    @media (max-width: 768px) {
+        .shop-panel {
+            width: 95%;
+            padding: 1.5rem 1rem;
+        }
+
+        .items-grid {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+
+        .shopkeeper {
+            width: 100px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Reproducir música de fondo (opcional y solo si está disponible)
+        const backgroundMusic = new Audio('{% static "shop.mp3" %}');
+        if (backgroundMusic) {
+            backgroundMusic.volume = 0.2;
+            backgroundMusic.loop = true;
+
+            // Solo reproducir música al interactuar con la página (política de navegadores)
+            document.addEventListener('click', function() {
+                backgroundMusic.play().catch(e => console.log('Audio play prevented:', e));
+            }, { once: true });
+        }
+
+        // Tooltips para los items
+        const itemCards = document.querySelectorAll('.item-card');
+        const tooltip = document.getElementById('item-tooltip');
+
+        itemCards.forEach(card => {
+            card.addEventListener('mouseenter', function(e) {
+                if (!tooltip) return;
+
+                const rect = card.getBoundingClientRect();
+                const itemName = card.getAttribute('data-name');
+                const itemType = card.getAttribute('data-type');
+                const itemPrice = card.getAttribute('data-price');
+                const itemStat = card.getAttribute('data-stat');
+                const statName = itemType === 'weapon' ? 'Daño' : 'Defensa';
+
+                // Configurar contenido del tooltip
+                tooltip.innerHTML = `
+                    <div class="tooltip-title">${itemName}</div>
+                    <div class="tooltip-stat">
+                        <span class="tooltip-label">${statName}:</span>
+                        <span>${itemStat}</span>
+                    </div>
+                    <div class="tooltip-stat">
+                        <span class="tooltip-label">Precio:</span>
+                        <span>${itemPrice} <i class="bi bi-coin gold-icon"></i></span>
+                    </div>
+                `;
+
+                // Posicionar tooltip
+                tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                tooltip.style.top = `${rect.top - 10}px`;
+                tooltip.style.transform = 'translate(-50%, -100%)';
+                tooltip.style.opacity = '1';
+
+                // Reproducir sonido al pasar por encima (opcional)
+                const hoverSound = new Audio('{% static "sounds/item_hover.mp3" %}');
+                if (hoverSound) {
+                    hoverSound.volume = 0.1;
+                    hoverSound.play().catch(e => console.log('Audio play prevented:', e));
                 }
-            })
-        })
+            });
 
-        backpack.addEventListener('click', ()=>{ // Cuando se hace click en el backpack se muestran los objetos
-            items.style.visibility = 'visible'
-            console.log()
-        })
-        backpack.addEventListener("dblclick", ()=>{ // Cuando se hace doble click se escoden los objetos del inventario
-            items.style.visibility = 'hidden'
-        })
-    </script>
-</body>
-</html>
+            card.addEventListener('mouseleave', function() {
+                if (tooltip) {
+                    tooltip.style.opacity = '0';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="shop-container">
+    <!-- Panel principal de la tienda -->
+    <div class="shop-panel">
+        <h1 class="shop-title">Tienda de {{ character.location.name }}</h1>
+
+        <!-- Sección de armas -->
+        <div class="shop-section">
+            <h2 class="shop-subtitle">
+                <i class="bi bi-sword" style="color: var(--lotr-gold); margin-right: 0.5rem;"></i>Armas
+            </h2>
+
+            {% if weapons %}
+                <div class="items-grid">
+                    {% for weapon in weapons %}
+                        <div class="item-card" data-name="{{ weapon.name }}" data-type="weapon" data-stat="{{ weapon.damage }}" data-price="{{ weapon.price }}">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="weapon" value="{{ weapon.id }}">
+                                <button type="submit" class="item-btn">
+                                    <img src="{{ weapon.icon.url }}" class="item-img" alt="{{ weapon.name }}">
+                                    <div class="item-name">{{ weapon.name }}</div>
+                                    <div class="item-price">
+                                        <i class="bi bi-coin gold-icon"></i> {{ weapon.price }}
+                                    </div>
+                                </button>
+                            </form>
+                            <div class="item-type-badge">
+                                <i class="bi bi-sword"></i>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-message">
+                    No hay armas disponibles en esta tienda.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sección de armaduras -->
+        <div class="shop-section">
+            <h2 class="shop-subtitle">
+                <i class="bi bi-shield" style="color: var(--lotr-gold); margin-right: 0.5rem;"></i>Armaduras
+            </h2>
+
+            {% if armors %}
+                <div class="items-grid">
+                    {% for armor in armors %}
+                        <div class="item-card" data-name="{{ armor.name }}" data-type="armor" data-stat="{{ armor.defense }}" data-price="{{ armor.price }}">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="armor" value="{{ armor.id }}">
+                                <button type="submit" class="item-btn">
+                                    <img src="{{ armor.icon.url }}" class="item-img" alt="{{ armor.name }}">
+                                    <div class="item-name">{{ armor.name }}</div>
+                                    <div class="item-price">
+                                        <i class="bi bi-coin gold-icon"></i> {{ armor.price }}
+                                    </div>
+                                </button>
+                            </form>
+                            <div class="item-type-badge">
+                                <i class="bi bi-shield"></i>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-message">
+                    No hay armaduras disponibles en esta tienda.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Pie de la tienda con información de oro y botones -->
+        <div class="shop-footer">
+            <div class="player-gold">
+                <i class="bi bi-coin" style="color: var(--lotr-gold); font-size: 1.5rem;"></i>
+                <span class="gold-amount">{{ character.gold }}</span>
+            </div>
+
+            <div class="shop-actions">
+                <a href="{% url 'tierra_media:character_details' character.id %}" class="shop-btn">
+                    <i class="bi bi-arrow-left" style="margin-right: 0.3rem;"></i>Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Imagen del tendero (opcional) -->
+    <img src="{% static 'shopkeeper.png' %}" alt="Tendero" class="shopkeeper" onerror="this.style.display='none'">
+
+    <!-- Tooltip para los items -->
+    <div id="item-tooltip" class="tooltip"></div>
+</div>
+{% endblock %}

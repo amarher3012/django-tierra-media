@@ -59,9 +59,9 @@ def npc_init():
     NPCS = [
         {
             "name": "Aragorn",
-            "max_health": 250,
-            "health": 250,
-            "defense": 50,
+            "max_health": 200,
+            "health": 200,
+            "defense": 30,
             "faction": "La Comunidad del Anillo",
             "location": "Minas Tirith",
             "race": "Humano",
@@ -69,9 +69,9 @@ def npc_init():
         },
         {
             "name": "Legolas",
-            "max_health": 250,
-            "health": 250,
-            "defense": 50,
+            "max_health": 180,
+            "health": 180,
+            "defense": 20,
             "faction": "Lothlorien",
             "location": "Bosque Negro",
             "race": "Elfo",
@@ -79,9 +79,9 @@ def npc_init():
         },
         {
             "name": "Gimli",
-            "max_health": 250,
-            "health": 250,
-            "defense": 50,
+            "max_health": 220,
+            "health": 220,
+            "defense": 40,
             "faction": "La Comunidad del Anillo",
             "location": "Lothlorien",
             "race": "Enano",
@@ -89,9 +89,9 @@ def npc_init():
         },
         {
             "name": "Frodo",
-            "max_health": 250,
-            "health": 250,
-            "defense": 50,
+            "max_health": 125,
+            "health": 125,
+            "defense": 15,
             "faction": "La Comunidad del Anillo",
             "location": "Hobbiton",
             "race": "Hobbit",
@@ -99,9 +99,9 @@ def npc_init():
         },
         {
             "name": "Boromir",
-            "max_health": 250,
-            "health": 250,
-            "defense": 50,
+            "max_health": 180,
+            "health": 180,
+            "defense": 30,
             "faction": "Rivendel",
             "location": "Rivendel",
             "race": "Humano",
@@ -109,9 +109,9 @@ def npc_init():
         },
         {
             "name": "Saruman",
-            "max_health": 250,
-            "health": 250,
-            "defense": 50,
+            "max_health": 180,
+            "health": 180,
+            "defense": 25,
             "faction": "Isengard",
             "location": "Isengard",
             "race": "Humano",
@@ -129,9 +129,9 @@ def npc_init():
         },
         {
             "name": "Lurtz",
-            "max_health": 250,
-            "health": 250,
-            "defense": 50,
+            "max_health": 230,
+            "health": 230,
+            "defense": 40,
             "faction": "Mordor",
             "location": "Mordor",
             "race": "Orco",
@@ -144,36 +144,29 @@ def npc_init():
 
 def weapons_init():
     weapons = [
-        {
-            "name": "Aelion",
-            "damage": 10,
-            "type": "sword",
-        },
-        {
-            "name": "Balathor",
-            "damage": 10,
-            "type": "sword",
-        },
-        {
-            "name": "Thalion",
-            "damage": 10,
-            "type": "bow",
-        },
-        {
-            "name": "Eledrin",
-            "damage": 10,
-            "type": "bow",
-        },
-        {
-            "name": "Faelion",
-            "damage": 10,
-            "type": "mace",
-        },
-        {
-            "name": "Amdir",
-            "damage": 10,
-            "type": "mace",
-        },
+        {"name": "Andrath", "damage": 9, "type": "sword"},
+        {"name": "Caladhril", "damage": 7, "type": "sword"},
+        {"name": "Elenarth", "damage": 10, "type": "sword"},
+        {"name": "Gildorim", "damage": 6, "type": "sword"},
+        {"name": "Morglad", "damage": 8, "type": "sword"},
+
+        {"name": "Nimloth", "damage": 5, "type": "bow"},
+        {"name": "Oronion", "damage": 9, "type": "bow"},
+        {"name": "Thrandor", "damage": 6, "type": "bow"},
+        {"name": "Vaerion", "damage": 7, "type": "bow"},
+        {"name": "Eärendur", "damage": 10, "type": "bow"},
+
+        {"name": "Barazûl", "damage": 8, "type": "axe"},
+        {"name": "Drâkhmar", "damage": 4, "type": "axe"},
+        {"name": "Gurthang", "damage": 9, "type": "axe"},
+        {"name": "Kazrâd", "damage": 7, "type": "axe"},
+        {"name": "Zirakthul", "damage": 6, "type": "axe"},
+
+        {"name": "Amonir", "damage": 10, "type": "mace"},
+        {"name": "Durthar", "damage": 5, "type": "mace"},
+        {"name": "Felagûnd", "damage": 8, "type": "mace"},
+        {"name": "Lómendur", "damage": 7, "type": "mace"},
+        {"name": "Tharûl", "damage": 9, "type": "mace"},
     ]
 
     return weapons
@@ -181,30 +174,26 @@ def weapons_init():
 
 def armors_init():
     armors = [
-        {
-            "name": "Thalionir",
-            "defense": 10,
-        },
-        {
-            "name": "Gorundor",
-            "defense": 10,
-        },
-        {
-            "name": "Eldrinel",
-            "defense": 10,
-        },
-        {
-            "name": "Kaelorn",
-            "defense": 10,
-        },
-        {
-            "name": "Faethor",
-            "defense": 10,
-        },
-        {
-            "name": "Ithilwen",
-            "defense": 10,
-        },
+        {"name": "Thalionir", "defense": 9},
+        {"name": "Gorundor", "defense": 6},
+        {"name": "Eldrinel", "defense": 10},
+        {"name": "Kaelorn", "defense": 5},
+        {"name": "Faethor", "defense": 7},
+        {"name": "Ithilwen", "defense": 8},
+
+        {"name": "Aerendil", "defense": 4},
+        {"name": "Calenmir", "defense": 10},
+        {"name": "Dorhael", "defense": 6},
+        {"name": "Elarion", "defense": 9},
+        {"name": "Galadhrim", "defense": 5},
+        {"name": "Halethor", "defense": 7},
+        {"name": "Isilvar", "defense": 8},
+        {"name": "Lórindor", "defense": 6},
+        {"name": "Menelthor", "defense": 9},
+        {"name": "Nimrond", "defense": 4},
+        {"name": "Orophir", "defense": 10},
+        {"name": "Silmaril", "defense": 7},
+        {"name": "Vaelion", "defense": 8},
     ]
 
     return armors

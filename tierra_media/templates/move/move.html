@@ -1,30 +1,270 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}
     Mover personaje
 {% endblock %}
-{% block content %}
-	<h1>Mover a {{ character.name }}</h1>
-    <p>Ubicación actual: {{ character.location.name }}</p>
 
-    <h2>Localizaciones disponibles:</h2>
-    {% if locations %}
-        <ul>
-            {% for loc in locations %}
-                <li class="mb-1">
-                    <form method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="location" value="{{ loc.id }}">
-                        <button type="submit" class="btn btn-link text-decoration-none p-0">{{ loc.name }}</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>En este momento no hay localizaciones disponibles.</p>
-    {% endif %}
-    
-    <div class="d-flex align-items-center justify-content-start gap-2">
-        <a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Volver a Inicio</a>
-        <a href="{% url 'tierra_media:character_details' view.kwargs.pk %}" class="text-decoration-none">Volver al menú de personaje</a>
+{% block style %}
+<style>
+    .info-container {
+        max-width: 800px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+    .section-title {
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title:after {
+        content: "";
+        position: absolute;
+        width: 60%;
+        height: 2px;
+        bottom: -10px;
+        left: 20%;
+        background-color: var(--lotr-gold);
+    }
+
+    .move-panel {
+        background-color: rgba(255, 255, 255, 0.75);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--lotr-light-gold);
+        margin-top: 2rem;
+    }
+
+    .character-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+    }
+
+    .character-title:after {
+        content: "";
+        position: absolute;
+        width: 70%;
+        height: 2px;
+        bottom: -10px;
+        left: 15%;
+        background-color: var(--lotr-gold);
+    }
+
+    .current-location {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: rgba(44, 62, 23, 0.1);
+        border-radius: 5px;
+        border: 1px solid var(--lotr-light-gold);
+        margin-bottom: 2rem;
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+    }
+
+    .location-icon {
+        color: var(--lotr-gold);
+        margin-right: 0.5rem;
+    }
+
+    .location-list-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--lotr-light-gold);
+    }
+
+    .locations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .location-card {
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        border: 1px solid var(--lotr-light-gold);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .location-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        border-color: var(--lotr-gold);
+    }
+
+    .location-btn {
+        width: 100%;
+        height: 100%;
+        padding: 1rem;
+        text-align: left;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        transition: color 0.3s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .location-btn:hover {
+        color: var(--lotr-dark-green);
+    }
+
+    .location-btn i {
+        color: var(--lotr-gold);
+        font-size: 1.2rem;
+        opacity: 0;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .location-card:hover .location-btn i {
+        opacity: 1;
+        transform: translateX(5px);
+    }
+
+    .empty-message {
+        font-style: italic;
+        color: var(--lotr-gray);
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .return-btn {
+        display: inline-block;
+        padding: 0.7rem 1.2rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        border: 1px solid var(--lotr-gold);
+        text-align: center;
+    }
+
+    .return-btn:hover {
+        background-color: var(--lotr-green);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .map-container {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .map-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        border: 2px solid var(--lotr-gold);
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Efecto de selección para las cartas de ubicación
+        const locationCards = document.querySelectorAll('.location-card');
+
+        locationCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                // Opcional: reproducir un sonido al pasar el cursor
+                const audio = new Audio('{% static "sounds/hover.mp3" %}');
+                audio.volume = 0.1;
+                audio.play().catch(e => console.log('Audio play prevented:', e));
+            });
+
+            // Opcional: añadir un efecto de clic
+            card.addEventListener('mousedown', function() {
+                this.style.transform = 'scale(0.98)';
+            });
+
+            card.addEventListener('mouseup', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="info-section">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 info-container">
+            <div class="text-center">
+                <h1 class="display-5 character-title">Mover a {{ character.name }}</h1>
+                <div class="current-location">
+                    <i class="bi bi-geo-alt-fill location-icon"></i>
+                    Ubicación actual: <strong>{{ character.location.name }}</strong>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <img src="{% static 'map.jpg' %}" alt="Mapa de Tierra Media" class="map-image" onerror="this.style.display='none'">
+            </div>
+
+            <div class="move-panel">
+                <h2 class="location-list-title">
+                    <i class="bi bi-signpost-split-fill" style="color: var(--lotr-gold); margin-right: 0.5rem;"></i>
+                    Localizaciones disponibles:
+                </h2>
+
+                {% if locations %}
+                    <div class="locations-grid">
+                        {% for loc in locations %}
+                            <div class="location-card">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="location" value="{{ loc.id }}">
+                                    <button type="submit" class="location-btn">
+                                        {{ loc.name }}
+                                        <i class="bi bi-arrow-right-circle"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-message">En este momento no hay localizaciones disponibles.</p>
+                {% endif %}
+            </div>
+
+            <div class="navigation-buttons">
+                <a href="{% url 'tierra_media:character_details' view.kwargs.pk %}" class="return-btn">
+                    <i class="bi bi-person" style="margin-right: 0.5rem;"></i>Volver al menú
+                </a>
+                <a href="{% url 'tierra_media:index' %}" class="return-btn">
+                    <i class="bi bi-house-door" style="margin-right: 0.5rem;"></i>Volver a Inicio
+                </a>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}

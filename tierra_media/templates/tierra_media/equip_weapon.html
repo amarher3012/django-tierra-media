@@ -1,180 +1,568 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    {% load bootstrap5 %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-    <style>
-        img {
-            width: 200px;
+
+{% block title %}Mochila de {{ character.name }}{% endblock %}
+
+{% block style %}
+<style>
+
+.inventory-panel {
+    position: fixed;
+    top: 20px; /* Ajusta el valor según sea necesario */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050; /* Asegura que el modal esté por encima de otros elementos */
+    width: 80%; /* O cualquier valor que se ajuste a tu diseño */
+    max-width: 800px; /* Ajusta el ancho máximo */
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+    .game-container {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .backpack-wrapper {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        border-radius: 40px;
+        transition: all 0.3s ease;
+        z-index: 100;
+    }
+
+    .backpack-img {
+        width: 200px;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+        cursor: pointer;
+        transition: transform 0.2s ease, filter 0.3s ease;
+    }
+
+    .backpack-img:hover {
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6)) brightness(1.1);
+        transform: translateY(-5px);
+    }
+
+    .backpack-img:active {
+        transform: scale(0.90);
+    }
+
+    .backpack-tooltip {
+        position: absolute;
+        background-color: rgba(44, 62, 23, 0.9);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-family: 'Cinzel', serif;
+        font-size: 14px;
+        bottom: -15px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100%);
+        opacity: 0;
+        transition: opacity 0.3s, transform 0.3s;
+        pointer-events: none;
+        border: 1px solid var(--lotr-gold);
+        white-space: nowrap;
+    }
+
+    .backpack-wrapper:hover .backpack-tooltip {
+        opacity: 1;
+        transform: translateX(-50%) translateY(80%);
+    }
+
+    .inventory-panel {
+        visibility: hidden;
+        opacity: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border: 2px solid var(--lotr-gold);
+        border-radius: 15px;
+        padding: 20px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.9);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        max-width: 80%;
+        max-height: 80%;
+        overflow-y: auto;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .inventory-panel.visible {
+        visibility: visible;
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    .inventory-header {
+        text-align: center;
+        color: var(--lotr-gold);
+        font-family: 'Cinzel', serif;
+        font-weight: bold;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        position: relative;
+    }
+
+    .inventory-header::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 2px;
+        background-color: var(--lotr-gold);
+    }
+
+    .inventory-section {
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-light-gold);
+        font-size: 18px;
+        margin-bottom: 15px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        bottom: -5px;
+        left: 0;
+        background-color: var(--lotr-gold);
+    }
+
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 15px;
+    }
+
+    .item-wrapper {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        position: relative;
+    }
+
+    .item-wrapper:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        border-color: var(--lotr-gold);
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .item-wrapper:active {
+        transform: scale(0.95);
+    }
+
+    .item-btn {
+        background: none;
+        border: none;
+        padding: 10px;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .item-icon {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        transition: transform 0.2s ease;
+        filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+    }
+
+    .item-wrapper:hover .item-icon {
+        transform: scale(1.1);
+    }
+
+    .item-wrapper:active .item-icon {
+        transform: scale(0.9);
+    }
+
+    .item-name {
+        color: white;
+        font-family: 'Lato', sans-serif;
+        font-size: 12px;
+        margin-top: 8px;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        padding: 0 5px;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: var(--lotr-light-gold);
+        font-size: 24px;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .close-btn:hover {
+        color: white;
+    }
+
+    .inventory-footer {
+        text-align: center;
+        padding-top: 15px;
+        border-top: 1px solid rgba(212, 175, 55, 0.3);
+        margin-top: 20px;
+    }
+
+    .back-btn {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        font-size: 16px;
+        border: 1px solid var(--lotr-gold);
+    }
+
+    .back-btn:hover {
+        background-color: var(--lotr-green);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: white;
+    }
+
+    .item-type-badge {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border: 1px solid var(--lotr-gold);
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--lotr-gold);
+    }
+
+    .tooltip {
+        position: absolute;
+        background-color: rgba(44, 62, 23, 0.9);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-family: 'Lato', sans-serif;
+        font-size: 14px;
+        z-index: 1000;
+        border: 1px solid var(--lotr-gold);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        max-width: 200px;
+    }
+
+    .tooltip-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-gold);
+        font-size: 16px;
+        margin-bottom: 5px;
+        border-bottom: 1px solid var(--lotr-gold);
+        padding-bottom: 5px;
+    }
+
+    .tooltip-stat {
+        display: flex;
+        justify-content: space-between;
+        margin: 3px 0;
+    }
+
+    .tooltip-label {
+        color: var(--lotr-light-gold);
+    }
+
+    /* Animación de resplandor para indicar que es interactivo */
+    @keyframes pulse-border {
+        0% {
+            box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
         }
-        #fondo {
-            width: 100%;
-            height: 100vh;
+        70% {
+            box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
         }
-        #backpack{
-            width: 200px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            transition: transform 0.1s ease;
+        100% {
+            box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
         }
-        #backpack:active {
-            transform: scale(0.80);
-        }
-        .backpackWraper {
-            position: absolute;
-            top:20px;
-            left: 20px;
-            border-radius: 40px;
-        }
-        .icons {
-            width: 80px;
-            border-radius: 10px;
-            background-color: transparent;
-            transition: transform 0.1s ease;
-        }
-        .icons:active {
-            transform: scale(0.60);
-        }
-        .details {
-            display: none;
-        }
-        #items {
-            width: fit-content;
-            visibility: hidden;
-            background-color: rgba(0,0,0,0.75);
-            border-radius: 40px;
-            position: absolute;
-            top: 25%;
-            left: 20%;
-        }
-        * {
-            font-size: 25px;
-        }
-    </style>
-</head>
-<body>
-<img src="{% static 'dormitorio.png' %}" id="fondo">
-    <div class="backpackWraper">
-        <img src="{% static "backpack.png" %}" id="backpack">
+    }
+
+    .pulse-effect {
+        animation: pulse-border 2s infinite;
+    }
+
+    /* Estilos para scroll */
+    .inventory-panel::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .inventory-panel::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+    }
+
+    .inventory-panel::-webkit-scrollbar-thumb {
+        background: rgba(212, 175, 55, 0.5);
+        border-radius: 10px;
+    }
+
+    .inventory-panel::-webkit-scrollbar-thumb:hover {
+        background: var(--lotr-gold);
+    }
+
+    /* Asegurarnos de que no interfiera con la navbar */
+    main {
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden;
+    }
+
+    .content-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    /* Indicador de equipado */
+    .equipped-indicator {
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        border: 2px solid var(--lotr-gold);
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        z-index: 10;
+    }
+
+    .no-items-message {
+        color: white;
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+        const backpack = document.getElementById('backpack');
+        const inventoryPanel = document.getElementById('inventory-panel');
+        const closeBtn = document.getElementById('close-btn');
+
+        // Función para abrir/cerrar el inventario
+        backpack.addEventListener('click', () => {
+            inventoryPanel.classList.toggle('visible');
+
+            // Reproducir sonido de apertura de mochila (opcional)
+            const audio = new Audio('{% static "sounds/backpack_open.mp3" %}');
+            audio.volume = 0.3;
+            audio.play().catch(e => console.log('Audio play prevented:', e));
+        });
+
+        // Cerrar el inventario con el botón de cierre
+        closeBtn.addEventListener('click', () => {
+            inventoryPanel.classList.remove('visible');
+        });
+
+        // Cerrar el inventario con la tecla Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                inventoryPanel.classList.remove('visible');
+            }
+        });
+
+        // Tooltips para los items
+        const itemWrappers = document.querySelectorAll('.item-wrapper');
+        const tooltip = document.getElementById('item-tooltip');
+
+        itemWrappers.forEach(wrapper => {
+            wrapper.addEventListener('mouseenter', (e) => {
+                const rect = wrapper.getBoundingClientRect();
+                const itemName = wrapper.getAttribute('data-name');
+                const itemType = wrapper.getAttribute('data-type');
+                const itemStat = wrapper.getAttribute('data-stat');
+                const statName = itemType === 'weapon' ? 'Daño' : 'Defensa';
+
+                // Construir el contenido del tooltip
+                tooltip.innerHTML = `
+                    <div class="tooltip-title">${itemName}</div>
+                    <div class="tooltip-stat">
+                        <span class="tooltip-label">${statName}:</span>
+                        <span>${itemStat}</span>
+                    </div>
+                `;
+
+                // Posicionar el tooltip
+                tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                tooltip.style.top = `${rect.top - 10}px`;
+                tooltip.style.transform = 'translate(-50%, -100%)';
+                tooltip.style.opacity = '1';
+            });
+
+            wrapper.addEventListener('mouseleave', () => {
+                tooltip.style.opacity = '0';
+            });
+        });
+
+        // Efectos de sonido para los items
+        itemWrappers.forEach(wrapper => {
+            wrapper.addEventListener('mousedown', () => {
+                const audio = new Audio('{% static "sounds/item_click.mp3" %}');
+                audio.volume = 0.2;
+                audio.play().catch(e => console.log('Audio play prevented:', e));
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <!-- Mochila -->
+    <div class="backpack-wrapper pulse-effect">
+        <img src="{% static 'backpack.png' %}" id="backpack" class="backpack-img" alt="Mochila">
+        <div class="backpack-tooltip">Haz clic para abrir la mochila</div>
     </div>
-            <!--
-                Si hay armas, por cada una de ellas guardamos sus detalles en un div que estará oculto y lo iremos
-                mostrando desde JS, ademas se generará un formulario que tiene un botón el cual tiene la foto de su icono
-                que actua como envío del formulario, este formulario se envia mediante JS, cuando hacemos click en el modal
-                que tiene un botón de enviar al inventario.
-            -->
-    <div class="container d-flex justify-content-center" id="items">
-        <div class="row gap-4 d.flex justify-content-center text-center">
+
+    <!-- Panel de inventario -->
+    <div id="inventory-panel" class="inventory-panel">
+        <button id="close-btn" class="close-btn">
+            <i class="bi bi-x-circle"></i>
+        </button>
+
+        <div class="inventory-header">
+            <h2>Inventario de {{ character.name }}</h2>
+        </div>
+
+        <!-- Sección de armas -->
+        <div class="inventory-section">
+            <h3 class="section-title">
+                <i class="bi bi-sword" style="color: var(--lotr-gold); margin-right: 8px;"></i>Armas
+            </h3>
+
             {% if weapons %}
+            <div class="items-grid">
                 {% for weapon in weapons %}
-                    <div id="{{ weapon.name }}" class="details">
-                        <ul>
-                            <li>Nombre: {{ weapon.name }}</li>
-                            <li>Daño: {{ weapon.damage }}</li>
-                            <li>Tipo: {{ weapon.type }}</li>
-                        </ul>
+                <div class="item-wrapper" data-name="{{ weapon.name }}" data-type="weapon" data-stat="{{ weapon.damage }}">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="weapon" value="{{ weapon.id }}">
+                        <button type="submit" class="item-btn">
+                            <img src="{{ weapon.icon.url }}" class="item-icon" alt="{{ weapon.name }}">
+                            <div class="item-name">{{ weapon.name }}</div>
+                        </button>
+                    </form>
+                    <div class="item-type-badge">
+                        <i class="bi bi-sword"></i>
                     </div>
-                    <div class="col-3 p-2">
-                        <form method="POST" id="form-{{ weapon.name }}">
-                                {% csrf_token %}
-                                <input type="hidden" name="weapon" value="{{ weapon.id }}">
-                                <button type="submit" value="{{ weapon.name }}" class="btn btn-link text-decoration-none p-0 objects">
-                                        <img src="{{weapon.icon.url}}" class="icons">
-                                </button>
-                        </form>
+                    {% if weapon.id == character.equipped_weapon.id %}
+                    <div class="equipped-indicator">
+                        <i class="bi bi-check"></i>
                     </div>
+                    {% endif %}
+                </div>
                 {% endfor %}
-            {% endif %}
-            <!--
-                Si hay armaduras, por cada una de ellas guardamos sus detalles en un div que estará oculto y lo iremos
-                mostrando desde JS, ademas se generará un formulario que tiene un botón el cual tiene la foto de su icono
-                que actua como envío del formulario, este formulario se envia mediante JS, cuando hacemos click en el modal
-                que tiene un botón de enviar al inventario.
-            -->
-            {% if armors %}
-                {% for armor in armors %}
-                    <div id="{{ armor.name }}" class="details">
-                        <ul>
-                            <li>Nombre: {{ armor.name }}</li>
-                            <li>Defensa: {{ armor.defense }}</li>
-                        </ul>
-                    </div>
-                    <div class="col-3 p-2">
-                        <form method="POST" id="form-{{ armor.name }}">
-                                {% csrf_token %}
-                                <input type="hidden" name="armor" value="{{ armor.id }}">
-                                <button type="submit" value="{{ armor.name }}" class="btn btn-link text-decoration-none p-0 objects">
-                                    <img src="{{armor.icon.url}}" class="icons">
-                                </button>
-                        </form>
-                    </div>
-                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-items-message">
+                No tienes armas en tu inventario.
+            </div>
             {% endif %}
         </div>
-    </div>
-<button type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#exampleModal" id="botonModal"
-style="display: none">
-  Launch demo modal
-</button>
 
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">DETALLES</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modal-body"></div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" id="equipar" class="btn btn-primary">Equipar</button>
-      </div>
+        <!-- Sección de armaduras -->
+        <div class="inventory-section">
+            <h3 class="section-title">
+                <i class="bi bi-shield" style="color: var(--lotr-gold); margin-right: 8px;"></i>Armaduras
+            </h3>
+
+            {% if armors %}
+            <div class="items-grid">
+                {% for armor in armors %}
+                <div class="item-wrapper" data-name="{{ armor.name }}" data-type="armor" data-stat="{{ armor.defense }}">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="armor" value="{{ armor.id }}">
+                        <button type="submit" class="item-btn">
+                            <img src="{{ armor.icon.url }}" class="item-icon" alt="{{ armor.name }}">
+                            <div class="item-name">{{ armor.name }}</div>
+                        </button>
+                    </form>
+                    <div class="item-type-badge">
+                        <i class="bi bi-shield"></i>
+                    </div>
+                    {% if armor.id == character.equipped_armor.id %}
+                    <div class="equipped-indicator">
+                        <i class="bi bi-check"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-items-message">
+                No tienes armaduras en tu inventario.
+            </div>
+            {% endif %}
+        </div>
+
+        <<div class="inventory-footer">
+            <a href="{% url 'tierra_media:character_details' objects.pk %}" class="back-btn">
+                <i class="bi bi-arrow-left" style="margin-right: 5px;"></i>Volver al menú
+            </a>
+        </div>
     </div>
-  </div>
+
+    <!-- Tooltip para los items -->
+    <div id="item-tooltip" class="tooltip"></div>
 </div>
-    <script>
-        backpack = document.getElementById('backpack')
-        objects = document.querySelectorAll('.objects')
-        items = document.getElementById('items')
-        equipar = document.getElementById('equipar')
-        objects.forEach(object => {
-            object.addEventListener('mouseenter', (event)=>{
-                detalle = document.getElementById(event.target.value)
-                modalBody = document.getElementById('modal-body')
-                if (modalBody.hasChildNodes()) {
-                    hijo = modalBody.firstElementChild
-                    hijo.style.display = 'none'
-                    document.body.appendChild(hijo)
-
-                    detalle.style.display = 'block'
-                    modalBody.appendChild(detalle)
-                    equipar.onclick = () => {
-                        document.getElementById('form-'+event.target.value).lastElementChild.click()
-                    }
-                    document.getElementById('botonModal').click()
-                } else {
-                    detalle.style.display = 'block'
-                    modalBody.appendChild(detalle)
-                    equipar.onclick = () => {
-                        document.getElementById('form-'+event.target.value).lastElementChild.click()
-                    }
-                    document.getElementById('botonModal').click()
-                }
-            })
-        })
-
-        backpack.addEventListener('click', ()=>{
-            items.style.visibility = 'visible'
-            console.log()
-        })
-        backpack.addEventListener("dblclick", ()=>{
-            items.style.visibility = 'hidden'
-        })
-    </script>
-</body>
-</html>
+{% endblock %}

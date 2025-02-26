@@ -8,6 +8,7 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path("accounts/signin", RegisterView.as_view(), name="register"),
     path("accounts/activate", ActivateAccount.as_view(), name="activate"),
+    path("info/", InfoView.as_view(), name="info"),
     path(
         "character-creation/",
         CharacterCreation.as_view(),
@@ -45,4 +46,7 @@ urlpatterns = [
         EncounterEnemy.as_view(),
         name="encounter_enemy",
     ),
+    path("contact/", ContactView.as_view(), name='contact'),
+    path("contact/success/", ContactSuccessView.as_view(), name='contact_success'),
+    path("about/", AboutView.as_view(), name='about'),
 ]

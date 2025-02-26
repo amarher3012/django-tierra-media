@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contacto{% endblock %}
+
+{% block style %}
+<style>
+    .info-container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: justify;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+    .section-title {
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title:after {
+        content: "";
+        position: absolute;
+        width: 60%;
+        height: 2px;
+        bottom: -10px;
+        left: 20%;
+        background-color: var(--lotr-gold);
+    }
+
+    .contact-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        border: 1px solid var(--lotr-light-gold);
+        background-color: rgba(255, 255, 255, 0.85);
+    }
+
+    .contact-card-header {
+        background-color: var(--lotr-green);
+        color: white;
+        padding: 1.5rem;
+        border-bottom: 2px solid var(--lotr-gold);
+        font-family: 'Cinzel', serif;
+    }
+
+    .contact-form label {
+        font-weight: 600;
+        color: var(--lotr-brown);
+        margin-bottom: 0.5rem;
+        font-family: 'Cinzel', serif;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+        border-radius: 5px;
+        padding: 0.75rem;
+        border: 1px solid var(--lotr-light-gold);
+        background-color: rgba(255, 255, 255, 0.9);
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .contact-form input:focus,
+    .contact-form textarea:focus {
+        border-color: var(--lotr-gold);
+        box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+        outline: none;
+    }
+
+    .contact-submit-btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        background-color: var(--lotr-dark-green);
+        border: 1px solid var(--lotr-gold);
+        color: white;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+    }
+
+    .contact-submit-btn:hover {
+        background-color: var(--lotr-green);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .return-btn {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: 0.8rem 2rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        border: 1px solid var(--lotr-gold);
+    }
+
+    .return-btn:hover {
+        background-color: var(--lotr-green);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .alert {
+        border-left: 4px solid;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.25rem;
+    }
+
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        border-color: #dc3545;
+        color: #b02a37;
+    }
+
+    .alert-success {
+        background-color: rgba(25, 135, 84, 0.1);
+        border-color: #198754;
+        color: #15803d;
+    }
+
+    .alert-info {
+        background-color: rgba(13, 110, 253, 0.1);
+        border-color: #0d6efd;
+        color: #084298;
+    }
+
+    .alert-warning {
+        background-color: rgba(255, 193, 7, 0.1);
+        border-color: #ffc107;
+        color: #997404;
+    }
+
+    .icon-custom {
+        color: var(--lotr-gold);
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="info-section">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center mb-4">
+            <h1 class="display-4">Contacto</h1>
+            <hr class="my-4" style="border-color: var(--lotr-gold); opacity: 0.7;">
+            <p class="lead">¿Tienes alguna pregunta o sugerencia? ¡Nos encantaría escucharte!</p>
+        </div>
+
+        <div class="col-12 col-md-10 col-lg-8 info-container">
+            <div class="contact-card">
+                <div class="contact-card-header">
+                    <h3 class="mb-0"><i class="bi bi-envelope icon-custom"></i>Formulario de Contacto</h3>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate class="contact-form">
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                            <div class="mb-4">
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in field.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="text-center mt-5">
+                            <button type="submit" class="contact-submit-btn">Enviar mensaje</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'tierra_media:index' %}" class="return-btn">
+                    <i class="bi bi-house-door icon-custom"></i>Volver a Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+
 from .constants import FACTION_CHOICES, LOCATION_CHOICES, RACE_CHOICES, SEX_CHOICES
 from django.core.exceptions import ValidationError
 
@@ -92,3 +94,19 @@ class Armor(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=100, verbose_name="Nombre")
+    email = models.EmailField(verbose_name="Correo electrónico")
+    subject = models.CharField(max_length=200, verbose_name="Asunto")
+    message = models.TextField(verbose_name="Mensaje")
+    created_at = models.DateTimeField(default=timezone.now, verbose_name="Fecha de creación")
+
+    def __str__(self):
+        return f"{self.name} - {self.subject}"
+
+    class Meta:
+        verbose_name = "Mensaje de contacto"
+        verbose_name_plural = "Mensajes de contacto"
+        ordering = ['-created_at']

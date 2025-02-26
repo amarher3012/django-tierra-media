@@ -11,5 +11,6 @@ admin.site.register(
         Backpack,
         Weapon,
         Armor,
+        ContactMessage,
     ]
 )
