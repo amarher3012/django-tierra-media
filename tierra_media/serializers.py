@@ -53,5 +53,4 @@ class CharacterSerializer(serializers.ModelSerializer):
             "faction",
             "location",
             "race",
-            "npc",
         ]
