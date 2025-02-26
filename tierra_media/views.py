@@ -7,8 +7,6 @@ from django.core.files import File
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import transaction
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from django.utils.http import urlencode
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
@@ -17,8 +15,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from .forms import CustomUserCreationForm, CreateCharacterForm
 from .models import Character, Weapon, Armor, Location, Faction, Race, Backpack
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
+from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import *
 from .constants import npc_init, weapons_init, armors_init
 
@@ -160,10 +157,16 @@ class CharacterCreation(LoginRequiredMixin, CreateView):
 
 
 class AddBackpack(View):
+    """
+        Desde la creación de character-creaction, nos lleva a esta vista basada en clase
+        que permite añadir un backpack al nuevo personaje que ha sido creado y una vez realizada esta acción
+        nos lleva a los detalles de este mismo.
+    """
     def get(self, request):
-        character = Character.objects.all().last()
-        Backpack.objects.create(owner=character)
-        messages.success(request, "Backpack creada con exito.")
+        character = Character.objects.all().last() # Último personaje creado
+        Backpack.objects.create(owner=character) # Creamos un nuevo backpack y se lo asignamos al nuevo personaje
+        messages.success(request, "Backpack creada con exito.") # Enviamos un mensaje de asignación exitosa
+        # Redirección a los detalles del personaje que ha sido creado
         return redirect(reverse_lazy("tierra_media:character_details", kwargs={"pk": character.id}))
 
 
@@ -190,6 +193,7 @@ class NPC_preparations:
                             "user": user,
                             "faction": faction,
                             "location": location,
+                            # Asignación y creación del arma y armadura para los npcs
                             "equipped_weapon": Weapon.objects.create(name='mandragora', damage=12,type="bow"),
                             "equipped_armor": Armor.objects.create(name='torsal', defense=10),
                             "race": race,
@@ -217,9 +221,8 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        character = self.get_object()
-        # context["character"] = model_to_dict(character, exclude=["user"])
-        context["character"] = Character.objects.get(pk=character.pk)
+        character = self.get_object() # Obtenemos el personaje
+        context["character"] = Character.objects.get(pk=character.pk) # Guardamos el personaje en el contexto
 
         user = self.request.user
         user_characters = Character.objects.filter(user=user)
@@ -272,10 +275,14 @@ class CharacterDetailsView(LoginRequiredMixin, DetailView):
 
 
 class WeaponPreparations:
+    """
+        Su funcionalidad es crear las armas predefinidas que se van a usar cuando un usuario se dé de alta
+        y se asignarán estas mismas a su usuario.
+    """
     def create_weapons(user):
-        weapons = weapons_init()
-        for weapon in weapons:
-            weapon_type = weapon.get("type")
+        weapons = weapons_init() # Obtenemos todas las armas predefinidas
+        for weapon in weapons: # Recorremos cada arma
+            weapon_type = weapon.get("type") # Obtenemos el tipo del arma
             try:
                 with open(
                     f"static/icons/weapon-icons/{weapon_type.lower()}.png",
@@ -284,12 +291,13 @@ class WeaponPreparations:
                     weapon.update(
                         {
                             "icon": File(weapon_icon),
-                            "user": user,
+                            "user": user, # Añadimos al usuario al que pertenecen esas armas
                         }
                     )
+                    # Se nos crea un objeto weapon ya que le pasamos a los kwargs un dict y simplemente lee todos los datos de ahí
                     weapon_object = Weapon(**weapon)
-                    weapon_object.save()
-            except FileNotFoundError:
+                    weapon_object.save() # Guardamos el objeto en base de datos
+            except FileNotFoundError: # Si encuentra la excepción de no hay archivo, no se guarda el icono
                 weapon.update(
                     {
                         "user": user,
@@ -300,6 +308,9 @@ class WeaponPreparations:
 
 
 class ArmorPreparations:
+    """
+        Misma funcionalidad que la de armas pero trasladada a la de armaduras.
+    """
     def create_armors(user):
         armors = armors_init()
         for armor in armors:
@@ -329,35 +340,43 @@ class ArmorPreparations:
 
 class EquipWeapon(LoginRequiredMixin, UpdateView):
     model = Character
-    fields = []
+    fields = [] # No usamos ningún campo
     template_name = "tierra_media/equip_weapon.html"
     context_object_name = "objects"
 
     def get_success_url(self):
+        # Si no ocurre ningún fallo en el post nos lleva a los detalles de nuestro personaje con el que estamos jugando
         return reverse_lazy(
             "tierra_media:character_details", kwargs={"pk": self.get_object().pk}
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        character = self.get_object()
-        backpack = Backpack.objects.get(owner=character.pk)
+        character = self.get_object() # Obtenemos nuestro personaje
+        backpack = Backpack.objects.get(owner=character.pk) # Obtenemos su backpack
+        # Obtenemos las armas del usuario que esta jugando y que tengan backpack
         weapons = Weapon.objects.filter(user=self.request.user, backpack=backpack)
+        # Obtenemos las armaduras del usuario que esta jugando y que tengan backpack
         armors = Armor.objects.filter(user=self.request.user, backpack=backpack)
+        # Guardamos estos objetos en el contexto
         context["weapons"] = weapons
         context["armors"] = armors
         return context
 
     def post(self, request, *args, **kwargs):
-        character = self.get_object()
+        character = self.get_object() # Obtenemos nuestro personaje
         if "weapon" in request.POST:
+            # Obtenemos la clave del arma que queremos equipar, esta clave es obtenida en la template
             item_selected = request.POST.get("weapon")
-            item_found = Weapon.objects.get(pk=item_selected)
-            character.equipped_weapon = item_found
-            character.save()
-            messages.success(request, "Arma equipada con éxito")
+            item_found = Weapon.objects.get(pk=item_selected) # Buscamos el arma en la base de datos
+            character.equipped_weapon = item_found # Le asignamos al personaje el arma que se va a equipar
+            character.save() # Guardamos ese cambio en la base de datos
+            messages.success(request, "Arma equipada con éxito") # Enviamos un mensaje de success
             return redirect(self.get_success_url())
-
+        """
+            Si no es una weapon lo que encuentra, es una armadura, el proceso es el mismo, salvo que consultamos
+            en la base de datos de las armaduras para obtenerla y equiparla
+        """
         item_selected = request.POST.get("armor")
         item_found = Armor.objects.get(pk=item_selected)
         character.equipped_armor = item_found
@@ -367,6 +386,11 @@ class EquipWeapon(LoginRequiredMixin, UpdateView):
 
 
 class Shop(LoginRequiredMixin, UpdateView):
+    """
+        Esta vista basada en clase, sigue el mismo concepto que la de equipar arma
+        solo que esta vez, el arma o armadura a equipar, es asignada a su equipamiento correspondiente
+        para que cuando entremos en la vista de equipar, tengamos un objeto el cual poder equiparnos.
+    """
     model = Character
     fields = []
     template_name = "tierra_media/shop.html"
@@ -379,6 +403,7 @@ class Shop(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Mostramos todas las armas y armaduras que no estan en el backpack para que pueda elegir cual quiere "comprar"
         weapons = Weapon.objects.filter(user=self.request.user, backpack=None)
         armors = Armor.objects.filter(user=self.request.user, backpack=None)
         context["weapons"] = weapons

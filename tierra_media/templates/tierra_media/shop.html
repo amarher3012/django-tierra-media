@@ -42,6 +42,12 @@
 <img src="{% static 'tienda.jpeg' %}" id="fondo">
 <div class="container d-flex justify-content-center" id="items">
     <div class="row gap-4 d.flex justify-content-center text-center">
+            <!--
+                Si hay armas, por cada una de ellas guardamos sus detalles en un div que estará oculto y lo iremos
+                mostrando desde JS, ademas se generará un formulario que tiene un botón el cual tiene la foto de su icono
+                que actua como envío del formulario, este formulario se envia mediante JS, cuando hacemos click en el modal
+                que tiene un botón de enviar al inventario.
+            -->
             {% if weapons %}
             {% for weapon in weapons %}
                 <div id="{{ weapon.name }}" class="details">
@@ -63,6 +69,12 @@
             {% endfor %}
         {% endif %}
 
+        <!--
+            Si hay armaduras, por cada una de ellas guardamos sus detalles en un div que estará oculto y lo iremos
+            mostrando desde JS, ademas se generará un formulario que tiene un botón el cual tiene la foto de su icono
+            que actua como envío del formulario, este formulario se envia mediante JS, cuando hacemos click en el modal
+            que tiene un botón de enviar al inventario.
+        -->
         {% if armors %}
             {% for armor in armors %}
                 <div id="{{ armor.name }}" class="details">
@@ -84,11 +96,13 @@
         {% endif %}
     </div>
 </div>
+<!--Boton oculto que activa mostrar el modal desde JS-->
 <button type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#exampleModal" id="botonModal"
 style="display: none">
   Launch demo modal
 </button>
 
+<!--Modal que usamos para mostrar los detalles del objeto por el cual pasamos desde JS-->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -105,7 +119,7 @@ style="display: none">
   </div>
 </div>
 <script>
-        backpack = document.getElementById('backpack')
+        backpack = document.getElementById('backpack') //obtenemos el backpack
         objects = document.querySelectorAll('.objects')
         items = document.getElementById('items')
         equipar = document.getElementById('equipar')
@@ -135,11 +149,11 @@ style="display: none">
             })
         })
 
-        backpack.addEventListener('click', ()=>{
+        backpack.addEventListener('click', ()=>{ // Cuando se hace click en el backpack se muestran los objetos
             items.style.visibility = 'visible'
             console.log()
         })
-        backpack.addEventListener("dblclick", ()=>{
+        backpack.addEventListener("dblclick", ()=>{ // Cuando se hace doble click se escoden los objetos del inventario
             items.style.visibility = 'hidden'
         })
     </script>
