@@ -190,8 +190,8 @@ class NPC_preparations:
                             "user": user,
                             "faction": faction,
                             "location": location,
-                            "equipped_weapon": Weapon.objects.create(name='mandragora', damage=12,type="bow", user=user),
-                            "equipped_armor": Armor.objects.create(name='torsal', defense=10, user=user),
+                            "equipped_weapon": Weapon.objects.create(name='mandragora', damage=12,type="bow"),
+                            "equipped_armor": Armor.objects.create(name='torsal', defense=10),
                             "race": race,
                         }
                     )
