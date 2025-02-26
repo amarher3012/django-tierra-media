@@ -46,6 +46,7 @@ urlpatterns = [
         EncounterEnemy.as_view(),
         name="encounter_enemy",
     ),
-    path('contact/', ContactView.as_view(), name='contact'),
-    path('contact/success/', ContactSuccessView.as_view(), name='contact_success'),
+    path("contact/", ContactView.as_view(), name='contact'),
+    path("contact/success/", ContactSuccessView.as_view(), name='contact_success'),
+    path("about/", AboutView.as_view(), name='about'),
 ]

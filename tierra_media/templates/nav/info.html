@@ -1,19 +1,147 @@
 {% extends 'base.html' %}
-{% block title %}
-    Información
+{% load static %}
+
+{% block title %}Información{% endblock %}
+
+{% block style %}
+<style>
+    .info-container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: justify;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+    .info-image {
+        border-radius: 12px;
+        max-width: 100%;
+        height: auto;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .info-image:hover {
+        transform: scale(1.02);
+    }
+
+    .interaction-type {
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .interaction-help {
+        background-color: rgba(25, 135, 84, 0.1);
+        border-left: 4px solid #198754;
+    }
+
+    .interaction-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        border-left: 4px solid #dc3545;
+    }
+
+    .interaction-neutral {
+        background-color: rgba(108, 117, 125, 0.1);
+        border-left: 4px solid #6c757d;
+    }
+
+    .return-btn {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: 0.6rem 1.5rem;
+        background-color: #0d6efd;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .return-btn:hover {
+        background-color: #0a58ca;
+        color: white;
+    }
+
+    .game-highlight {
+        font-weight: bold;
+        color: #0d6efd;
+    }
+</style>
 {% endblock %}
+
 {% block content %}
-    <h1 class="mb-4">Información sobre el juego</h1>
-    <p>Tierra Media es un juego simulador inspirado en la obra de Tolkien: <strong>El Señor de los anillos</strong>.</p>
-    <p>En él podrás crear distintos y elegir su sexo, su raza e incluso la facción a la que pertenece. Podrás equiparle diferentes armas y armaduras que
-    encontrarás y comprarás durante tu aventura.</p>
-    <p>También podrás recorrer la Tierra Media y visitar algunas de sus localizaciones más emblemáticas como Minas Tirith o Mordor, donde puedes acabar encontrándote
-    con otros personajes y, además, algunos de los héroes legendarios que protagonizan esta increíble historia: Aragorn, Legolas, Frodo e incluso Sauron.</p>
-    <p>Dependiendo de tu relación con ellos, podrás interactuar de distintas maneras:</p>
-    <p>Algunos querrán <strong>ayudarte</strong> y te tratarán con amabilidad y respeto.</p>
-    <p>Otros desearán enfrentarse a ti y <strong>poner fin a tu vida</strong> de manera despiadada.</p>
-    <p>O puede que haya personajes con motivos ocultos que prefieran <strong>evitarte</strong>, ya que no te consideran ni enemigo ni aliado.</p>
-    <p>¡Eres libre de decidir cómo quieres vivir esta aventura! Enfréntate a tus enemigos, explora a tu antojo y ayuda a tus aliados.</p>
-    <p>Pero, recuerda, debes tener cuidado o tu periplo podría acabar de manera trágica. Aquí la muerte es permanente.</p>
-    <a href="{% url 'tierra_media:index' %}">Volver a Inicio</a>
+<div class="container info-section">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center mb-4">
+            <h1 class="display-4">Información sobre el juego</h1>
+            <hr class="my-4">
+        </div>
+
+        <div class="col-12 col-md-10 info-container">
+            <div class="text-center">
+                <img src="{% static 'info.webp' %}" alt="Tierra Media" class="info-image" onerror="this.src='https://via.placeholder.com/800x300?text=Tierra+Media'">
+            </div>
+
+            <p class="lead">Tierra Media es un juego simulador inspirado en la obra de Tolkien: <strong>El Señor de los anillos</strong>.</p>
+
+            <p>En él podrás crear distintos personajes y elegir su sexo, su raza e incluso la facción a la que pertenece. Podrás equiparle diferentes armas y armaduras que encontrarás y comprarás durante tu aventura.</p>
+
+            <p>También podrás recorrer la Tierra Media y visitar algunas de sus localizaciones más emblemáticas como <span class="game-highlight">Minas Tirith</span> o <span class="game-highlight">Mordor</span>, donde puedes acabar encontrándote con otros personajes y, además, algunos de los héroes legendarios que protagonizan esta increíble historia: <span class="game-highlight">Aragorn</span>, <span class="game-highlight">Legolas</span>, <span class="game-highlight">Frodo</span> e incluso <span class="game-highlight">Sauron</span>.</p>
+
+            <h3 class="text-center my-4">Tipos de interacciones</h3>
+            <p>Dependiendo de tu relación con ellos, podrás interactuar de distintas maneras:</p>
+
+            <div class="interaction-type interaction-help">
+                <h4><i class="bi bi-heart-fill"></i> Aliados</h4>
+                <p>Algunos querrán <strong>ayudarte</strong> y te tratarán con amabilidad y respeto.</p>
+                <p>Te ofrecerán <strong>ungüentos curativos</strong> y otras ayudas, como <strong>equipamiento</strong>.</p>
+            </div>
+
+            <div class="interaction-type interaction-danger">
+                <h4><i class="bi bi-exclamation-triangle-fill"></i> Enemigos</h4>
+                <p>Otros desearán enfrentarse a ti y <strong>poner fin a tu vida</strong> de manera despiadada.</p>
+                <p>No dudarán en tratar de eliminarte a cualquier precio. Especialmente si <strong>estás desarmado</strong>.</p>
+            </div>
+
+            <div class="interaction-type interaction-neutral">
+                <h4><i class="bi bi-question-circle-fill"></i> Neutrales</h4>
+                <p>O puede que haya personajes con motivos ocultos que prefieran <strong>evitarte</strong>, ya que no te consideran ni enemigo ni aliado.</p>
+                <p>Tratar con ellos puede ser peligroso, e incluso el encuentro puede tornarse en una <strong>batalla</strong></p>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="lead">¡Eres libre de decidir cómo quieres vivir esta aventura! Enfréntate a tus enemigos, explora a tu antojo y ayuda a tus aliados.</p>
+
+                <div class="alert alert-warning mt-4">
+                    <p class="mb-0"><strong>Pero, recuerda</strong>, debes tener cuidado o tu periplo podría acabar de manera trágica.</p>
+                    <p>Aquí la muerte es <strong>permanente</strong>.</p>
+                </div>
+
+                <a href="{% url 'tierra_media:index' %}" class="return-btn">Volver a Inicio</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script2 %}
+<script>
+    // Opcional: Script para animaciones adicionales
+    $(document).ready(function() {
+        $('.interaction-type').hover(
+            function() {
+                $(this).css('transform', 'translateY(-5px)');
+                $(this).css('transition', 'transform 0.3s');
+            },
+            function() {
+                $(this).css('transform', 'translateY(0)');
+            }
+        );
+    });
+</script>
 {% endblock %}

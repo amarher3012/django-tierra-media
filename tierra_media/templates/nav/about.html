@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Sobre nosotros{% endblock %}
+
+{% block style %}
+<style>
+    .dev-img {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #0d6efd;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .dev-img:hover {
+        transform: scale(1.05);
+    }
+
+    .dev-container {
+        margin-bottom: 3rem;
+    }
+
+    .dev-info {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: justify;
+        line-height: 1.6;
+    }
+
+    .dev-name {
+        font-weight: bold;
+        color: #0d6efd;
+        margin-top: 1rem;
+    }
+
+    .dev-role {
+        font-style: italic;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .about-section {
+        padding: 2rem 0;
+    }
+
+    .return-btn {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: 0.6rem 1.5rem;
+        background-color: #0d6efd;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .return-btn:hover {
+        background-color: #0a58ca;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row text-center">
+        <div class="col-12 mb-5">
+            <h1 class="display-4">Nuestro Equipo</h1>
+            <p class="lead">Conoce a los desarrolladores detrás de Tierra Media</p>
+            <hr class="my-4">
+        </div>
+    </div>
+
+    <!-- Sección de Desarrolladores con Imágenes -->
+    <div class="row justify-content-center text-center dev-container">
+        <!-- Desarrollador 1 -->
+        <div class="col-md-4 col-lg-3 mb-4">
+            <img src="{% static 'placeholder.jpg' %}" alt="Alejandro Martín" class="dev-img">
+            <h3 class="dev-name">Alejandro Martín</h3>
+            <p class="dev-role">Frontend Developer</p>
+        </div>
+
+        <!-- Desarrollador 2 -->
+        <div class="col-md-4 col-lg-3 mb-4">
+            <img src="{% static 'placeholder.jpg' %}" alt="Alexánder Drapala" class="dev-img">
+            <h3 class="dev-name">Alexánder Drapala</h3>
+            <p class="dev-role">Backend Developer</p>
+        </div>
+
+        <!-- Desarrollador 3 -->
+        <div class="col-md-4 col-lg-3 mb-4">
+            <img src="{% static 'placeholder.jpg' %}" alt="Renato Romero" class="dev-img">
+            <h3 class="dev-name">Renato Romero</h3>
+            <p class="dev-role">UX/UI Designer</p>
+        </div>
+    </div>
+
+    <!-- Información del equipo -->
+    <div class="row justify-content-center about-section">
+        <div class="col-12 dev-info">
+            <h2 class="text-center mb-4">Sobre Nosotros</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris. Vivamus hendrerit arcu sed erat molestie vehicula. Sed auctor neque eu tellus rhoncus ut eleifend nibh porttitor. Ut in nulla enim. Phasellus molestie magna non est bibendum non venenatis nisl tempor. Suspendisse dictum feugiat nisl ut dapibus.</p>
+
+            <p>Mauris iaculis porttitor posuere. Praesent id metus massa, ut blandit odio. Proin quis tortor orci. Etiam at risus et justo dignissim congue. Donec congue lacinia dui, a porttitor lectus condimentum laoreet. Nunc eu ullamcorper orci. Quisque eget odio ac lectus vestibulum faucibus eget in metus. In pellentesque faucibus vestibulum.</p>
+
+            <h3 class="text-center my-4">Nuestra Misión</h3>
+            <p>Etiam at risus et justo dignissim congue. Donec congue lacinia dui, a porttitor lectus condimentum laoreet. Nunc eu ullamcorper orci. Quisque eget odio ac lectus vestibulum faucibus eget in metus. In pellentesque faucibus vestibulum. Nulla at nulla justo, eget luctus tortor. Nulla facilisi. Duis aliquet egestas purus in blandit.</p>
+
+            <h3 class="text-center my-4">Nuestra Visión</h3>
+            <p>Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. Nulla facilisi. Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue.</p>
+
+            <div class="text-center">
+                <a href="{% url 'tierra_media:index' %}" class="return-btn">Volver a Inicio</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script2 %}
+<script>
+    // Opcional: Script para animaciones adicionales
+    $(document).ready(function() {
+        $('.dev-img').hover(
+            function() {
+                $(this).css('border-color', '#198754');
+            },
+            function() {
+                $(this).css('border-color', '#0d6efd');
+            }
+        );
+    });
+</script>
+{% endblock %}

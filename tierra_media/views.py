@@ -128,7 +128,7 @@ class ContactView(CreateView):
     model = ContactMessage
     form_class = ContactForm
     template_name = 'nav/contact.html'
-    success_url = reverse_lazy('tierra_media:contact_success')  # Actualizado con el namespace correcto
+    success_url = reverse_lazy('tierra_media:contact_success')
 
     def form_valid(self, form):
         # Guardar el formulario
@@ -166,6 +166,11 @@ class ContactView(CreateView):
         messages.error(self.request, "Ha ocurrido un error. Por favor, revisa los campos e intenta nuevamente.")
         return super().form_invalid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_page'] = 'contact'
+        return context
+
 
 class ContactSuccessView(CreateView):
     model = ContactMessage
@@ -176,6 +181,15 @@ class ContactSuccessView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form_submitted'] = True
+        return context
+
+
+class AboutView(TemplateView):
+    template_name = "nav/about.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_page'] = 'about-us'
         return context
 
 class CharacterCreation(LoginRequiredMixin, CreateView):

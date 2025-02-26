@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>{% block title %}{% endblock %}</title>
     {% load bootstrap5 %}
@@ -13,15 +14,18 @@
     {% block script %}{% endblock %}
     {% block style %}{% endblock %}
     <style>
-        @keyframes girarDiagonal  {
-           0% {
+        @keyframes girarYDetener {
+            0% {
                 transform: rotate3d(1, 1, 0, 0deg);
             }
-            50% {
+            40% {
                 transform: rotate3d(1, 1, 0, 180deg);
             }
-            100% {
+            80% {
                 transform: rotate3d(-1, -1, 0, 360deg);
+            }
+            100% {
+                transform: rotate3d(0, 0, 0, 0deg);
             }
         }
         header {
@@ -32,7 +36,7 @@
             text-decoration: none;
         }
         #logo {
-             animation: girarDiagonal 2s linear infinite;
+            animation: girarYDetener 4s ease-out forwards;
         }
     </style>
 </head>
@@ -45,10 +49,10 @@
         </div>
 
         <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-            <li><a href="{% url 'tierra_media:index' %}" class="nav-link px-2 {% if active_page == 'index' %}link-secondary{% endif %}">Inicio</a></li>
-            <li><a href="{% url 'tierra_media:info' %}" class="nav-link px-2 {% if active_page == 'info' %}link-secondary{% endif %}">Información</a></li>
-            <li><a href="{% url 'tierra_media:contact' %}" class="nav-link px-2 {% if active_page == 'contact' %}link-secondary{% endif %}">Contacto</a></li>
-            <li><a href="#" class="nav-link px-2 {% if active_page == 'about-us' %}link-secondary{% endif %}">Sobre nosotros</a></li>
+            <li><a href="{% url 'tierra_media:index' %}" class="nav-link px-2 {% if active_page == 'index' %}text-warning{% endif %}">Inicio</a></li>
+            <li><a href="{% url 'tierra_media:info' %}" class="nav-link px-2 {% if active_page == 'info' %}text-warning{% endif %}">Información</a></li>
+            <li><a href="{% url 'tierra_media:contact' %}" class="nav-link px-2 {% if active_page == 'contact' %}text-warning{% endif %}">Contacto</a></li>
+            <li><a href="{% url 'tierra_media:about' %}" class="nav-link px-2 {% if active_page == 'about-us' %}text-warning{% endif %}">Sobre nosotros</a></li>
         </ul>
 
         {% if user.is_authenticated %}
