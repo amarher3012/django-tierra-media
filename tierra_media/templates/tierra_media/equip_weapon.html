@@ -55,7 +55,9 @@
                         <form method="POST">
                                 {% csrf_token %}
                                 <input type="hidden" name="armor" value="{{ armor.id }}">
-                                <button type="submit" class="btn btn-link text-decoration-none p-0">{{ armor.name }}</button>
+                                <button type="submit" class="btn btn-link text-decoration-none p-0">
+                                            <img src="{{armor.icon.url}}" class="icons">
+                                </button>
                         </form>
                     </div>
                 {% endfor %}
