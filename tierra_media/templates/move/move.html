@@ -220,14 +220,11 @@
         <div class="col-12 col-md-10 info-container">
             <div class="text-center">
                 <h1 class="display-5 character-title">Mover a {{ character.name }}</h1>
+                <br>
                 <div class="current-location">
                     <i class="bi bi-geo-alt-fill location-icon"></i>
                     Ubicación actual: <strong>{{ character.location.name }}</strong>
                 </div>
-            </div>
-
-            <div class="map-container">
-                <img src="{% static 'map.jpg' %}" alt="Mapa de Tierra Media" class="map-image" onerror="this.style.display='none'">
             </div>
 
             <div class="move-panel">
