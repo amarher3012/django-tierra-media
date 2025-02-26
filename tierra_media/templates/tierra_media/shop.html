@@ -8,53 +8,140 @@
     {% bootstrap_css %}
     {% bootstrap_javascript %}
     <style>
-        .container-fluid {
-            width: 100vh;
+        #fondo {
+            width: 100%;
             height: 100vh;
-            background-image: url("{% static "tienda.png" %}");
         }
         img {
             width: 400px;
         }
         .icons {
-            width: 50px;
+            width: 80px;
+            border-radius: 10px;
+            background-color: transparent;
+            transition: transform 0.1s ease;
+        }
+        .icons:active {
+            transform: scale(0.60);
+        }
+        .details {
+            display: none;
+        }
+        #items {
+            width: fit-content;
+            border-radius: 40px;
+            position: absolute;
+            left: 15%;
+            bottom: 35%;
+            background-color: rgba(0,0,0,0.75);
+            border-radius: 40px;
         }
     </style>
 </head>
 <body>
-<!--<audio src="{% static 'shop.mp3' %}" id="sound" autoplay muted></audio>-->
-<div class="container-fluid d-flex align-items-center w-100 overflow-hidden p-0">
-    <div class="container d-flex justify-content-center" id="items">
-        <div class="row gap-4 text-center">
-                {% if weapons %}
-                {% for weapon in weapons %}
-                    <div class="col-3">
-                        <form method="POST">
-                                {% csrf_token %}
-                                <input type="hidden" name="weapon" value="{{ weapon.id }}">
-                                <button type="submit" class="btn btn-link text-decoration-none p-0">
+<img src="{% static 'tienda.jpeg' %}" id="fondo">
+<div class="container d-flex justify-content-center" id="items">
+    <div class="row gap-4 d.flex justify-content-center text-center">
+            {% if weapons %}
+            {% for weapon in weapons %}
+                <div id="{{ weapon.name }}" class="details">
+                    <ul>
+                        <li>Nombre: {{ weapon.name }}</li>
+                        <li>Daño: {{ weapon.damage }}</li>
+                        <li>Tipo: {{ weapon.type }}</li>
+                    </ul>
+                </div>
+                <div class="col-3 p-2">
+                    <form method="POST" id="form-{{ weapon.name }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="weapon" value="{{ weapon.id }}">
+                            <button type="submit" value="{{ weapon.name }}" class="btn btn-link text-decoration-none p-0 objects">
                                     <img src="{{weapon.icon.url}}" class="icons">
-                                </button>
-                        </form>
-                    </div>
-                {% endfor %}
-            {% endif %}
+                            </button>
+                    </form>
+                </div>
+            {% endfor %}
+        {% endif %}
 
-            {% if armors %}
-                {% for armor in armors %}
-                    <div class="col-3">
-                        <form method="POST">
-                                {% csrf_token %}
-                                <input type="hidden" name="armor" value="{{ armor.id }}">
-                                <button type="submit" class="btn btn-link text-decoration-none p-0">
-                                    <img src="{{armor.icon.url}}" class="icons">
-                                </button>
-                        </form>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </div>
+        {% if armors %}
+            {% for armor in armors %}
+                <div id="{{ armor.name }}" class="details">
+                    <ul>
+                        <li>Nombre: {{ armor.name }}</li>
+                        <li>Defensa: {{ armor.defense }}</li>
+                    </ul>
+                </div>
+                <div class="col-3 p-2">
+                    <form method="POST" id="form-{{ armor.name }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="armor" value="{{ armor.id }}">
+                            <button type="submit" value="{{ armor.name }}" class="btn btn-link text-decoration-none p-0 objects">
+                                <img src="{{armor.icon.url}}" class="icons">
+                            </button>
+                    </form>
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
 </div>
+<button type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#exampleModal" id="botonModal"
+style="display: none">
+  Launch demo modal
+</button>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">DETALLES</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="equipar" class="btn btn-primary">Mover al inventario</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+        backpack = document.getElementById('backpack')
+        objects = document.querySelectorAll('.objects')
+        items = document.getElementById('items')
+        equipar = document.getElementById('equipar')
+        objects.forEach(object => {
+            object.addEventListener('mouseenter', (event)=>{
+                detalle = document.getElementById(event.target.value)
+                modalBody = document.getElementById('modal-body')
+                if (modalBody.hasChildNodes()) {
+                    hijo = modalBody.firstElementChild
+                    hijo.style.display = 'none'
+                    document.body.appendChild(hijo)
+
+                    detalle.style.display = 'block'
+                    modalBody.appendChild(detalle)
+                    equipar.onclick = () => {
+                        document.getElementById('form-'+event.target.value).lastElementChild.click()
+                    }
+                    document.getElementById('botonModal').click()
+                } else {
+                    detalle.style.display = 'block'
+                    modalBody.appendChild(detalle)
+                    equipar.onclick = () => {
+                        document.getElementById('form-'+event.target.value).lastElementChild.click()
+                    }
+                    document.getElementById('botonModal').click()
+                }
+            })
+        })
+
+        backpack.addEventListener('click', ()=>{
+            items.style.visibility = 'visible'
+            console.log()
+        })
+        backpack.addEventListener("dblclick", ()=>{
+            items.style.visibility = 'hidden'
+        })
+    </script>
 </body>
 </html>

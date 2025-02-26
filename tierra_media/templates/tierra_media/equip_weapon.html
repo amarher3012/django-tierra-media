@@ -8,19 +8,18 @@
     {% bootstrap_css %}
     {% bootstrap_javascript %}
     <style>
-        .container-fluid {
-            background-image: url('{% static "dormitorio.png" %}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
-        }
         img {
             width: 200px;
         }
+        #fondo {
+            width: 100%;
+            height: 100vh;
+        }
         #backpack{
+            width: 200px;
+            position: absolute;
+            top: 0;
+            left: 0;
             transition: transform 0.1s ease;
         }
         #backpack:active {
@@ -34,20 +33,24 @@
         }
         .icons {
             width: 80px;
+            border-radius: 10px;
             background-color: transparent;
             transition: transform 0.1s ease;
         }
         .icons:active {
             transform: scale(0.60);
         }
-        #items {
-            visibility: hidden;
-            background-color: rgba(0,0,0,0.9);
-            border-radius: 40px;
-            width: fit-content;
+        .details {
+            display: none;
         }
-        .btn {
-            background-color: gray;
+        #items {
+            width: fit-content;
+            visibility: hidden;
+            background-color: rgba(0,0,0,0.75);
+            border-radius: 40px;
+            position: absolute;
+            top: 25%;
+            left: 20%;
         }
         * {
             font-size: 25px;
@@ -55,19 +58,26 @@
     </style>
 </head>
 <body>
-<div class="container-fluid d-flex align-items-center w-100 overflow-hidden p-0">
+<img src="{% static 'dormitorio.png' %}" id="fondo">
     <div class="backpackWraper">
         <img src="{% static "backpack.png" %}" id="backpack">
     </div>
     <div class="container d-flex justify-content-center" id="items">
-        <div class="row text-center">
+        <div class="row gap-4 d.flex justify-content-center text-center">
             {% if weapons %}
                 {% for weapon in weapons %}
-                    <div class="col-3 d-flex justify-content-center p-2">
-                        <form method="POST">
+                    <div id="{{ weapon.name }}" class="details">
+                        <ul>
+                            <li>Nombre: {{ weapon.name }}</li>
+                            <li>Daño: {{ weapon.damage }}</li>
+                            <li>Tipo: {{ weapon.type }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-3 p-2">
+                        <form method="POST" id="form-{{ weapon.name }}">
                                 {% csrf_token %}
                                 <input type="hidden" name="weapon" value="{{ weapon.id }}">
-                                <button type="submit" class="btn btn-link text-decoration-none p-0">
+                                <button type="submit" value="{{ weapon.name }}" class="btn btn-link text-decoration-none p-0 objects">
                                         <img src="{{weapon.icon.url}}" class="icons">
                                 </button>
                         </form>
@@ -77,11 +87,17 @@
 
             {% if armors %}
                 {% for armor in armors %}
-                    <div class="col-3 d-flex justify-content-center p-2">
-                        <form method="POST">
+                    <div id="{{ armor.name }}" class="details">
+                        <ul>
+                            <li>Nombre: {{ armor.name }}</li>
+                            <li>Defensa: {{ armor.defense }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-3 p-2">
+                        <form method="POST" id="form-{{ armor.name }}">
                                 {% csrf_token %}
                                 <input type="hidden" name="armor" value="{{ armor.id }}">
-                                <button type="submit" class="btn btn-link text-decoration-none p-0">
+                                <button type="submit" value="{{ armor.name }}" class="btn btn-link text-decoration-none p-0 objects">
                                     <img src="{{armor.icon.url}}" class="icons">
                                 </button>
                         </form>
@@ -90,10 +106,57 @@
             {% endif %}
         </div>
     </div>
+<button type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#exampleModal" id="botonModal"
+style="display: none">
+  Launch demo modal
+</button>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">DETALLES</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="equipar" class="btn btn-primary">Equipar</button>
+      </div>
+    </div>
+  </div>
 </div>
     <script>
         backpack = document.getElementById('backpack')
+        objects = document.querySelectorAll('.objects')
         items = document.getElementById('items')
+        equipar = document.getElementById('equipar')
+        objects.forEach(object => {
+            object.addEventListener('mouseenter', (event)=>{
+                detalle = document.getElementById(event.target.value)
+                modalBody = document.getElementById('modal-body')
+                if (modalBody.hasChildNodes()) {
+                    hijo = modalBody.firstElementChild
+                    hijo.style.display = 'none'
+                    document.body.appendChild(hijo)
+
+                    detalle.style.display = 'block'
+                    modalBody.appendChild(detalle)
+                    equipar.onclick = () => {
+                        document.getElementById('form-'+event.target.value).lastElementChild.click()
+                    }
+                    document.getElementById('botonModal').click()
+                } else {
+                    detalle.style.display = 'block'
+                    modalBody.appendChild(detalle)
+                    equipar.onclick = () => {
+                        document.getElementById('form-'+event.target.value).lastElementChild.click()
+                    }
+                    document.getElementById('botonModal').click()
+                }
+            })
+        })
+
         backpack.addEventListener('click', ()=>{
             items.style.visibility = 'visible'
             console.log()
