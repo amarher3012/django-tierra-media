@@ -18,6 +18,7 @@ from .models import Character, Weapon, Armor, Location, Faction, Race, Backpack
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import *
 from .constants import npc_init, weapons_init, armors_init
+from .mixins import ForbiddenNamesMixin
 
 
 class RegisterView(FormView):
@@ -111,10 +112,17 @@ class IndexView(ListView):
         return context
 
 
-class CharacterCreation(LoginRequiredMixin, CreateView):
+class CharacterCreation(LoginRequiredMixin, ForbiddenNamesMixin,CreateView):
+    model = Character
     template_name = "character-creation/character-creation.html"
     form_class = CreateCharacterForm
     success_url = '/tierra-media/character-creation/add-backpack'
+
+    forbidden_names = [
+        'frodo', 'aragorn', 'legolas', 'gimli', 'sauron',
+        'saruman', 'JavaScript', 'Hitler', 'Franco'
+    ]
+    error_message = "Lo siento, el nombre '{name}' está reservado y no puede ser utilizado."
 
     def check_name(self, form):
         name = form.cleaned_data.get("name")

@@ -1,6 +1,21 @@
 from django.db import models
 from django.contrib.auth.models import User
 from .constants import FACTION_CHOICES, LOCATION_CHOICES, RACE_CHOICES, SEX_CHOICES
+from django.core.exceptions import ValidationError
+
+def validate_character_name(value):
+    """
+    Validador para nombres de personajes prohibidos.
+    """
+    forbidden_names = [
+        'frodo', 'aragorn', 'legolas', 'gimli', 'sauron',
+        'saruman', 'JavaScript', 'Hitler', 'Franco'
+    ]
+
+    if value.lower() in [name.lower() for name in forbidden_names]:
+        raise ValidationError(
+            f"El nombre '{value}' no está permitido para un personaje."
+        )
 
 
 class Faction(models.Model):
@@ -26,7 +41,7 @@ class Race(models.Model):
 
 class Character(models.Model):
     icon = models.ImageField(blank=True, upload_to="uploads/")
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, validators=[validate_character_name])
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     max_health = models.IntegerField(default=250)
     health = models.IntegerField(default=250)
