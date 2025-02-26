@@ -24,7 +24,8 @@
         {% if gift %}
             <p>Tras una amistosa y duradera conversación y al conocer lo peligroso de tu empresa, {{ ally.name }} decide ofrecerte un objeto valioso
             que ha encontrado durante sus aventuras a modo de obsequio, para celebrar vuestra amistad.</p>
-            <p>¡Has recibido el objeto {{ gift.name }}! Un <strong>{{ gift.type }}</strong> que cuenta con
+            <p>¡Has recibido el objeto {{ gift.name }}! Un{% if not weapon %}a{% endif %}
+                {% if weapon %}<strong>{{ gift.type }}</strong>{% else %}<strong>armadura</strong>{% endif %} que cuenta con
                 <strong>{% if weapon %}{{ gift.damage }}{% else %}{{ gift.defense }}{% endif %}</strong> puntos de {% if weapon %}daño{% else %}defensa{% endif %}.</p>
         {% else %}
             <p>Tras una amistosa y duradera conversación que sana el ánimo a ambos, {{ ally.name }} te desea la mayor de las suertes en tu empresa,
