@@ -1,12 +1,351 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}
     Menú de {{ character.name }}
 {% endblock %}
-{% block script %}
-    <script defer>
-        document.addEventListener('DOMContentLoaded', function () {
-            let alerts = document.querySelectorAll('.alert');
 
+{% block style %}
+<style>
+    .info-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+
+    .section-title {
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title:after {
+        content: "";
+        position: absolute;
+        width: 60%;
+        height: 2px;
+        bottom: -10px;
+        left: 20%;
+        background-color: var(--lotr-gold);
+    }
+
+    .character-panel {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .character-info-card {
+        flex: 1;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        border: 1px solid var(--lotr-light-gold);
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 0;
+    }
+
+    .character-header {
+        background-color: var(--lotr-green);
+        color: white;
+        padding: 1.2rem;
+        border-bottom: 2px solid var(--lotr-gold);
+        font-family: 'Cinzel', serif;
+    }
+
+    .character-header h2 {
+        margin: 0;
+        font-weight: 600;
+        color: white;
+    }
+
+    .character-content {
+        padding: 1.5rem;
+    }
+
+    .character-image-container {
+        width: 100%;
+        max-height: 300px;
+        overflow: hidden;
+        border-radius: 5px;
+        border: 2px solid var(--lotr-light-gold);
+        margin-bottom: 1.5rem;
+    }
+
+    .character-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .character-stats {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .stat-item {
+        padding: 0.8rem 0;
+        border-bottom: 1px dashed rgba(212, 175, 55, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stat-item:last-child {
+        border-bottom: none;
+    }
+
+    .stat-label {
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        color: var(--lotr-brown);
+    }
+
+    .stat-value {
+        font-weight: 500;
+        color: var(--lotr-gray);
+    }
+
+    .health-bar {
+        height: 20px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 0.3rem;
+    }
+
+    .health-fill {
+        height: 100%;
+        background-color: var(--lotr-green);
+        width: 0; /* Se ajustará con JavaScript */
+    }
+
+    .equipment-section {
+        margin-top: 1.5rem;
+        border-top: 2px solid var(--lotr-light-gold);
+        padding-top: 1.5rem;
+    }
+
+    .equipment-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        margin-bottom: 1rem;
+        position: relative;
+        display: inline-block;
+    }
+
+    .equipment-title:after {
+        content: "";
+        position: absolute;
+        width: 50%;
+        height: 2px;
+        bottom: -5px;
+        left: 0;
+        background-color: var(--lotr-gold);
+    }
+
+    .equipment-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.8rem;
+    }
+
+    .equipment-name {
+        font-weight: 600;
+    }
+
+    .equipment-stats {
+        font-size: 0.9rem;
+        color: var(--lotr-gray);
+    }
+
+    .actions-menu {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        padding: 1.2rem 1.5rem;
+        background-color: rgba(255, 255, 255, 0.85);
+        border: 1px solid var(--lotr-light-gold);
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        text-decoration: none;
+        color: var(--lotr-brown);
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        border-color: var(--lotr-gold);
+        color: var(--lotr-dark-green);
+    }
+
+    .action-btn:hover::before {
+        left: 100%;
+    }
+
+    .action-icon {
+        background-color: var(--lotr-dark-green);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        border: 1px solid var(--lotr-gold);
+        font-size: 1.2rem;
+    }
+
+    .action-btn:hover .action-icon {
+        background-color: var(--lotr-green);
+    }
+
+    .return-btn {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .custom-modal-content {
+        background-color: rgba(255, 255, 255, 0.95);
+        border: 2px solid var(--lotr-gold);
+        border-radius: 10px;
+    }
+
+    .custom-modal-header {
+        background-color: var(--lotr-green);
+        color: white;
+        border-bottom: 2px solid var(--lotr-gold);
+    }
+
+    .custom-modal-title {
+        font-family: 'Cinzel', serif;
+    }
+
+    .relationship-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .relationship-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        margin-bottom: 0.5rem;
+        position: relative;
+        display: inline-block;
+    }
+
+    .relationship-title:after {
+        content: "";
+        position: absolute;
+        width: 50%;
+        height: 2px;
+        bottom: -5px;
+        left: 0;
+        background-color: var(--lotr-gold);
+    }
+
+    .relationship-list {
+        list-style-type: none;
+        padding-left: 1rem;
+    }
+
+    .relationship-list li {
+        padding: 0.3rem 0;
+        position: relative;
+    }
+
+    .relationship-list li::before {
+        content: "•";
+        color: var(--lotr-gold);
+        font-weight: bold;
+        position: absolute;
+        left: -1rem;
+    }
+
+    .ally-icon, .enemy-icon, .neutral-icon {
+        margin-right: 0.5rem;
+    }
+
+    .ally-icon {
+        color: var(--lotr-green);
+    }
+
+    .enemy-icon {
+        color: var(--lotr-brown);
+    }
+
+    .neutral-icon {
+        color: var(--lotr-gray);
+    }
+
+    .alert {
+        border-left: 4px solid;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.25rem;
+        background-color: rgba(255, 255, 255, 0.7);
+    }
+
+    .alert-danger {
+        border-color: #dc3545;
+        color: #b02a37;
+    }
+
+    .alert-success {
+        border-color: #198754;
+        color: #15803d;
+    }
+
+    .alert-info {
+        border-color: #0d6efd;
+        color: #084298;
+    }
+
+    .alert-warning {
+        border-color: #ffc107;
+        color: #997404;
+    }
+
+    @media (max-width: 992px) {
+        .character-panel {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script defer>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Manejo de alertas
+        let alerts = document.querySelectorAll('.alert');
         alerts.forEach(function(alert) {
             setTimeout(function() {
                 alert.classList.remove('show');
@@ -17,88 +356,251 @@
                 alert.remove();
             }, 2500);
         });
+
+        // Ajustar la barra de salud
+        const healthBar = document.getElementById('health-bar');
+        const healthPercent = ({{ character.health }} / {{ character.max_health }}) * 100;
+        healthBar.style.width = healthPercent + '%';
+
+        // Cambiar color según la salud
+        if (healthPercent <= 25) {
+            healthBar.style.backgroundColor = '#dc3545'; // Rojo
+        } else if (healthPercent <= 50) {
+            healthBar.style.backgroundColor = '#ffc107'; // Amarillo
+        }
+
+        // Efecto hover en botones de acción
+        const actionButtons = document.querySelectorAll('.action-btn');
+        actionButtons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                // Puedes agregar un sonido aquí si lo deseas
+            });
+        });
     });
-    </script>
+</script>
 {% endblock %}
+
 {% block content %}
-    {% if messages %}
-    	{% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex justify-content-center col-4" role="alert">
-                {{ message }}
+<div class="info-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 info-container">
+                {% if messages %}
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-8">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-info-circle" style="color: var(--lotr-gold); margin-right: 0.5rem;"></i>{{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if character %}
+                    <div class="text-center mb-4">
+                        <h1 class="display-5">Menú de {{ character.name }}</h1>
+                        <hr class="my-4" style="border-color: var(--lotr-gold); opacity: 0.7;">
+                    </div>
+
+                    <div class="character-panel">
+                        <!-- Información del personaje -->
+                        <div class="character-info-card">
+                            <div class="character-header">
+                                <h2 class="text-center"><i class="bi bi-person" style="margin-right: 0.5rem;"></i>Información del personaje</h2>
+                            </div>
+                            <div class="character-content">
+                                <div class="character-image-container">
+                                    <img src="{{ character.icon.url }}" alt="{{ character.name }}" class="character-image">
+                                </div>
+
+                                <ul class="character-stats">
+                                    <li class="stat-item">
+                                        <span class="stat-label">Nombre:</span>
+                                        <span class="stat-value">{{ character.name }}</span>
+                                    </li>
+                                    <li class="stat-item">
+                                        <span class="stat-label">Vida:</span>
+                                        <div style="text-align: right;">
+                                            <span class="stat-value">{{ character.health }}/{{ character.max_health }}</span>
+                                            <div class="health-bar">
+                                                <div class="health-fill" id="health-bar"></div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="stat-item">
+                                        <span class="stat-label">Defensa:</span>
+                                        <span class="stat-value">{{ character.defense }}</span>
+                                    </li>
+                                    <li class="stat-item">
+                                        <span class="stat-label">Localización:</span>
+                                        <span class="stat-value">{{ character.location.name }}</span>
+                                    </li>
+                                    <li class="stat-item">
+                                        <span class="stat-label">Raza:</span>
+                                        <span class="stat-value">{{ character.race.name }}</span>
+                                    </li>
+                                    <li class="stat-item">
+                                        <span class="stat-label">Facción:</span>
+                                        <span class="stat-value">{{ character.faction.name }}</span>
+                                    </li>
+                                </ul>
+
+                                <div class="equipment-section">
+                                    <h3 class="equipment-title">Equipamiento</h3>
+
+                                    <div class="equipment-item">
+                                        <span class="equipment-name">
+                                            <i class="bi bi-sword" style="color: var(--lotr-gold); margin-right: 0.5rem;"></i>Arma:
+                                        </span>
+                                        {% if character.equipped_weapon %}
+                                            <span class="equipment-name">{{ character.equipped_weapon.name }}</span>
+                                        {% else %}
+                                            <span class="stat-value">No tienes un arma equipada</span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if character.equipped_weapon %}
+                                    <div class="equipment-item" style="margin-left: 1.5rem;">
+                                        <span class="equipment-stats">Daño:</span>
+                                        <span class="equipment-stats">{{ character.equipped_weapon.damage }}</span>
+                                    </div>
+                                    <div class="equipment-item" style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+                                        <span class="equipment-stats">Tipo:</span>
+                                        <span class="equipment-stats">{{ character.equipped_weapon.type }}</span>
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="equipment-item">
+                                        <span class="equipment-name">
+                                            <i class="bi bi-shield" style="color: var(--lotr-gold); margin-right: 0.5rem;"></i>Armadura:
+                                        </span>
+                                        {% if character.equipped_armor %}
+                                            <span class="equipment-name">{{ character.equipped_armor.name }}</span>
+                                        {% else %}
+                                            <span class="stat-value">No tienes una armadura equipada</span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if character.equipped_armor %}
+                                    <div class="equipment-item" style="margin-left: 1.5rem;">
+                                        <span class="equipment-stats">Defensa:</span>
+                                        <span class="equipment-stats">{{ character.equipped_armor.defense }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Menú de acciones -->
+                        <div class="actions-menu">
+                            <a href="{% url 'tierra_media:equip_objects' character.id %}" class="action-btn">
+                                <div class="action-icon">
+                                    <i class="bi bi-shield"></i>
+                                </div>
+                                <span>Equipar objetos</span>
+                            </a>
+
+                            <a href="{% url 'tierra_media:encounter' character.id %}" class="action-btn">
+                                <div class="action-icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <span>Comprobar encuentros cercanos</span>
+                            </a>
+
+                            <a href="{% url 'tierra_media:move' character.id %}" class="action-btn">
+                                <div class="action-icon">
+                                    <i class="bi bi-map"></i>
+                                </div>
+                                <span>Mover personaje</span>
+                            </a>
+
+                            <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#relationshipsModal">
+                                <div class="action-icon">
+                                    <i class="bi bi-diagram-3"></i>
+                                </div>
+                                <span>Mostrar relaciones</span>
+                            </a>
+
+                            <a href="{% url 'tierra_media:shop' character.id %}" class="action-btn">
+                                <div class="action-icon">
+                                    <i class="bi bi-shop"></i>
+                                </div>
+                                <span>Tienda</span>
+                            </a>
+
+                            <a href="{% url 'tierra_media:index' %}" class="action-btn">
+                                <div class="action-icon">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                </div>
+                                <span>Cambiar de personaje</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
-        {% endfor %}
-    {% endif %}
-    {% if character %}
-        <ul>
-            <li><a href="{% url 'tierra_media:equip_objects' character.id %}" class="text-decoration-none">Equipar objetos</a></li>
-            <li><a href="{% url 'tierra_media:encounter' character.id %}" class="text-decoration-none">Comprobar encuentros cercanos</a></li>
-            <li><a href="{% url 'tierra_media:move' character.id %}" class="text-decoration-none">Mover personaje</a></li>
-            <li><a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#relationshipsModal">Mostrar relaciones</a></li>
-            <li><a href="{% url 'tierra_media:shop' character.id %}" class="text-decoration-none">Tienda</a></li>
-            <li><a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Cambiar de personaje</a></li>
-        </ul>
-        <ul>
-            <li>Nombre: {{ character.name }}</li>
-            <li>Vida: {{ character.health }}/{{ character.max_health }}</li>
-            <li>Defensa: {{ character.defense }}</li>
-            <li>Localización: {{ character.location.name}}</li>
-            <li>Raza: {{ character.race.name }}</li>
-            <li>Arma equipada: {{ character.equipped_weapon.name }}</li>
-            <ul>
-                <li>Daño: {{ character.equipped_weapon.damage }}</li>
-                <li>Tipo: {{ character.equipped_weapon.type }}</li>
-            </ul>
-            <li>Armadura equipada: {{ character.equipped_armor.name }}</li>
-            <ul>
-                <li>Defensa: {{ character.equipped_armor.defense }}</li>
-            </ul>
-        </ul>
+        </div>
+    </div>
+</div>
 
+<!-- Modal que muestra las relaciones (mejorado) -->
+<div class="modal fade" id="relationshipsModal" tabindex="-1" aria-labelledby="relationshipsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal-content">
+            <div class="modal-header custom-modal-header">
+                <h5 class="modal-title custom-modal-title" id="relationshipsModalLabel">
+                    <i class="bi bi-diagram-3" style="margin-right: 0.5rem;"></i>Relaciones de {{ character.name }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="relationship-section">
+                    <h6 class="relationship-title">
+                        <i class="bi bi-heart-fill ally-icon"></i>Aliados:
+                    </h6>
+                    <ul class="relationship-list">
+                        {% if relationships.allies %}
+                            {% for ally in relationships.allies %}
+                                <li>{{ ally.name }}</li>
+                            {% endfor %}
+                        {% else %}
+                            <li>Este personaje no tiene aliados.</li>
+                        {% endif %}
+                    </ul>
+                </div>
 
-        <!--Modal que muestra las relaciones-->
-        <div class="modal fade" id="relationshipsModal" tabindex="-1" aria-labelledby="relationshipsModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="relationshipsModalLabel">Relaciones de {{ character.name }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <h6>Aliados: </h6>
-                        <ul>
-                            {% if relationships.allies %}
-                                {% for ally in relationships.allies %}
-                                    <li>{{ ally.name }}</li>
-                                {% endfor %}
-                            {% else %}
-                                <li>Este personaje no tiene aliados.</li>
-                            {% endif %}
-                        </ul>
+                <div class="relationship-section">
+                    <h6 class="relationship-title">
+                        <i class="bi bi-slash-circle-fill enemy-icon"></i>Enemigos:
+                    </h6>
+                    <ul class="relationship-list">
+                        {% if relationships.enemies %}
+                            {% for enemy in relationships.enemies %}
+                                <li>{{ enemy.name }}</li>
+                            {% endfor %}
+                        {% else %}
+                            <li>Este personaje no tiene enemigos.</li>
+                        {% endif %}
+                    </ul>
+                </div>
 
-                        <h6>Enemigos: </h6>
-                        <ul>
-                            {% if relationships.enemies %}
-                                {% for enemy in relationships.enemies %}
-                                    <li>{{ enemy.name }}</li>
-                                {% endfor %}
-                            {% else %}
-                                <li>Este personaje no tiene enemigos.</li>
-                            {% endif %}
-                        </ul>
-
-                        <h6>Neutrales: </h6>
-                        <ul>
-                            {% if relationships.neutrals %}
-                                {% for neutral in relationships.neutrals %}
-                                    <li>{{ neutral.name }}</li>
-                                {% endfor %}
-                            {% else %}
-                                <li>Este personaje no tiene neutrales.</li>
-                            {% endif %}
-                        </ul>
-                    </div>
+                <div class="relationship-section">
+                    <h6 class="relationship-title">
+                        <i class="bi bi-circle-half neutral-icon"></i>Neutrales:
+                    </h6>
+                    <ul class="relationship-list">
+                        {% if relationships.neutrals %}
+                            {% for neutral in relationships.neutrals %}
+                                <li>{{ neutral.name }}</li>
+                            {% endfor %}
+                        {% else %}
+                            <li>Este personaje no tiene neutrales.</li>
+                        {% endif %}
+                    </ul>
                 </div>
             </div>
         </div>
-    {% endif %}
+    </div>
+</div>
 {% endblock %}

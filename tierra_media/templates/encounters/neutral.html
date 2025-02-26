@@ -1,21 +1,254 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}
-	Encuentro neutral con {{ neutral.name }}
+    Encuentro neutral con {{ neutral.name }}
 {% endblock %}
+
+{% block style %}
+<style>
+    .info-container {
+        max-width: 800px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+    .encounter-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        position: relative;
+        display: inline-block;
+        margin-bottom: 2rem;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .encounter-title:after {
+        content: "";
+        position: absolute;
+        width: 70%;
+        height: 2px;
+        bottom: -10px;
+        left: 15%;
+        background-color: var(--lotr-gold);
+    }
+
+    .neutral-panel {
+        display: flex;
+        gap: 2rem;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--lotr-light-gold);
+        margin-bottom: 2rem;
+    }
+
+    .character-portrait {
+        width: 250px;
+        height: 350px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 3px solid var(--lotr-gold);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .character-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .character-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .character-placeholder i {
+        font-size: 4rem;
+        color: var(--lotr-gray);
+        margin-bottom: 1rem;
+    }
+
+    .character-placeholder p {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        text-align: center;
+        padding: 0 1rem;
+    }
+
+    .encounter-details {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .neutral-warning {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: rgba(108, 117, 125, 0.8);
+        color: white;
+        border-radius: 5px;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+        font-family: 'Cinzel', serif;
+        border: 1px solid white;
+    }
+
+    .encounter-description {
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        padding: 1.5rem;
+        border-left: 4px solid var(--lotr-gray);
+        margin-bottom: 1.5rem;
+        line-height: 1.8;
+    }
+
+    .decision-section {
+        background-color: rgba(255, 193, 7, 0.1);
+        border-radius: 10px;
+        padding: 1.5rem;
+        border-left: 4px solid #ffc107;
+        margin-top: auto;
+    }
+
+    .decision-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        margin-bottom: 1rem;
+    }
+
+    .decision-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .decision-btn {
+        display: inline-block;
+        padding: 0.8rem 1.5rem;
+        border-radius: 5px;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        border: 1px solid;
+    }
+
+    .attack-btn {
+        background-color: var(--lotr-brown);
+        color: white;
+        border-color: var(--lotr-dark-gold);
+    }
+
+    .attack-btn:hover {
+        background-color: #8b4513;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: white;
+    }
+
+    .flee-btn {
+        background-color: var(--lotr-dark-green);
+        color: white;
+        border-color: var(--lotr-gold);
+    }
+
+    .flee-btn:hover {
+        background-color: var(--lotr-green);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: white;
+    }
+
+    .character-name {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .character-race {
+        color: var(--lotr-gray);
+        font-style: italic;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .neutral-panel {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .character-portrait {
+            width: 200px;
+            height: 280px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-	<h1>Encuentro neutral con {{ neutral.name }}</h1>
-    <p>
-        Puedes ver en la distancia un rostro que te resulta familiar. Se trata de {{ neutral.name }}.
-    </p>
-    <p>
-        Ni aliado ni enemigo, {{ neutral.name }} parece preferir evitar relacionarse contigo y te mira con recelo.
-    </p>
-    <p>
-        Parece estar preparado para cualquier cosa.
-    </p>
-    <p>¿Qué quieres hacer? Acercarte a él podría suponer entrar en combate.</p>
-    <div class="d-flex align-items-center justify-content-start gap-2">
-        <a href="{% url 'tierra_media:encounter_enemy' character.pk encounter.pk%}" class="text-decoration-none">Plantarle cara y enfrentarte a él</a>
-        <a href="{% url 'tierra_media:encounter' character.pk %}" class="text-decoration-none">Seguir tu camino y evitar problemas</a>
+<div class="info-section">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 info-container">
+            <div class="text-center mb-4">
+                <h1 class="encounter-title display-5">Encuentro con {{ neutral.name }}</h1>
+            </div>
+
+            <div class="neutral-panel">
+                <div class="character-portrait">
+                    {% if neutral.icon %}
+                        <img src="{{ neutral.icon.url }}" alt="{{ neutral.name }}" class="character-img">
+                    {% else %}
+                        <!-- Placeholder para la imagen -->
+                        <div class="character-placeholder">
+                            <i class="bi bi-question-circle"></i>
+                            <p>{{ neutral.name }}</p>
+                        </div>
+                    {% endif %}
+                    <div class="neutral-warning">Neutral</div>
+                </div>
+
+                <div class="encounter-details">
+                    <h2 class="character-name">{{ neutral.name }}</h2>
+                    <p class="character-race">{{ neutral.race.name }} de {{ neutral.faction.name }}</p>
+
+                    <div class="encounter-description">
+                        <p>Puedes ver en la distancia un rostro que te resulta familiar. Se trata de {{ neutral.name }}.</p>
+                        <p>Ni aliado ni enemigo, {{ neutral.name }} parece preferir evitar relacionarse contigo y te mira con recelo.</p>
+                        <p>Parece estar preparado para cualquier cosa.</p>
+                    </div>
+
+                    <div class="decision-section">
+                        <h3 class="decision-title">¿Qué quieres hacer?</h3>
+                        <p>Acercarte a él podría suponer entrar en combate. Piensa bien tu decisión.</p>
+
+                        <div class="decision-buttons">
+                            <a href="{% url 'tierra_media:encounter_enemy' character.pk encounter.pk%}" class="decision-btn attack-btn">
+                                <i class="bi bi-shield-slash" style="margin-right: 0.5rem;"></i>Plantarle cara y enfrentarte a él
+                            </a>
+                            <a href="{% url 'tierra_media:encounter' character.pk %}" class="decision-btn flee-btn">
+                                <i class="bi bi-arrow-left-right" style="margin-right: 0.5rem;"></i>Seguir tu camino y evitar problemas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}

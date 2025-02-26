@@ -155,6 +155,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'tierramedia.juego@gmail.com'
 
+CONTACT_EMAIL = 'tierramedia.juego@gmail.com'
+
 load_dotenv()
 
 # TODO: Usar contraseña proporcionada (Trello)

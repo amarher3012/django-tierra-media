@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Sobre nosotros{% endblock %}
+
+{% block style %}
+<style>
+    .info-container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: justify;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+    .dev-img {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--lotr-gold);
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .dev-img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        border-color: var(--lotr-green);
+    }
+
+    .dev-container {
+        margin-bottom: 3rem;
+    }
+
+    .dev-name {
+        font-weight: bold;
+        color: var(--lotr-dark-gold);
+        margin-top: 1rem;
+        font-family: 'Cinzel', serif;
+        position: relative;
+        display: inline-block;
+    }
+
+    .dev-name:after {
+        content: "";
+        position: absolute;
+        width: 60%;
+        height: 2px;
+        bottom: -5px;
+        left: 20%;
+        background-color: var(--lotr-gold);
+    }
+
+    .dev-role {
+        font-style: italic;
+        color: var(--lotr-gray);
+        margin-top: 0.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title:after {
+        content: "";
+        position: absolute;
+        width: 60%;
+        height: 2px;
+        bottom: -10px;
+        left: 20%;
+        background-color: var(--lotr-gold);
+    }
+
+    .dev-profile {
+        padding: 2rem 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        background-color: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        transition: transform 0.3s ease;
+        border: 1px solid var(--lotr-light-gold);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .dev-profile:hover {
+        transform: translateY(-5px);
+    }
+
+    .about-text {
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        background-color: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        transition: transform 0.3s ease;
+        border-left: 4px solid var(--lotr-brown);
+        border-top: 1px solid var(--lotr-light-gold);
+        border-bottom: 1px solid var(--lotr-light-gold);
+        border-right: 1px solid var(--lotr-light-gold);
+    }
+
+    .return-btn {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: 0.8rem 2rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        border: 1px solid var(--lotr-gold);
+    }
+
+    .return-btn:hover {
+        background-color: var(--lotr-green);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .lotr-alert {
+        background-color: rgba(212, 175, 55, 0.2);
+        border: 1px solid var(--lotr-gold);
+        border-radius: 10px;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .lotr-alert:before {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 20px;
+        background-color: var(--lotr-gold);
+        border-radius: 10px;
+        clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
+    }
+
+    .game-highlight {
+        font-weight: bold;
+        color: var(--lotr-dark-gold);
+    }
+
+    .icon-custom {
+        color: var(--lotr-gold);
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="info-section">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center mb-4">
+            <h1 class="display-4">Nuestro Equipo</h1>
+            <hr class="my-4" style="border-color: var(--lotr-gold); opacity: 0.7;">
+            <p class="lead">Conoce a los desarrolladores detrás de Tierra Media</p>
+        </div>
+
+        <div class="col-12 col-md-10 info-container">
+            <!-- Sección de Desarrolladores con Imágenes -->
+            <div class="row justify-content-center text-center dev-container">
+                <div class="row g-3">
+                    <!-- Desarrollador 1 -->
+                    <div class="col-lg-4 col-md-4 col-sm-12 mb-4 px-4">
+                        <div>
+                            <img src="{% static 'about/alexander.avif' %}" alt="Alexánder Drapala" class="dev-img">
+                            <h3 class="dev-name">Alexánder Drapala</h3>
+                            <p class="dev-role">
+                                <strong>Trabajador incansable</strong>
+                                <br>
+                                En la definición de "Proofreader" en el diccionario sale su foto
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Desarrollador 2 -->
+                    <div class="col-lg-4 col-md-4 col-sm-12 mb-4 px-4">
+                        <div>
+                            <img src="{% static 'about/alejandro.jpg' %}" alt="Alejandro Martín" class="dev-img">
+                            <h3 class="dev-name">Alejandro Martín</h3>
+                            <p class="dev-role">
+                                <strong>Líder del equipo</strong>
+                                <br>
+                                El que sienta las bases de los proyectos y mantiene en alto los ánimos
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Desarrollador 3 -->
+                    <div class="col-lg-4 col-md-4 col-sm-12 mb-4 px-4">
+                        <div>
+                            <img src="{% static 'about/renato.jpg' %}" alt="Renato Romero" class="dev-img">
+                            <h3 class="dev-name">Renato Romero</h3>
+                            <p class="dev-role">
+                                <strong>Programador creativo</strong>
+                                <br>
+                                Thinks outside the box, pero tiende a distraerse con facilidad
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del equipo -->
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <h2 class="text-center mb-4 section-title">Sobre Nosotros</h2>
+
+                    <div>
+                        <p>¡Hola!</p>
+                        <p>Somos Alejandro Martín, Alexánder Drapala y Renato Romero, tres estudiantes de Desarrollo de Aplicaciones Web en el IES Francisco Romero Vargas, en Jerez de la frontera.
+                        Estamos terminando nuestro segundo curso y nuestro profesor de Desarrollo de Aplicaciones Web, <span class="game-highlight">Rivas</span>, a quien le gusta mucho El Señor de los Anillos (tanto o más que Juego de Tronos o el Carnaval),
+                        nos mandó a hacer una aplicación web que fuera un juego/simulador de la Tierra Media.</p>
+                        <p>Somos muy trabajadores y nos gusta intentar ser creativos y detallistas, por lo que nos hemos volcado enormemente en este proyecto.</p>
+                        <p>Por todas las horas de sueño perdidas (nuestras y de nuestros compañeros) y toda la ilusión que le hemos puesto...</p>
+                        <p class="fw-bold mb-0">¡Esperamos que os guste!</p>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="{% url 'tierra_media:index' %}" class="return-btn">
+                            <i class="bi bi-house-door icon-custom"></i>Volver a Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script2 %}
+<script>
+    $(document).ready(function() {
+        // Animación suave al cargar la página
+        $('.dev-profile').each(function(index) {
+            var $this = $(this);
+            setTimeout(function() {
+                $this.css({
+                    'opacity': '1',
+                    'transform': 'translateY(0)'
+                });
+            }, 300 * index);
+        });
+    });
+</script>
+{% endblock %}
