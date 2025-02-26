@@ -1,43 +1,244 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}
-	Encuentro aliado con {{ ally.name }}
+    Encuentro aliado con {{ ally.name }}
 {% endblock %}
+
+{% block style %}
+<style>
+    .info-container {
+        max-width: 800px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+    .encounter-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        position: relative;
+        display: inline-block;
+        margin-bottom: 2rem;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .encounter-title:after {
+        content: "";
+        position: absolute;
+        width: 70%;
+        height: 2px;
+        bottom: -10px;
+        left: 15%;
+        background-color: var(--lotr-gold);
+    }
+
+    .ally-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--lotr-light-gold);
+    }
+
+    .ally-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .ally-img-container {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid var(--lotr-gold);
+        flex-shrink: 0;
+    }
+
+    .ally-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .ally-info {
+        flex-grow: 1;
+    }
+
+    .ally-name {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-green);
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ally-subtitle {
+        color: var(--lotr-gray);
+        font-style: italic;
+        margin-bottom: 1rem;
+    }
+
+    .encounter-content {
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        padding: 1.5rem;
+        border-left: 4px solid var(--lotr-green);
+        margin-bottom: 1.5rem;
+        line-height: 1.8;
+    }
+
+    .healing-section {
+        background-color: rgba(25, 135, 84, 0.1);
+        border-radius: 10px;
+        padding: 1.5rem;
+        border-left: 4px solid #198754;
+        margin: 1.5rem 0;
+    }
+
+    .gift-section {
+        background-color: rgba(212, 175, 55, 0.1);
+        border-radius: 10px;
+        padding: 1.5rem;
+        border-left: 4px solid var(--lotr-gold);
+        margin: 1.5rem 0;
+    }
+
+    .farewell-section {
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        padding: 1.5rem;
+        border-left: 4px solid var(--lotr-light-gold);
+        font-style: italic;
+        margin-top: 1.5rem;
+    }
+
+    .highlight {
+        color: var(--lotr-green);
+        font-weight: bold;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .return-btn {
+        display: inline-block;
+        padding: 0.7rem 1.2rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        border: 1px solid var(--lotr-gold);
+        text-align: center;
+    }
+
+    .return-btn:hover {
+        background-color: var(--lotr-green);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-	<h1>Encuentro aliado con {{ ally.name }}</h1>
-    <p>Tras escuchar que se encontraba por los alrededores, te reúnes con {{ ally.name }}. Después de saludaros y
-    poneros al día, os sentáis a compartir algo de beber y un poco de pan de lembas.</p>
+<div class="info-section">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 info-container">
+            <div class="text-center mb-4">
+                <h1 class="encounter-title display-5">Encuentro aliado con {{ ally.name }}</h1>
+            </div>
 
-    {% if healing %}
-    	<p>Durante una amistosa conversación {{ ally.name }} no puede evitar fijarse en tus heridas y rasguños.</p>
-        <p>Te ofrece un ungüento especial para curar tus heridas.</p>
-        {% if decline %}
-        	<p>Pese a su amabilidad, te encuentras en buen estado, así que decides rechazar cordialmente su ayuda.</p>
-        {% else %}
-            {% if crit_healing %}
-                <p>El efecto del ungüento no es solo amable para con tu cuerpo, sino también para con tu alma. Te sientes increíblemente bien. Renovado.</p>
-                <p><strong>Recuperas toda tu salud</strong>. Salud actual: <strong>{{ character.health }}</strong>.</p>
-            {% else %}
-                <p>¡Te curas <strong>{{ healing_amount }}</strong> puntos de salud! Salud actual: <strong>{{ character.health }}</strong></p>
-            {% endif %}
-        {% endif %}
-    {% else %}
-        {% if gift %}
-            <p>Tras una amistosa y duradera conversación y al conocer lo peligroso de tu empresa, {{ ally.name }} decide ofrecerte un objeto valioso
-            que ha encontrado durante sus aventuras a modo de obsequio, para celebrar vuestra amistad.</p>
-            <p>¡Has recibido el objeto {{ gift.name }}! Un{% if not weapon %}a{% endif %}
-                {% if weapon %}<strong>{{ gift.type }}</strong>{% else %}<strong>armadura</strong>{% endif %} que cuenta con
-                <strong>{% if weapon %}{{ gift.damage }}{% else %}{{ gift.defense }}{% endif %}</strong> puntos de {% if weapon %}daño{% else %}defensa{% endif %}.</p>
-        {% else %}
-            <p>Tras una amistosa y duradera conversación que sana el ánimo a ambos, {{ ally.name }} te desea la mayor de las suertes en tu empresa,
-            lamentándose por no poder ofrecerte ningún tipo de ayuda.</p>
-            <p>Tranquilizas a tu amigo quitándole hierro a sus preocupaciones.</p>
-        {% endif %}
-    {% endif %}
+            <div class="ally-container">
+                <div class="ally-header">
+                    <div class="ally-img-container">
+                        {% if ally.icon %}
+                            <img src="{{ ally.icon.url }}" alt="{{ ally.name }}" class="ally-img">
+                        {% else %}
+                            <!-- Placeholder para imagen si no existe -->
+                            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: var(--lotr-light-gray);">
+                                <i class="bi bi-person-heart" style="font-size: 4rem; color: var(--lotr-green);"></i>
+                            </div>
+                        {% endif %}
+                    </div>
 
-    <p>Finalmente, os despedís efusivamente no sin antes desearos la mejor de la suerte y esperar un encuentro próximo.</p>
-    <div class="d-flex align-items-center justify-content-start gap-2">
-        <a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Volver a Inicio</a>
-        <a href="{% url 'tierra_media:character_details' character.pk %}" class="text-decoration-none">Volver al menú de personaje</a>
-        <a href="{% url 'tierra_media:encounter' character.pk %}" class="text-decoration-none">Volver al menú Encuentros</a>
+                    <div class="ally-info">
+                        <h2 class="ally-name">{{ ally.name }}</h2>
+                        <p class="ally-subtitle">
+                            {{ ally.race.name }} de {{ ally.faction.name }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="encounter-content">
+                    <p>Tras escuchar que se encontraba por los alrededores, te reúnes con {{ ally.name }}. Después de saludaros y
+                    poneros al día, os sentáis a compartir algo de beber y un poco de pan de lembas.</p>
+                </div>
+
+                {% if healing %}
+                    <div class="healing-section">
+                        <p>Durante una amistosa conversación {{ ally.name }} no puede evitar fijarse en tus heridas y rasguños.</p>
+                        <p>Te ofrece un ungüento especial para curar tus heridas.</p>
+                        {% if decline %}
+                            <p>Pese a su amabilidad, te encuentras en buen estado, así que decides rechazar cordialmente su ayuda.</p>
+                        {% else %}
+                            {% if crit_healing %}
+                                <p>El efecto del ungüento no es solo amable para con tu cuerpo, sino también para con tu alma. Te sientes increíblemente bien. Renovado.</p>
+                                <p><span class="highlight">Recuperas toda tu salud</span>. Salud actual: <span class="highlight">{{ character.health }}</span>.</p>
+                            {% else %}
+                                <p>¡Te curas <span class="highlight">{{ healing_amount }}</span> puntos de salud! Salud actual: <span class="highlight">{{ character.health }}</span></p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                {% else %}
+                    {% if gift %}
+                        <div class="gift-section">
+                            <p>Tras una amistosa y duradera conversación y al conocer lo peligroso de tu empresa, {{ ally.name }} decide ofrecerte un objeto valioso
+                            que ha encontrado durante sus aventuras a modo de obsequio, para celebrar vuestra amistad.</p>
+                            <p>¡Has recibido el objeto <span class="highlight">{{ gift.name }}</span>! Un{% if not weapon %}a{% endif %}
+                                <span class="highlight">{% if weapon %}{{ gift.type }}{% else %}armadura{% endif %}</span> que cuenta con
+                                <span class="highlight">{% if weapon %}{{ gift.damage }}{% else %}{{ gift.defense }}{% endif %}</span> puntos de {% if weapon %}daño{% else %}defensa{% endif %}.</p>
+                        </div>
+                    {% else %}
+                        <div class="encounter-content">
+                            <p>Tras una amistosa y duradera conversación que sana el ánimo a ambos, {{ ally.name }} te desea la mayor de las suertes en tu empresa,
+                            lamentándose por no poder ofrecerte ningún tipo de ayuda.</p>
+                            <p>Tranquilizas a tu amigo quitándole hierro a sus preocupaciones.</p>
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                <div class="farewell-section">
+                    <p>Finalmente, os despedís efusivamente no sin antes desearos la mejor de la suerte y esperar un encuentro próximo.</p>
+                </div>
+
+                <div class="navigation-buttons">
+                    <a href="{% url 'tierra_media:character_details' character.pk %}" class="return-btn">
+                        <i class="bi bi-person" style="margin-right: 0.5rem;"></i>Volver al menú
+                    </a>
+                    <a href="{% url 'tierra_media:encounter' character.pk %}" class="return-btn">
+                        <i class="bi bi-people" style="margin-right: 0.5rem;"></i>Volver a Encuentros
+                    </a>
+                    <a href="{% url 'tierra_media:index' %}" class="return-btn">
+                        <i class="bi bi-house-door" style="margin-right: 0.5rem;"></i>Volver a Inicio
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}

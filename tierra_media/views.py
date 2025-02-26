@@ -457,8 +457,10 @@ class Shop(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        character = self.get_object()  # Obtener el objeto character actual
         weapons = Weapon.objects.filter(user=self.request.user, backpack=None)
         armors = Armor.objects.filter(user=self.request.user, backpack=None)
+        context["character"] = character  # Agregar el objeto character al contexto
         context["weapons"] = weapons
         context["armors"] = armors
         return context
@@ -481,6 +483,7 @@ class Shop(LoginRequiredMixin, UpdateView):
         item_found.save()
         messages.success(request, f'{item_found.name} enviado al inventario')
         return redirect(self.get_success_url())
+
 
 class Move(LoginRequiredMixin, UpdateView):
     model = Character

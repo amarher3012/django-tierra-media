@@ -1,54 +1,461 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}
     Encuentros en {{ character.location.name }}
 {% endblock %}
+
+{% block style %}
+<style>
+    .info-container {
+        max-width: 800px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .info-section {
+        padding: 2rem 0;
+    }
+
+    .section-title {
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title:after {
+        content: "";
+        position: absolute;
+        width: 60%;
+        height: 2px;
+        bottom: -10px;
+        left: 20%;
+        background-color: var(--lotr-gold);
+    }
+
+    .location-title {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        position: relative;
+        display: inline-block;
+        margin-bottom: 2rem;
+    }
+
+    .location-title:after {
+        content: "";
+        position: absolute;
+        width: 70%;
+        height: 2px;
+        bottom: -10px;
+        left: 15%;
+        background-color: var(--lotr-gold);
+    }
+
+    .encounter-section {
+        margin-bottom: 2.5rem;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--lotr-light-gold);
+    }
+
+    .encounter-type {
+        font-family: 'Cinzel', serif;
+        color: var(--lotr-brown);
+        border-bottom: 2px solid var(--lotr-gold);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.2rem;
+        display: inline-block;
+    }
+
+    .encounter-list {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .encounter-card {
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        border: 1px solid var(--lotr-light-gold);
+        margin-bottom: 1rem;
+        padding: 1rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .encounter-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        border-color: var(--lotr-gold);
+    }
+
+    .encounter-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid var(--lotr-gold);
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+
+    .encounter-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .encounter-details {
+        flex-grow: 1;
+    }
+
+    .encounter-name {
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 0.3rem;
+        color: var(--lotr-brown);
+    }
+
+    .encounter-race {
+        font-size: 0.9rem;
+        color: var(--lotr-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .health-bar {
+        height: 12px;
+        background-color: #e9ecef;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .health-fill {
+        height: 100%;
+        background-color: var(--lotr-green);
+    }
+
+    .health-text {
+        font-size: 0.8rem;
+        color: var(--lotr-gray);
+        text-align: right;
+    }
+
+    .encounter-action {
+        margin-left: 1rem;
+    }
+
+    .encounter-btn {
+        padding: 0.5rem 1rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        border: 1px solid var(--lotr-gold);
+        border-radius: 5px;
+        font-family: 'Cinzel', serif;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .encounter-btn:hover {
+        background-color: var(--lotr-green);
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+
+    .ally-indicator {
+        background-color: rgba(40, 167, 69, 0.2);
+        border-left: 4px solid #28a745;
+    }
+
+    .enemy-indicator {
+        background-color: rgba(220, 53, 69, 0.2);
+        border-left: 4px solid #dc3545;
+    }
+
+    .neutral-indicator {
+        background-color: rgba(108, 117, 125, 0.2);
+        border-left: 4px solid #6c757d;
+    }
+
+    .ally-section {
+        border-top: 3px solid #28a745;
+    }
+
+    .enemy-section {
+        border-top: 3px solid #dc3545;
+    }
+
+    .neutral-section {
+        border-top: 3px solid #6c757d;
+    }
+
+    .empty-message {
+        font-style: italic;
+        color: var(--lotr-gray);
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .return-btn {
+        display: inline-block;
+        padding: 0.7rem 1.2rem;
+        background-color: var(--lotr-dark-green);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.3s;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        border: 1px solid var(--lotr-gold);
+        text-align: center;
+    }
+
+    .return-btn:hover {
+        background-color: var(--lotr-green);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .location-info {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .location-icon {
+        font-size: 2rem;
+        color: var(--lotr-gold);
+        margin-bottom: 0.5rem;
+    }
+
+    .faction-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+        color: white;
+    }
+
+    .faction-good {
+        background-color: #28a745;
+    }
+
+    .faction-evil {
+        background-color: #dc3545;
+    }
+
+    .faction-neutral {
+        background-color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configurar las barras de salud
+        const healthBars = document.querySelectorAll('.health-fill');
+
+        healthBars.forEach(bar => {
+            const maxHealth = parseInt(bar.getAttribute('data-max-health'));
+            const currentHealth = parseInt(bar.getAttribute('data-current-health'));
+            const percentage = (currentHealth / maxHealth) * 100;
+
+            bar.style.width = percentage + '%';
+
+            // Cambiar color según el porcentaje de salud
+            if (percentage <= 25) {
+                bar.style.backgroundColor = '#dc3545'; // Rojo
+            } else if (percentage <= 50) {
+                bar.style.backgroundColor = '#ffc107'; // Amarillo
+            }
+        });
+
+        // Efecto de hover en las cartas de encuentro
+        const encounterCards = document.querySelectorAll('.encounter-card');
+
+        encounterCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const audio = new Audio('{% static "sounds/hover.mp3" %}');
+                audio.volume = 0.1;
+                audio.play().catch(e => console.log('Audio play prevented:', e));
+            });
+        });
+    });
+</script>
+{% endblock %}
+
 {% block content %}
-    <h1>Posibles encuentros en {{ character.location.name }}</h1>
+<div class="info-section">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 info-container">
+            <div class="location-info">
+                <div class="location-icon">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <h1 class="location-title display-5">Encuentros en {{ character.location.name }}</h1>
+                <p class="lead">Personajes presentes en esta ubicación</p>
+            </div>
 
-    <h2>Aliados</h2>
-    {% if relationships.allies %}
-        <ul>
-        {% for encounter in relationships.allies %}
-            <li>
-                <a href="{% url 'tierra_media:encounter_ally' character.pk encounter.pk %}"><strong>{{ encounter.name }}</strong></a> - {{ encounter.race.name }} de {{ encounter.faction.name }}
-                <p>Salud: {{ encounter.health }}/{{ encounter.max_health }}</p>
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No hay aliados en esta ubicación.</p>
-    {% endif %}
+            <!-- Sección de Aliados -->
+            <div class="encounter-section ally-section">
+                <h2 class="encounter-type">
+                    <i class="bi bi-heart-fill" style="color: #28a745; margin-right: 0.5rem;"></i>Aliados
+                </h2>
 
-    <h2>Enemigos</h2>
-    {% if relationships.enemies %}
-        <ul>
-        {% for encounter in relationships.enemies %}
-            <li>
-                <a href="{% url 'tierra_media:encounter_enemy' character.pk encounter.pk %}"><strong>{{ encounter.name }}</strong></a> - {{ encounter.race.name }} de {{ encounter.faction.name }}
-                <p>Salud: {{ encounter.health }}/{{ encounter.max_health }}</p>
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No hay enemigos en esta ubicación.</p>
-    {% endif %}
+                {% if relationships.allies %}
+                    <ul class="encounter-list">
+                        {% for encounter in relationships.allies %}
+                            <li class="encounter-card ally-indicator">
+                                <div class="encounter-icon">
+                                    {% if encounter.icon %}
+                                        <img src="{{ encounter.icon.url }}" alt="{{ encounter.name }}">
+                                    {% else %}
+                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: var(--lotr-light-gray);">
+                                            <i class="bi bi-person" style="font-size: 2rem; color: var(--lotr-green);"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="encounter-details">
+                                    <div class="encounter-name">
+                                        {{ encounter.name }}
+                                        <span class="faction-badge faction-{{ encounter.faction.name|lower }}">
+                                            {{ encounter.faction.name }}
+                                        </span>
+                                    </div>
+                                    <div class="encounter-race">{{ encounter.race.name }}</div>
+                                    <div class="health-bar">
+                                        <div class="health-fill" data-current-health="{{ encounter.health }}" data-max-health="{{ encounter.max_health }}"></div>
+                                    </div>
+                                    <div class="health-text">Salud: {{ encounter.health }}/{{ encounter.max_health }}</div>
+                                </div>
+                                <div class="encounter-action">
+                                    <a href="{% url 'tierra_media:encounter_ally' character.pk encounter.pk %}" class="encounter-btn">
+                                        Interactuar
+                                    </a>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="empty-message">No hay aliados en esta ubicación.</p>
+                {% endif %}
+            </div>
 
-    <h2>Neutrales</h2>
-    {% if relationships.neutrals %}
-        <ul>
-        {% for encounter in relationships.neutrals %}
-            <li>
-                <a href="{% url 'tierra_media:encounter_neutral' character.pk encounter.pk %}"><strong>{{ encounter.name }}</strong></a> - {{ encounter.race.name }} de {{ encounter.faction.name }}
-                <p>Salud: {{ encounter.health }}/{{ encounter.max_health }}</p>
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No hay neutrales en esta ubicación.</p>
-    {% endif %}
+            <!-- Sección de Enemigos -->
+            <div class="encounter-section enemy-section">
+                <h2 class="encounter-type">
+                    <i class="bi bi-exclamation-triangle-fill" style="color: #dc3545; margin-right: 0.5rem;"></i>Enemigos
+                </h2>
 
-    <div class="d-flex align-items-center justify-content-start gap-2">
-        <a href="{% url 'tierra_media:index' %}" class="text-decoration-none">Volver a Inicio</a>
-        <a href="{% url 'tierra_media:character_details' character.pk %}" class="text-decoration-none">Volver al menú de personaje</a>
+                {% if relationships.enemies %}
+                    <ul class="encounter-list">
+                        {% for encounter in relationships.enemies %}
+                            <li class="encounter-card enemy-indicator">
+                                <div class="encounter-icon">
+                                    {% if encounter.icon %}
+                                        <img src="{{ encounter.icon.url }}" alt="{{ encounter.name }}">
+                                    {% else %}
+                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: var(--lotr-light-gray);">
+                                            <i class="bi bi-person-slash" style="font-size: 2rem; color: var(--lotr-brown);"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="encounter-details">
+                                    <div class="encounter-name">
+                                        {{ encounter.name }}
+                                        <span class="faction-badge faction-{{ encounter.faction.name|lower }}">
+                                            {{ encounter.faction.name }}
+                                        </span>
+                                    </div>
+                                    <div class="encounter-race">{{ encounter.race.name }}</div>
+                                    <div class="health-bar">
+                                        <div class="health-fill" data-current-health="{{ encounter.health }}" data-max-health="{{ encounter.max_health }}"></div>
+                                    </div>
+                                    <div class="health-text">Salud: {{ encounter.health }}/{{ encounter.max_health }}</div>
+                                </div>
+                                <div class="encounter-action">
+                                    <a href="{% url 'tierra_media:encounter_enemy' character.pk encounter.pk %}" class="encounter-btn">
+                                        Combatir
+                                    </a>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="empty-message">No hay enemigos en esta ubicación.</p>
+                {% endif %}
+            </div>
+
+            <!-- Sección de Neutrales -->
+            <div class="encounter-section neutral-section">
+                <h2 class="encounter-type">
+                    <i class="bi bi-question-circle-fill" style="color: #6c757d; margin-right: 0.5rem;"></i>Neutrales
+                </h2>
+
+                {% if relationships.neutrals %}
+                    <ul class="encounter-list">
+                        {% for encounter in relationships.neutrals %}
+                            <li class="encounter-card neutral-indicator">
+                                <div class="encounter-icon">
+                                    {% if encounter.icon %}
+                                        <img src="{{ encounter.icon.url }}" alt="{{ encounter.name }}">
+                                    {% else %}
+                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: var(--lotr-light-gray);">
+                                            <i class="bi bi-person-fill-question" style="font-size: 2rem; color: var(--lotr-gray);"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="encounter-details">
+                                    <div class="encounter-name">
+                                        {{ encounter.name }}
+                                        <span class="faction-badge faction-{{ encounter.faction.name|lower }}">
+                                            {{ encounter.faction.name }}
+                                        </span>
+                                    </div>
+                                    <div class="encounter-race">{{ encounter.race.name }}</div>
+                                    <div class="health-bar">
+                                        <div class="health-fill" data-current-health="{{ encounter.health }}" data-max-health="{{ encounter.max_health }}"></div>
+                                    </div>
+                                    <div class="health-text">Salud: {{ encounter.health }}/{{ encounter.max_health }}</div>
+                                </div>
+                                <div class="encounter-action">
+                                    <a href="{% url 'tierra_media:encounter_neutral' character.pk encounter.pk %}" class="encounter-btn">
+                                        Acercarse
+                                    </a>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="empty-message">No hay personajes neutrales en esta ubicación.</p>
+                {% endif %}
+            </div>
+
+            <div class="navigation-buttons">
+                <a href="{% url 'tierra_media:character_details' character.pk %}" class="return-btn">
+                    <i class="bi bi-person" style="margin-right: 0.5rem;"></i>Volver al menú
+                </a>
+                <a href="{% url 'tierra_media:index' %}" class="return-btn">
+                    <i class="bi bi-house-door" style="margin-right: 0.5rem;"></i>Volver a Inicio
+                </a>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}

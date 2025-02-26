@@ -172,11 +172,7 @@
     }
 
     .helptext {
-        font-size: 0.85rem;
-        color: var(--lotr-gray);
-        margin-top: -0.5rem;
-        margin-bottom: 1rem;
-        display: block;
+        display: none;
     }
 
     .errorlist {
@@ -191,6 +187,13 @@
     .icon-custom {
         color: var(--lotr-gold);
         margin-right: 0.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 2rem;
     }
 </style>
 {% endblock %}
@@ -259,9 +262,6 @@
                             <div class="mb-3">
                                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                                 {{ field }}
-                                {% if field.help_text %}
-                                    <small class="helptext">{{ field.help_text|safe }}</small>
-                                {% endif %}
                                 {% if field.errors %}
                                     <ul class="errorlist">
                                         {% for error in field.errors %}
@@ -279,8 +279,13 @@
                     </form>
                 </div>
 
-                <div class="text-center mt-3">
-                    <p>¿No tienes una cuenta? <a href="{% url 'tierra_media:register' %}" class="return-btn">Regístrate</a></p>
+                <div class="action-buttons">
+                    <a href="{% url 'tierra_media:register' %}" class="return-btn">
+                        <i class="bi bi-person-plus icon-custom"></i>¿No tienes una cuenta? Regístrate
+                    </a>
+                    <a href="{% url 'tierra_media:index' %}" class="return-btn">
+                        <i class="bi bi-house-door icon-custom"></i>Volver a Inicio
+                    </a>
                 </div>
             {% endif %}
         </div>

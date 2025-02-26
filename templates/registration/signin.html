@@ -172,15 +172,7 @@
     }
 
     .helptext {
-        font-size: 0.85rem;
-        color: var(--lotr-gray);
-        margin-top: -0.5rem;
-        margin-bottom: 1rem;
         display: none;
-    }
-
-    .auth-form input:focus + .helptext {
-        display: block;
     }
 
     .errorlist {
@@ -217,6 +209,13 @@
         background-color: var(--lotr-gold);
         border-radius: 10px;
         clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 2rem;
     }
 </style>
 {% endblock %}
@@ -255,9 +254,6 @@
                             <div class="mb-3">
                                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                                 {{ field }}
-                                {% if field.help_text %}
-                                    <small class="helptext" id="help_{{ field.id_for_label }}">{{ field.help_text|safe }}</small>
-                                {% endif %}
                                 {% if field.errors %}
                                     <ul class="errorlist">
                                         {% for error in field.errors %}
@@ -275,11 +271,14 @@
                     </form>
                 </div>
 
-                {% if form.errors %}
-                <div class="text-center mt-3">
-                    <p>¿Ya tienes una cuenta? <a href="{% url 'tierra_media:login' %}" class="return-btn">Inicia sesión</a></p>
+                <div class="action-buttons">
+                    <a href="{% url 'tierra_media:login' %}" class="return-btn">
+                        <i class="bi bi-door-open icon-custom"></i>¿Ya tienes una cuenta? Inicia sesión
+                    </a>
+                    <a href="{% url 'tierra_media:index' %}" class="return-btn">
+                        <i class="bi bi-house-door icon-custom"></i>Volver a Inicio
+                    </a>
                 </div>
-                {% endif %}
             {% endif %}
         </div>
     </div>
