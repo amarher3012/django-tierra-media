@@ -33,36 +33,13 @@
         <!-- El resto del HTML de la interfaz de combate permanece igual -->
         <div class="row my-4 justify-content-center">
             <div class="col-md-4">
-                <div class="card border-danger">
-                    <div class="card-header bg-danger text-white">
-                        <h3 class="mb-0">{{ enemy.name }}</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="text-center mb-3">
-                            <img src="{{ enemy.icon.url }}" alt="{{ enemy.name }}" class="img-fluid rounded-circle border border-danger">
-                        </div>
-                        <div class="progress mb-3">
-                            <div id="enemy-health-bar" class="progress-bar bg-success" role="progressbar"
-                                style="width: {{ enemy.health|floatformat:0 }}%;"
-                                aria-valuenow="{{ enemy.health }}"
-                                aria-valuemin="0"
-                                aria-valuemax="{{ enemy.max_health }}">
-                            </div>
-                        </div>
-                        <p id="enemy-health" class="text-center">Salud: {{ enemy.health }}/{{ enemy.max_health }}</p>
-                        <p id="enemy-defense" class="text-center">Defensa: {{ enemy.defense }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
                 <div class="card border-primary">
                     <div class="card-header bg-primary text-white">
                         <h3 class="mb-0">{{ character.name }}</h3>
                     </div>
                     <div class="card-body">
                         <div class="text-center mb-3">
-                            <img src="{{ character.icon.url }}" alt="{{ character.name }}" class="img-fluid rounded-circle border border-primary">
+                            <img src="{{ character.icon.url }}" alt="{{ character.name }}" class="img-fluid rounded-circle border border-primary" width="250">
                         </div>
                         <div class="progress mb-3">
                             <div id="character-health-bar" class="progress-bar bg-success" role="progressbar"
@@ -74,6 +51,28 @@
                         </div>
                         <p id="character-health" class="text-center">Salud: {{ character.health }}/{{ character.max_health }}</p>
                         <p id="character-defense" class="text-center">Defensa: {{ character.defense }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="mb-0">{{ enemy.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <img src="{{ enemy.icon.url }}" alt="{{ enemy.name }}" class="img-fluid rounded-circle border border-danger" width="250">
+                        </div>
+                        <div class="progress mb-3">
+                            <div id="enemy-health-bar" class="progress-bar bg-success" role="progressbar"
+                                style="width: {{ enemy.health|floatformat:0 }}%;"
+                                aria-valuenow="{{ enemy.health }}"
+                                aria-valuemin="0"
+                                aria-valuemax="{{ enemy.max_health }}">
+                            </div>
+                        </div>
+                        <p id="enemy-health" class="text-center">Salud: {{ enemy.health }}/{{ enemy.max_health }}</p>
+                        <p id="enemy-defense" class="text-center">Defensa: {{ enemy.defense }}</p>
                     </div>
                 </div>
             </div>
