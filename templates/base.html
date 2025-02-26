@@ -12,8 +12,6 @@
     {% bootstrap_javascript %}
     {% block script %}{% endblock %}
     {% block style %}{% endblock %}
-
-    {% endblock %}
     <style>
         @keyframes girarDiagonal  {
            0% {
@@ -49,7 +47,7 @@
         <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
             <li><a href="{% url 'tierra_media:index' %}" class="nav-link px-2 {% if active_page == 'index' %}link-secondary{% endif %}">Inicio</a></li>
             <li><a href="{% url 'tierra_media:info' %}" class="nav-link px-2 {% if active_page == 'info' %}link-secondary{% endif %}">Información</a></li>
-            <li><a href="#" class="nav-link px-2 {% if active_page == 'contact' %}link-secondary{% endif %}">Contacto</a></li>
+            <li><a href="{% url 'tierra_media:contact' %}" class="nav-link px-2 {% if active_page == 'contact' %}link-secondary{% endif %}">Contacto</a></li>
             <li><a href="#" class="nav-link px-2 {% if active_page == 'about-us' %}link-secondary{% endif %}">Sobre nosotros</a></li>
         </ul>
 

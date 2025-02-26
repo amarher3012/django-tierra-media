@@ -4,6 +4,82 @@
     Enfrentamiento con {{ enemy.name }}
 {% endblock %}
 
+{% block style %}
+    <style>
+        /* Animación de daño recibido - sacudida */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            10% { transform: translateX(-8px); }
+            20% { transform: translateX(8px); }
+            30% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            50% { transform: translateX(-4px); }
+            60% { transform: translateX(4px); }
+            70% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+            90% { transform: translateX(-1px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Animación de ataque - embestida */
+        @keyframes attack {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-15px); }
+            40% { transform: translateX(100px); }
+            60% { transform: translateX(80px); }
+            80% { transform: translateX(20px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Animación de golpe crítico - destello rojo */
+        @keyframes critical-hit {
+            0% { box-shadow: 0 0 0 rgba(255, 0, 0, 0); }
+            20% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.8); }
+            60% { box-shadow: 0 0 40px rgba(255, 0, 0, 0.6); }
+            100% { box-shadow: 0 0 0 rgba(255, 0, 0, 0); }
+        }
+
+        /* Animación de defensa - brillo azul */
+        @keyframes defend {
+            0% { box-shadow: 0 0 0 rgba(0, 100, 255, 0); }
+            50% { box-shadow: 0 0 30px rgba(0, 100, 255, 0.7); }
+            100% { box-shadow: 0 0 0 rgba(0, 100, 255, 0); }
+        }
+
+        /* Animación para derrota - desvanecimiento */
+        @keyframes defeat {
+            0% { opacity: 1; }
+            100% { opacity: 0.4; filter: grayscale(100%); }
+        }
+
+        /* Clases para aplicar las animaciones */
+        .shake-animation {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .attack-animation {
+            animation: attack 0.8s ease-in-out both;
+        }
+
+        .critical-hit-animation {
+            animation: critical-hit 0.8s ease-out both;
+        }
+
+        .defend-animation {
+            animation: defend 1s ease-in-out both;
+        }
+
+        .defeat-animation {
+            animation: defeat 1.5s forwards;
+        }
+
+        /* Transición suave para las barras de salud */
+        .progress-bar {
+            transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
     <h1>Enfrentamiento con {{ enemy.name }}</h1>
 
@@ -117,8 +193,8 @@
             const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
 
             // NUEVO: Manejar el botón de "Pelear igualmente" cuando no hay arma
-            $("#continue-anyway").click(function () {
-                $("#weapon-warning").fadeOut(500, function () {
+            $("#continue-anyway").click(function() {
+                $("#weapon-warning").fadeOut(500, function() {
                     $("#intro-text").fadeIn(500);
                     // Iniciar el combate tras la intro
                     startCombatAfterIntro();
@@ -127,12 +203,12 @@
 
             // MODIFICACIÓN: Solo iniciar automáticamente si hay arma equipada
             {% if has_weapon %}
-                startCombatAfterIntro();
+            startCombatAfterIntro();
             {% endif %}
 
             // Función para iniciar el combate después de la intro
             function startCombatAfterIntro() {
-                setTimeout(function () {
+                setTimeout(function() {
                     let introText = $('#intro-text');
                     introText.addClass('fade');
                     introText.fadeOut(1000);  // Hacer desaparecer el texto
@@ -149,9 +225,9 @@
                     // Si no tiene arma equipada, ejecutar automáticamente un ataque
                     // lo que resultará en derrota inmediata según la lógica del CombatManager
                     {% if not has_weapon %}
-                        setTimeout(function () {
-                            handleCombatAction('attack');
-                        }, 1000);
+                    setTimeout(function() {
+                        handleCombatAction('attack');
+                    }, 1000);
                     {% endif %}
                 }, 5000);
             }
@@ -195,23 +271,84 @@
                 $('#enemy-health').text(`Salud: ${enemyHealth}/${enemyMaxHealth}`);
             }
 
+            // NUEVO: Función para aplicar animaciones
+            function applyAnimation(element, animationClass, duration = 500) {
+                element.addClass(animationClass);
+                setTimeout(() => {
+                    element.removeClass(animationClass);
+                }, duration);
+            }
+
+            // NUEVO: Animar ataque del personaje
+            function animateCharacterAttack(isCritical = false) {
+                const characterCard = $('.card.border-primary');
+                const enemyCard = $('.card.border-danger');
+
+                // Animar ataque
+                applyAnimation(characterCard, 'attack-animation', 800);
+
+                // Si es crítico, añadir efecto adicional
+                if (isCritical) {
+                    setTimeout(() => {
+                        applyAnimation(enemyCard, 'critical-hit-animation', 800);
+                    }, 400);
+                }
+
+                // Animar daño recibido por el enemigo
+                setTimeout(() => {
+                    applyAnimation(enemyCard, 'shake-animation', 500);
+                }, 400);
+            }
+
+            // NUEVO: Animar ataque del enemigo
+            function animateEnemyAttack(isCritical = false) {
+                const characterCard = $('.card.border-primary');
+                const enemyCard = $('.card.border-danger');
+
+                // Animar ataque
+                applyAnimation(enemyCard, 'attack-animation', 800);
+
+                // Si es crítico, añadir efecto adicional
+                if (isCritical) {
+                    setTimeout(() => {
+                        applyAnimation(characterCard, 'critical-hit-animation', 800);
+                    }, 400);
+                }
+
+                // Animar daño recibido por el personaje
+                setTimeout(() => {
+                    applyAnimation(characterCard, 'shake-animation', 500);
+                }, 400);
+            }
+
+            // NUEVO: Animar defensa
+            function animateDefend(isCharacter = true) {
+                const card = isCharacter ? $('.card.border-primary') : $('.card.border-danger');
+                applyAnimation(card, 'defend-animation', 1000);
+            }
+
+            // NUEVO: Animar derrota
+            function animateDefeat(isCharacter = true) {
+                const card = isCharacter ? $('.card.border-primary') : $('.card.border-danger');
+                card.addClass('defeat-animation');
+            }
+
             // El resto del código JavaScript permanece igual
-            $('#attack-btn').click(function (e) {
+            $('#attack-btn').click(function(e) {
                 e.preventDefault();
                 handleCombatAction('attack');
             });
 
-            $('#defend-btn').click(function (e) {
+            $('#defend-btn').click(function(e) {
                 e.preventDefault();
                 handleCombatAction('defend');
             });
 
-            $('#flee-btn').click(function (e) {
+            $('#flee-btn').click(function(e) {
                 e.preventDefault();
                 handleCombatAction('flee');
             });
 
-            // Modificar la función handleCombatAction para manejar personajes eliminados
             function handleCombatAction(action) {
                 // Deshabilitar botones durante la acción
                 $('#combat-actions button').prop('disabled', true);
@@ -224,10 +361,59 @@
                         'csrfmiddlewaretoken': csrfToken
                     },
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         console.log('Respuesta del servidor:', response);
 
                         if (response.status === 'success') {
+                            // NUEVO: Aplicar animaciones según la acción
+                            if (action === 'attack') {
+                                // Animar el ataque del personaje
+                                animateCharacterAttack(response.message && response.message.includes("golpe crítico"));
+
+                                // Si el enemigo contraataca, animar también
+                                if (response.message && response.message.includes("En respuesta")) {
+                                    setTimeout(() => {
+                                        animateEnemyAttack(response.message.includes("golpe crítico de"));
+                                    }, 1200);
+                                }
+                            } else if (action === 'defend') {
+                                // Animar la defensa del personaje
+                                animateDefend(true);
+
+                                // Si el enemigo también se defiende
+                                if (response.message && response.message.includes("también ha")) {
+                                    setTimeout(() => {
+                                        animateDefend(false);
+                                    }, 500);
+                                } else if (response.message && response.message.includes("te ha atacado")) {
+                                    // Si el enemigo ataca después de tu defensa
+                                    setTimeout(() => {
+                                        animateEnemyAttack(response.message.includes("golpe crítico de"));
+                                    }, 1000);
+                                }
+                            } else if (action === 'flee' && !response.success) {
+                                // Si el intento de huida falla y el enemigo ataca
+                                setTimeout(() => {
+                                    animateEnemyAttack(response.message && response.message.includes("golpe crítico de"));
+                                }, 500);
+                            }
+
+                            // Verificar si hay derrota o victoria
+                            const characterDeleted = response.character_deleted || response.character_health <= 0;
+                            const enemyDeleted = response.enemy_deleted || response.enemy_health <= 0;
+
+                            if (characterDeleted) {
+                                setTimeout(() => {
+                                    animateDefeat(true);
+                                }, 1500);
+                            }
+
+                            if (enemyDeleted) {
+                                setTimeout(() => {
+                                    animateDefeat(false);
+                                }, 1500);
+                            }
+
                             // Actualizar la interfaz con los nuevos valores
                             $('#character-health').text('Salud: ' + response.character_health + '/' + response.character_max_health);
                             $('#enemy-health').text('Salud: ' + response.enemy_health + '/' + response.enemy_max_health);
@@ -244,28 +430,24 @@
 
                             // Crear el mensaje de combate con la clase de alerta correcta
                             let alertHtml = `
-                    <div class="alert alert-${response.message_tag} alert-dismissible fade show" role="alert">
-                        ${response.message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
+                                <div class="alert alert-${response.message_tag} alert-dismissible fade show" role="alert">
+                                    ${response.message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            `;
                             $('#combat-feedback').html(alertHtml);
 
                             // Hacer que el mensaje desaparezca automáticamente después de 5 segundos
-                            setTimeout(function () {
+                            setTimeout(function() {
                                 $('.alert').alert('close');
                             }, 5000);
-
-                            // Verificar si el personaje ha sido eliminado (nuevo)
-                            let characterDeleted = response.character_deleted || response.character_health <= 0;
-                            let enemyDeleted = response.enemy_deleted || response.enemy_health <= 0;
 
                             // Si el personaje está muerto o ha sido eliminado, o el enemigo está muerto o ha sido eliminado
                             if (characterDeleted || enemyDeleted) {
                                 // Deshabilitar los botones de acción inmediatamente
                                 $('#combat-actions button').prop('disabled', true);
 
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     // Mostrar mensaje de resultado
                                     let resultMessage;
                                     if (characterDeleted) {
@@ -289,15 +471,15 @@
                                     }
 
                                     alertHtml = `
-                            <div class="alert alert-${characterDeleted ? 'danger' : 'success'} alert-dismissible fade show" role="alert">
-                                ${resultMessage}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        `;
+                                        <div class="alert alert-${characterDeleted ? 'danger' : 'success'} alert-dismissible fade show" role="alert">
+                                            ${resultMessage}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    `;
                                     $('#combat-feedback').html(alertHtml);
 
                                     // Redireccionar según el resultado
-                                    setTimeout(function () {
+                                    setTimeout(function() {
                                         const characterId = response.character_id;
                                         console.log("ID del personaje para redirección:", characterId);
 
@@ -323,7 +505,7 @@
                                 const characterId = response.character_id;
                                 console.log("ID del personaje para redirección (huir):", characterId);
 
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     // Redirigir a la página de encuentros
                                     console.log("Redirigiendo a la página de encuentros (huida)");
                                     window.location.href = `/tierra-media/characters/${characterId}/encounter`;
@@ -337,24 +519,24 @@
                         } else {
                             // Mostrar mensaje de error
                             let alertHtml = `
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        ${response.message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ${response.message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            `;
                             $('#combat-feedback').html(alertHtml);
 
                             // Habilitar los botones de nuevo
                             $('#combat-actions button').prop('disabled', false);
                         }
                     },
-                    error: function (xhr, errmsg, err) {
+                    error: function(xhr, errmsg, err) {
                         console.error('Error en la solicitud AJAX:', err);
                         alert('Error al procesar la acción. Intenta nuevamente.');
                         $('#combat-actions button').prop('disabled', false);
                     }
                 });
             }
-        })
+        });
     </script>
 {% endblock %}

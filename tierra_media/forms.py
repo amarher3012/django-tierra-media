@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
-from .models import Character
+from .models import Character, ContactMessage
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -26,3 +26,14 @@ class CreateCharacterForm(forms.ModelForm):
         fields = ["icon", "name", "sex", "faction", "location", "race"]
         widgets = {"icon": forms.HiddenInput}
 
+
+class ContactForm(forms.ModelForm):
+    class Meta:
+        model = ContactMessage
+        fields = ['name', 'email', 'subject', 'message']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Tu nombre'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'tu@email.com'}),
+            'subject': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Asunto del mensaje'}),
+            'message': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Escribe tu mensaje aquí...'}),
+        }

@@ -15,8 +15,8 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.contrib import messages
-from .forms import CustomUserCreationForm, CreateCharacterForm
-from .models import Character, Weapon, Armor, Location, Faction, Race, Backpack
+from .forms import CustomUserCreationForm, CreateCharacterForm, ContactForm
+from .models import Character, Weapon, Armor, Location, Faction, Race, Backpack, ContactMessage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.views.generic import *
@@ -123,8 +123,60 @@ class InfoView(TemplateView):
         context['active_page'] = 'info'
         return context
 
-class ContactView(FormView):
-    pass
+
+class ContactView(CreateView):
+    model = ContactMessage
+    form_class = ContactForm
+    template_name = 'nav/contact.html'
+    success_url = reverse_lazy('tierra_media:contact_success')  # Actualizado con el namespace correcto
+
+    def form_valid(self, form):
+        # Guardar el formulario
+        self.object = form.save()
+
+        # Enviar correo electrónico
+        subject = f"Nuevo mensaje de contacto: {self.object.subject}"
+        message = f"""
+        Has recibido un nuevo mensaje de contacto:
+
+        Nombre: {self.object.name}
+        Email: {self.object.email}
+        Asunto: {self.object.subject}
+        Mensaje: {self.object.message}
+        Fecha: {self.object.created_at}
+        """
+
+        # Verificar DEFAULT_FROM_EMAIL o usar EMAIL_HOST_USER como alternativa
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER)
+        recipient_list = [settings.CONTACT_EMAIL]
+
+        send_mail(
+            subject,
+            message,
+            from_email,
+            recipient_list,
+            fail_silently=False,
+        )
+
+        messages.success(self.request,
+                         "Tu mensaje ha sido enviado correctamente. Nos pondremos en contacto contigo pronto.")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Ha ocurrido un error. Por favor, revisa los campos e intenta nuevamente.")
+        return super().form_invalid(form)
+
+
+class ContactSuccessView(CreateView):
+    model = ContactMessage
+    form_class = ContactForm
+    template_name = 'nav/contact_success.html'  # Asegúrate de crear esta plantilla
+    success_url = reverse_lazy('tierra_media:contact_success')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_submitted'] = True
+        return context
 
 class CharacterCreation(LoginRequiredMixin, CreateView):
     template_name = "character-creation/character-creation.html"
