@@ -11,12 +11,35 @@
     {% bootstrap_css %}
     {% bootstrap_javascript %}
     {% block script %}{% endblock %}
+    <style>
+        @keyframes girarDiagonal  {
+           0% {
+                transform: rotate3d(1, 1, 0, 0deg);
+            }
+            50% {
+                transform: rotate3d(1, 1, 0, 180deg);
+            }
+            100% {
+                transform: rotate3d(-1, -1, 0, 360deg);
+            }
+        }
+        header {
+            background-color: rgb(0,0,0,0.6);
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+        }
+        #logo {
+             animation: girarDiagonal 2s linear infinite;
+        }
+    </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
         <div class="col-md-3 mb-md-0">
             <a href="{% url 'tierra_media:index' %}" class="d-inline-flex link-body-emphasis text-decoration-none ps-4">
-                <img src="{% static 'icon.png' %}" alt="Logo" title="Logo" width="50">
+                <img src="{% static 'icon.png' %}" id="logo" alt="Logo" title="Logo" width="50">
             </a>
         </div>
 
