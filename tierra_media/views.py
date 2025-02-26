@@ -1,12 +1,11 @@
+from rest_framework import generics
+from .serializers import CharacterSerializer
 import random
-from django.contrib.admin import action
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.core.files import File
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import transaction
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -21,7 +20,6 @@ from .models import Character, Weapon, Armor, Location, Faction, Race, Backpack
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.views.generic import *
-from django.forms.models import model_to_dict
 from .constants import npc_init, weapons_init, armors_init
 
 
@@ -193,7 +191,6 @@ class NPC_preparations:
             faction = Faction.objects.get(name__iexact=faction_name)
             location = Location.objects.get(name__iexact=location_name)
             race = Race.objects.get(name__iexact=race_name)
-
             try:
                 with open(
                     f"static/icons/character-icons/npcs/{npc_name.lower()}.png",
@@ -205,6 +202,8 @@ class NPC_preparations:
                             "user": user,
                             "faction": faction,
                             "location": location,
+                            "equipped_weapon": Weapon.objects.create(name='mandragora', damage=12,type="bow"),
+                            "equipped_armor": Armor.objects.create(name='torsal', defense=10),
                             "race": race,
                         }
                     )
@@ -221,26 +220,6 @@ class NPC_preparations:
                 )
                 npc_object = Character(**npc)
                 npc_object.save()
-
-
-class CharactersView(LoginRequiredMixin, ListView):
-    model = Character
-    template_name = "tierra_media/characters.html"
-    context_object_name = "characters"
-
-    @method_decorator(cache_page(60*5))
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
-    def get_queryset(self):
-        key_user = self.request.user.pk
-        characters = Character.objects.filter(user=key_user)
-        return characters
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["characters"] = self.get_queryset()
-        return context
 
 
 class CharacterDetailsView(LoginRequiredMixin, DetailView):
@@ -473,6 +452,20 @@ class MoveSuccess(LoginRequiredMixin, TemplateView):
     template_name = "move/success.html"
 
 
+class CharacterList(generics.ListAPIView):
+    serializer_class = CharacterSerializer
+
+    def get_queryset(self):
+        return Character.objects.filter(npc=False)
+
+
+class CharacterDetail(generics.RetrieveAPIView):
+    serializer_class = CharacterSerializer
+
+    def get_queryset(self):
+        return Character.objects.filter(npc=False)
+      
+      
 class Encounter(LoginRequiredMixin, TemplateView):
     template_name = "encounters/encounters.html"
 

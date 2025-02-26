@@ -20,6 +20,7 @@ from django.urls import include, path
 from debug_toolbar.toolbar import debug_toolbar_urls
 
 urlpatterns = [
+    #path("", include("tierra_media.urls")),
     path("admin/", admin.site.urls),
     path("tierra-media/", include("tierra_media.urls")),
 ] + debug_toolbar_urls()
