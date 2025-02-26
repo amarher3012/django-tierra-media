@@ -177,7 +177,6 @@ class NPC_preparations:
             faction = Faction.objects.get(name__iexact=faction_name)
             location = Location.objects.get(name__iexact=location_name)
             race = Race.objects.get(name__iexact=race_name)
-
             try:
                 with open(
                     f"static/icons/character-icons/npcs/{npc_name.lower()}.png",
@@ -189,6 +188,8 @@ class NPC_preparations:
                             "user": user,
                             "faction": faction,
                             "location": location,
+                            "equipped_weapon": Weapon.objects.create(name='mandragora', damage=12,type="bow", user=user),
+                            "equipped_armor": Armor.objects.create(name='torsal', defense=10, user=user),
                             "race": race,
                         }
                     )
