@@ -14,7 +14,6 @@ urlpatterns = [
         name="character_creation",
     ),
     path("character-creation/add-backpack", AddBackpack.as_view(), name="add_backpack"),
-    path("characters/", CharactersView.as_view(), name="characters"),
     path(
         "characters/<int:pk>", CharacterDetailsView.as_view(), name="character_details"
     ),
@@ -25,6 +24,10 @@ urlpatterns = [
     path("characters/<int:pk>/move/", Move.as_view(), name="move"),
     path(
         "characters/<int:pk>/move/success/", MoveSuccess.as_view(), name="move_success"
+    ),
+    path("api/characters/", CharacterList.as_view(), name="character-list"),
+    path(
+        "api/characters/<int:pk>/", CharacterDetail.as_view(), name="character-detail"
     ),
     path("characters/<int:pk>/encounter", Encounter.as_view(), name="encounter"),
     path(

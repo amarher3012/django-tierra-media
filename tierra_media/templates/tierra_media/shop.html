@@ -22,6 +22,7 @@
     </style>
 </head>
 <body>
+<!--<audio src="{% static 'shop.mp3' %}" id="sound" autoplay muted></audio>-->
 <div class="container-fluid d-flex align-items-center w-100 overflow-hidden p-0">
     <div class="container d-flex justify-content-center" id="items">
         <div class="row gap-4 text-center">
@@ -32,7 +33,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="weapon" value="{{ weapon.id }}">
                                 <button type="submit" class="btn btn-link text-decoration-none p-0">
-                                        <img src="{{weapon.icon.url}}" class="icons">
+                                    <img src="{{weapon.icon.url}}" class="icons">
                                 </button>
                         </form>
                     </div>
@@ -45,7 +46,9 @@
                         <form method="POST">
                                 {% csrf_token %}
                                 <input type="hidden" name="armor" value="{{ armor.id }}">
-                                <button type="submit" class="btn btn-link text-decoration-none p-0">{{ armor.name }}</button>
+                                <button type="submit" class="btn btn-link text-decoration-none p-0">
+                                    <img src="{{armor.icon.url}}" class="icons">
+                                </button>
                         </form>
                     </div>
                 {% endfor %}

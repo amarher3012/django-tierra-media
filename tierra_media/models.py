@@ -61,7 +61,7 @@ class Weapon(models.Model):
     icon = models.ImageField(blank=True, upload_to="uploads/")
     damage = models.IntegerField()
     type = models.CharField(max_length=50)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     backpack = models.ForeignKey(Backpack, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
@@ -72,7 +72,7 @@ class Armor(models.Model):
     name = models.CharField(max_length=50)
     icon = models.ImageField(blank=True, upload_to="uploads/")
     defense = models.IntegerField()
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, blank=True, null=True)
     backpack = models.ForeignKey(Backpack, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
