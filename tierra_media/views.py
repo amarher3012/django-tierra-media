@@ -713,65 +713,154 @@ class CombatManager:
                 # Mensaje para cuando el enemigo está desarmado
                 message = f"{attacker.name} está desarmado y es derrotado rápidamente."
 
-            # El atacante pierde automáticamente por no tener arma (marcamos como sin salud)
+            # El atacante pierde automáticamente por no tener arma
             attacker.health = 0
-            attacker.save()
+
+            # Eliminar al atacante desarmado
+            try:
+                # Guardar el ID y nombre para logueo
+                attacker_id = attacker.pk
+                attacker_name = attacker.name
+
+                # Eliminar al atacante desarmado
+                attacker.delete()
+                print(f"Personaje desarmado {attacker_name} (ID: {attacker_id}) eliminado de la base de datos.")
+            except Exception as e:
+                print(f"Error al eliminar al personaje desarmado: {e}")
 
             return {
                 "action": "attack",
                 "damage": 0,
                 "crit": False,
-                "attacker": attacker.name,
+                "attacker": attacker_name,
                 "defender": defender.name,
-                "message": message  # Incluir el mensaje en el resultado
+                "message": message,
+                "attacker_deleted": True
             }
 
         # Verificar si el defensor no tiene arma equipada
-        # (esto es para cuando el personaje ataca a un enemigo desarmado)
-        if defender == self.enemy and not defender.equipped_weapon:
+        if not defender.equipped_weapon:
             message = f"{defender.name} está desarmado y es derrotado rápidamente."
 
-            # El defensor pierde automáticamente por no tener arma (marcamos como sin salud)
+            # El defensor pierde automáticamente por no tener arma
             defender.health = 0
-            defender.save()
+
+            # Eliminar al defensor desarmado
+            try:
+                # Guardar el ID y nombre para logueo
+                defender_id = defender.pk
+                defender_name = defender.name
+
+                # Eliminar al defensor desarmado
+                defender.delete()
+                print(f"Personaje desarmado {defender_name} (ID: {defender_id}) eliminado de la base de datos.")
+            except Exception as e:
+                print(f"Error al eliminar al personaje desarmado: {e}")
 
             return {
                 "action": "attack",
                 "damage": 0,
                 "crit": False,
                 "attacker": attacker.name,
-                "defender": defender.name,
-                "message": message  # Incluir el mensaje en el resultado
+                "defender": defender_name,
+                "message": message,
+                "defender_deleted": True
             }
+
+        # Verificar si el defensor tiene defensa crítica activada
+        if hasattr(defender, 'critical_defense') and defender.critical_defense:
+            return {
+                "action": "attack",
+                "damage": 0,
+                "crit": False,
+                "attacker": attacker.name,
+                "defender": defender.name,
+                "message": f"El ataque de {attacker.name} ha sido completamente bloqueado por la defensa crítica de {defender.name}."
+            }
+
+        # Obtener el daño base del arma y aplicar un multiplicador general para aumentar el daño
+        base_damage_multiplier = 2.5
+        weapon_damage = attacker.equipped_weapon.damage * base_damage_multiplier
+
+        # Añadir daño base adicional independiente del arma
+        additional_base_damage = 10
+        weapon_damage += additional_base_damage
+
+        # Obtener bonificaciones raciales del atacante
+        racial_bonus = self.get_racial_bonus(attacker)
+
+        # Aplicar multiplicador de daño racial
+        weapon_damage = int(weapon_damage * racial_bonus["damage_multiplier"])
+
+        # Calcular defensa total del defensor
+        defense = defender.defense
+        if defender.equipped_armor:
+            defense += defender.equipped_armor.defense
+
+        # Aplicar bonificaciones de defensa raciales al defensor
+        defense_multiplier = self.get_racial_bonus(defender)["defense_multiplier"]
+        defense = int(defense * defense_multiplier)
+
+        # Mejorar la reducción de daño por defensa
+        defense_percentage = min(defense / 250, 0.75)  # Máximo 75% de reducción
+
+        # Aplicar reducción de daño si el defensor está en posición defensiva
+        if hasattr(defender, 'defense_reduction') and defender.defense_reduction > 0:
+            weapon_damage = int(weapon_damage * (1 - defender.defense_reduction))
+
+        # El daño final es el daño del arma menos la defensa porcentual (mínimo 1)
+        final_damage = max(int(weapon_damage * (1 - defense_percentage)), 1)
+
+        # Añadir variabilidad al daño final con un factor aleatorio
+        import random
+        damage_variance = random.uniform(0.9, 1.3)  # -10% a +30% de variación
+        final_damage = int(final_damage * damage_variance)
 
         # Calcular si el ataque es crítico
         attacker_bonus = self.get_racial_bonus(attacker)
-
-        # Calcular la probabilidad de crítico (base + bono racial)
         crit_chance = 15  # Probabilidad base de crítico (15%)
         crit_chance += attacker_bonus["crit"]  # Sumar el bono de crítico racial
-
-        # Calcular si el ataque es crítico
         crit = random.choices([True, False], weights=[crit_chance, 100 - crit_chance])[0]
 
-        # Calcular el daño base usando el método de cálculo
-        base_damage = self.calculate_damage(attacker, defender)
-
         # Aplicar multiplicador de daño crítico si corresponde
-        damage = int(base_damage * 1.5) if crit else base_damage
+        if crit:
+            final_damage = int(final_damage * 1.5)
 
-        # Reducir la salud del defensor (asegurando que no sea negativa)
-        defender.health = max(defender.health - damage, 0)
-        defender.save()
+        # Reducir la salud del defensor y verificar si ha muerto
+        defender.health = max(defender.health - final_damage, 0)
+
+        # Si el defensor ha muerto (salud = 0), eliminarlo de la base de datos
+        defender_deleted = False
+        if defender.health <= 0:
+            try:
+                # Guardar el ID y nombre para logueo
+                defender_id = defender.pk
+                defender_name = defender.name
+
+                # Eliminar al defensor
+                defender.delete()
+                print(f"Personaje derrotado {defender_name} (ID: {defender_id}) eliminado de la base de datos.")
+                defender_deleted = True
+            except Exception as e:
+                print(f"Error al eliminar al personaje derrotado: {e}")
+        else:
+            # Si no murió, guardar cambios de salud
+            defender.save()
 
         # Retornar el resultado del ataque
-        return {
+        result = {
             "action": "attack",
-            "damage": damage,
+            "damage": final_damage,
             "crit": crit,
             "attacker": attacker.name,
             "defender": defender.name,
         }
+
+        # Añadir información sobre eliminación si ocurrió
+        if defender_deleted:
+            result["defender_deleted"] = True
+
+        return result
 
     def perform_defend(self, defender):
         """Prepara la defensa del defensor con valores más robustos."""
@@ -933,11 +1022,61 @@ class CombatManager:
 
     def combat_turn(self, action):
         """Maneja un turno de combate."""
-        # IMPORTANTE: Restaurar la defensa a su valor original al inicio de cada turno
-        # Esta línea es crucial para evitar que la defensa se acumule infinitamente
-        self.reset_defense_after_turn()
+        # NUEVO: Verificar si algún personaje está desarmado antes de iniciar el combate
 
-        # Log para depuración
+        # Verificar si el personaje del jugador está desarmado
+        if not self.character.equipped_weapon:
+            message = f"Al estar desarmado, apenas puedes acercarte a {self.enemy.name} antes de caer derrotado."
+
+            # El personaje pierde automáticamente por no tener arma
+            try:
+                # Guardar el ID y nombre para logueo
+                character_id = self.character.pk
+                character_name = self.character.name
+
+                # Eliminar al personaje desarmado
+                self.character.delete()
+                print(f"Personaje desarmado {character_name} (ID: {character_id}) eliminado de la base de datos.")
+            except Exception as e:
+                print(f"Error al eliminar al personaje desarmado: {e}")
+
+            return {
+                "action": "unarmed",
+                "message": message,
+                "message_tag": "danger",
+                "outcome": "defeat",
+                "character_id": character_id,
+                "character_deleted": True
+            }
+
+        # Verificar si el enemigo está desarmado
+        if not self.enemy.equipped_weapon:
+            message = f"{self.enemy.name} está desarmado y es derrotado rápidamente."
+
+            # El enemigo pierde automáticamente por no tener arma
+            try:
+                # Guardar el ID y nombre para logueo
+                enemy_id = self.enemy.pk
+                enemy_name = self.enemy.name
+
+                # Eliminar al enemigo desarmado
+                self.enemy.delete()
+                print(f"Enemigo desarmado {enemy_name} (ID: {enemy_id}) eliminado de la base de datos.")
+            except Exception as e:
+                print(f"Error al eliminar al enemigo desarmado: {e}")
+
+            return {
+                "action": "enemy_unarmed",
+                "message": message,
+                "message_tag": "success",
+                "outcome": "victory",
+                "character_id": self.character.pk,
+                "enemy_name": enemy_name,
+                "enemy_deleted": True
+            }
+
+        # Restaurar la defensa a su valor original al inicio de cada turno
+        self.reset_defense_after_turn()
         print(f"Defensas restablecidas: Character={self.character.defense}, Enemy={self.enemy.defense}")
 
         # Manejar la acción de huir
@@ -948,8 +1087,22 @@ class CombatManager:
             if not flee_success:
                 # El enemigo ataca
                 enemy_attack_result = self.perform_attack(self.enemy, self.character)
-                enemy_damage = enemy_attack_result["damage"]
-                enemy_crit = enemy_attack_result["crit"]
+
+                # Verificar si el personaje fue eliminado durante el ataque
+                if enemy_attack_result.get("defender_deleted", False):
+                    return {
+                        "action": "flee",
+                        "success": flee_success,
+                        "message": "¡No has logrado huir! " + enemy_attack_result.get("message",
+                                                                                      f"{self.enemy.name} te ha derrotado y has sido eliminado."),
+                        "message_tag": "danger",
+                        "outcome": "defeat",
+                        "character_id": self.character.pk,
+                        "character_deleted": True
+                    }
+
+                enemy_damage = enemy_attack_result.get("damage", 0)
+                enemy_crit = enemy_attack_result.get("crit", False)
 
                 # Crear mensaje sobre el ataque del enemigo
                 if enemy_crit:
@@ -961,10 +1114,9 @@ class CombatManager:
                 message_tag = "danger"
                 outcome = None
 
-                if self.character.health <= 0:
+                if enemy_attack_result.get("defender_deleted", False) or self.character.health <= 0:
                     enemy_message += f" ¡Has sido derrotado por {self.enemy.name}!"
                     outcome = "defeat"
-                    # No eliminamos al personaje, solo lo marcamos como derrotado
 
                 result = {
                     "action": "flee",
@@ -972,7 +1124,8 @@ class CombatManager:
                     "message": enemy_message,
                     "message_tag": message_tag,
                     "outcome": outcome,
-                    "character_id": self.character.pk  # Añadir ID del personaje
+                    "character_id": self.character.pk,
+                    "character_deleted": enemy_attack_result.get("defender_deleted", False)
                 }
             else:
                 # Si la huida tiene éxito, solo retornar el mensaje de éxito
@@ -982,7 +1135,7 @@ class CombatManager:
                     "message": "¡Has logrado huir!",
                     "message_tag": "success",
                     "outcome": "flee",
-                    "character_id": self.character.pk  # Añadir explícitamente el ID del personaje aquí
+                    "character_id": self.character.pk
                 }
 
         # Manejar la acción de defenderse
@@ -994,7 +1147,6 @@ class CombatManager:
             if defense_result["crit_defense"]:
                 message = f"¡{self.character.name} ha realizado una defensa crítica y no recibirá daño este turno!"
             else:
-                # Usar get() para evitar KeyError si defense_bonus no está en el resultado
                 defense_bonus = defense_result.get("defense_bonus", int(self.character.defense * 0.3))
                 message = f"¡{self.character.name} se pone en posición defensiva y aumenta su defensa en {defense_bonus} puntos para este turno!"
 
@@ -1007,15 +1159,26 @@ class CombatManager:
                 if enemy_defense_result["crit_defense"]:
                     message += f" ¡{self.enemy.name} también ha ejecutado una defensa crítica!"
                 else:
-                    # Usar get() para evitar KeyError
                     enemy_defense_bonus = enemy_defense_result.get("defense_bonus", int(self.enemy.defense * 0.3))
                     message += f" ¡{self.enemy.name} también ha aumentado su defensa en {enemy_defense_bonus} puntos!"
             else:
-                # El enemigo decide atacar - SIEMPRE DESPUÉS de que el personaje se defienda
+                # El enemigo decide atacar
                 enemy_action = "attack"
                 enemy_attack_result = self.perform_attack(self.enemy, self.character)
-                enemy_damage = enemy_attack_result["damage"]
-                enemy_crit = enemy_attack_result["crit"]
+
+                # Verificar si el personaje fue eliminado durante el ataque
+                if enemy_attack_result.get("defender_deleted", False):
+                    return {
+                        "action": "defend",
+                        "message": f"{message} Sin embargo, {self.enemy.name} logra atravesar tu defensa y te derrota. Has sido eliminado.",
+                        "message_tag": "danger",
+                        "outcome": "defeat",
+                        "character_id": self.character.pk,
+                        "character_deleted": True
+                    }
+
+                enemy_damage = enemy_attack_result.get("damage", 0)
+                enemy_crit = enemy_attack_result.get("crit", False)
 
                 # Agregar al mensaje - el ataque ocurre después de la defensa
                 if enemy_crit:
@@ -1024,26 +1187,60 @@ class CombatManager:
                     message += f" Después de tu defensa, {self.enemy.name} te ha atacado y te ha hecho {enemy_damage} puntos de daño."
 
             # Establecer el tipo de mensaje y verificar el resultado
-            message_tag = "warning"  # Cambié a "warning" para que coincida con el color del botón
+            message_tag = "warning"
             outcome = None
 
-            if self.character.health <= 0:
+            character_defeated = enemy_attack_result.get("defender_deleted",
+                                                         False) if 'enemy_attack_result' in locals() else False
+
+            if character_defeated or self.character.health <= 0:
                 message += f" ¡Has sido derrotado por {self.enemy.name}!"
                 message_tag = "danger"
                 outcome = "defeat"
-                # No eliminamos al personaje, solo lo marcamos como derrotado
+
+                # Si el personaje fue derrotado pero no eliminado (salud = 0), eliminarlo aquí
+                if not character_defeated and self.character.health <= 0:
+                    try:
+                        character_id = self.character.pk
+                        self.character.delete()
+                        print(
+                            f"Personaje derrotado {self.character.name} (ID: {character_id}) eliminado de la base de datos.")
+                        character_defeated = True
+                    except Exception as e:
+                        print(f"Error al eliminar al personaje derrotado: {e}")
+
             elif self.enemy.health <= 0:
                 message += f" ¡Has derrotado a {self.enemy.name}!"
                 message_tag = "success"
                 outcome = "victory"
-                # No eliminamos al enemigo, solo lo marcamos como derrotado
+
+                # Eliminar al enemigo
+                try:
+                    enemy_id = self.enemy.pk
+                    enemy_name = self.enemy.name
+                    self.enemy.delete()
+                    print(f"Enemigo derrotado {enemy_name} (ID: {enemy_id}) eliminado de la base de datos.")
+
+                    result = {
+                        "action": "defend",
+                        "message": message,
+                        "message_tag": message_tag,
+                        "outcome": outcome,
+                        "character_id": self.character.pk,
+                        "enemy_name": enemy_name,
+                        "enemy_deleted": True
+                    }
+                    return result
+                except Exception as e:
+                    print(f"Error al eliminar al enemigo derrotado: {e}")
 
             result = {
                 "action": "defend",
                 "message": message,
                 "message_tag": message_tag,
                 "outcome": outcome,
-                "character_id": self.character.pk  # Asegurar que siempre se incluya
+                "character_id": self.character.pk,
+                "character_deleted": character_defeated
             }
 
         # Manejar la acción de atacar
@@ -1051,17 +1248,126 @@ class CombatManager:
             # El personaje ataca primero siempre
             character_attack_result = self.perform_attack(self.character, self.enemy)
 
-            # Verificar si el personaje no tenía arma
-            if not self.character.equipped_weapon:
-                # Usar el mensaje personalizado del resultado
-                message = character_attack_result.get("message",
-                                                      f"Al estar desarmado, apenas puedes acercarte a {self.enemy.name} antes de caer derrotado.")
-                message_tag = "danger"
-                outcome = "defeat"
+            # Verificar si el personaje o el enemigo fue eliminado durante el ataque
+            if character_attack_result.get("attacker_deleted", False):
+                return {
+                    "action": "attack",
+                    "message": character_attack_result.get("message",
+                                                           f"Al estar desarmado, apenas puedes acercarte a {self.enemy.name} antes de ser eliminado."),
+                    "message_tag": "danger",
+                    "outcome": "defeat",
+                    "character_id": self.character.pk,
+                    "character_deleted": True
+                }
 
-                # En lugar de eliminar, marcamos el personaje como completamente sin salud
-                self.character.health = 0
-                self.character.save()
+            if character_attack_result.get("defender_deleted", False):
+                return {
+                    "action": "attack",
+                    "message": character_attack_result.get("message", f"Has atacado y eliminado a {self.enemy.name}."),
+                    "message_tag": "success",
+                    "outcome": "victory",
+                    "character_id": self.character.pk,
+                    "enemy_name": self.enemy.name,
+                    "enemy_deleted": True
+                }
+
+            # Continuar con el flujo normal
+            character_damage = character_attack_result.get("damage", 0)
+            character_crit = character_attack_result.get("crit", False)
+
+            # Construir mensaje para el ataque del personaje
+            if character_crit:
+                message = f"¡Has realizado un golpe crítico! Has infligido {character_damage} puntos de daño a {self.enemy.name}."
+            else:
+                message = f"Has atacado y has infligido {character_damage} puntos de daño a {self.enemy.name}."
+
+            # Verificar si el enemigo ha sido derrotado
+            if self.enemy.health <= 0:
+                message += f" ¡Has derrotado a {self.enemy.name}!"
+                message_tag = "success"
+                outcome = "victory"
+
+                # Eliminar al enemigo
+                try:
+                    enemy_id = self.enemy.pk
+                    enemy_name = self.enemy.name
+                    self.enemy.delete()
+                    print(f"Enemigo derrotado {enemy_name} (ID: {enemy_id}) eliminado de la base de datos.")
+
+                    result = {
+                        "action": "attack",
+                        "message": message,
+                        "message_tag": message_tag,
+                        "outcome": outcome,
+                        "character_id": self.character.pk,
+                        "enemy_name": enemy_name,
+                        "enemy_deleted": True
+                    }
+                    return result
+                except Exception as e:
+                    print(f"Error al eliminar al enemigo derrotado: {e}")
+            else:
+                # Si el enemigo sigue vivo, contraataca
+                enemy_attack_result = self.perform_attack(self.enemy, self.character)
+
+                # Verificar si el enemigo estaba desarmado o si el personaje fue eliminado durante el contraataque
+                if enemy_attack_result.get("attacker_deleted", False):
+                    return {
+                        "action": "attack",
+                        "message": message + " " + enemy_attack_result.get("message",
+                                                                           f"{self.enemy.name} estaba desarmado y ha sido eliminado."),
+                        "message_tag": "success",
+                        "outcome": "victory",
+                        "character_id": self.character.pk,
+                        "enemy_name": self.enemy.name,
+                        "enemy_deleted": True
+                    }
+
+                if enemy_attack_result.get("defender_deleted", False):
+                    return {
+                        "action": "attack",
+                        "message": message + " " + enemy_attack_result.get("message",
+                                                                           f"Pero en respuesta, {self.enemy.name} te ha eliminado."),
+                        "message_tag": "danger",
+                        "outcome": "defeat",
+                        "character_id": self.character.pk,
+                        "character_deleted": True
+                    }
+
+                enemy_damage = enemy_attack_result.get("damage", 0)
+                enemy_crit = enemy_attack_result.get("crit", False)
+
+                if enemy_crit:
+                    message += f" ¡En respuesta, {self.enemy.name} te ha hecho un golpe crítico de {enemy_damage} puntos de daño!"
+                else:
+                    message += f" En respuesta, {self.enemy.name} te ha atacado y te ha hecho {enemy_damage} puntos de daño."
+
+                # Determinar el resultado final
+                message_tag = "danger"
+                outcome = None
+
+                if self.character.health <= 0:
+                    message += f" ¡Has sido derrotado por {self.enemy.name}!"
+                    outcome = "defeat"
+
+                    # Eliminar al personaje si ha sido derrotado
+                    try:
+                        character_id = self.character.pk
+                        self.character.delete()
+                        print(
+                            f"Personaje derrotado {self.character.name} (ID: {character_id}) eliminado de la base de datos.")
+
+                        result = {
+                            "action": "attack",
+                            "message": message,
+                            "message_tag": message_tag,
+                            "outcome": outcome,
+                            "character_id": character_id,
+                            "character_deleted": True
+                        }
+                        return result
+                    except Exception as e:
+                        print(f"Error al eliminar al personaje derrotado: {e}")
 
                 result = {
                     "action": "attack",
@@ -1070,161 +1376,14 @@ class CombatManager:
                     "outcome": outcome,
                     "character_id": self.character.pk
                 }
-
-            # Verificar si el enemigo no tenía arma o ha sido derrotado
-            elif not self.enemy.equipped_weapon or self.enemy.health <= 0:
-                # Si el enemigo estaba desarmado o ha sido derrotado, verificamos el mensaje
-                if character_attack_result.get("message") and "desarmado" in character_attack_result.get(
-                        "message") or self.enemy.health <= 0:
-                    message = character_attack_result.get("message") or f"Has derrotado a {self.enemy.name}."
-                    message_tag = "success"
-                    outcome = "victory"
-
-                    # En lugar de eliminar, marcamos el enemigo como completamente sin salud
-                    self.enemy.health = 0
-                    self.enemy.save()
-
-                    result = {
-                        "action": "attack",
-                        "message": message,
-                        "message_tag": message_tag,
-                        "outcome": outcome,
-                        "character_id": self.character.pk,
-                        "enemy_name": self.enemy.name
-                    }
-
-                else:
-                    # Continuar con el flujo normal si hay algo inesperado
-                    character_damage = character_attack_result["damage"]
-                    character_crit = character_attack_result["crit"]
-
-                    # Construir mensaje para el ataque del personaje
-                    if character_crit:
-                        message = f"¡Has realizado un golpe crítico! Has infligido {character_damage} puntos de daño a {self.enemy.name}."
-                    else:
-                        message = f"Has atacado y has infligido {character_damage} puntos de daño a {self.enemy.name}."
-
-                    # Verificar si el enemigo ha sido derrotado
-                    if self.enemy.health <= 0:
-                        message += f" ¡Has derrotado a {self.enemy.name}!"
-                        message_tag = "success"
-                        outcome = "victory"
-
-                        result = {
-                            "action": "attack",
-                            "message": message,
-                            "message_tag": message_tag,
-                            "outcome": outcome,
-                            "character_id": self.character.pk
-                        }
-                    else:
-                        # Si el enemigo sigue vivo, contraataca
-                        enemy_attack_result = self.perform_attack(self.enemy, self.character)
-                        enemy_damage = enemy_attack_result["damage"]
-                        enemy_crit = enemy_attack_result["crit"]
-
-                        if enemy_crit:
-                            message += f" ¡En respuesta, {self.enemy.name} te ha hecho un golpe crítico de {enemy_damage} puntos de daño!"
-                        else:
-                            message += f" En respuesta, {self.enemy.name} te ha atacado y te ha hecho {enemy_damage} puntos de daño."
-
-                        # Determinar el resultado final
-                        message_tag = "danger"
-                        outcome = None
-
-                        if self.character.health <= 0:
-                            message += f" ¡Has sido derrotado por {self.enemy.name}!"
-                            outcome = "defeat"
-
-                        result = {
-                            "action": "attack",
-                            "message": message,
-                            "message_tag": message_tag,
-                            "outcome": outcome,
-                            "character_id": self.character.pk
-                        }
-            else:
-                # Continuar con el flujo normal si ambos tienen arma
-                character_damage = character_attack_result["damage"]
-                character_crit = character_attack_result["crit"]
-
-                # Construir mensaje para el ataque del personaje
-                if character_crit:
-                    message = f"¡Has realizado un golpe crítico! Has infligido {character_damage} puntos de daño a {self.enemy.name}."
-                else:
-                    message = f"Has atacado y has infligido {character_damage} puntos de daño a {self.enemy.name}."
-
-                # Verificar si el enemigo ha sido derrotado
-                if self.enemy.health <= 0:
-                    message += f" ¡Has derrotado a {self.enemy.name}!"
-                    message_tag = "success"
-                    outcome = "victory"
-
-                    result = {
-                        "action": "attack",
-                        "message": message,
-                        "message_tag": message_tag,
-                        "outcome": outcome,
-                        "character_id": self.character.pk
-                    }
-                else:
-                    # Si el enemigo sigue vivo, contraataca
-                    enemy_attack_result = self.perform_attack(self.enemy, self.character)
-                    enemy_damage = enemy_attack_result["damage"]
-                    enemy_crit = enemy_attack_result["crit"]
-
-                    if enemy_crit:
-                        message += f" ¡En respuesta, {self.enemy.name} te ha hecho un golpe crítico de {enemy_damage} puntos de daño!"
-                    else:
-                        message += f" En respuesta, {self.enemy.name} te ha atacado y te ha hecho {enemy_damage} puntos de daño."
-
-                    # Determinar el resultado final
-                    message_tag = "danger"
-                    outcome = None
-
-                    if self.character.health <= 0:
-                        message += f" ¡Has sido derrotado por {self.enemy.name}!"
-                        outcome = "defeat"
-
-                    result = {
-                        "action": "attack",
-                        "message": message,
-                        "message_tag": message_tag,
-                        "outcome": outcome,
-                        "character_id": self.character.pk
-                    }
         else:
             # Si llegamos aquí, algo salió mal
             result = {
                 "action": "error",
                 "message": "Acción no reconocida",
                 "message_tag": "danger",
-                "character_id": self.character.pk  # Añadir ID del personaje incluso en caso de error
+                "character_id": self.character.pk
             }
-
-        # Verificar si hay que eliminar el enemigo (añadir al final del método)
-        enemy_defeated = False
-
-        # Si el resultado contiene un outcome de victoria
-        if result.get('outcome') == 'victory':
-            enemy_defeated = True
-
-        # O si la salud del enemigo es 0 o menos
-        elif self.enemy.health <= 0:
-            enemy_defeated = True
-
-        # Si el enemigo está derrotado y es un NPC, eliminarlo
-        if enemy_defeated and self.enemy.npc:
-            try:
-                # Guardar el ID y nombre para logueo
-                enemy_id = self.enemy.pk
-                enemy_name = self.enemy.name
-
-                # Eliminar el enemigo
-                self.enemy.delete()
-                print(f"Enemigo {enemy_name} (ID: {enemy_id}) eliminado de la base de datos.")
-            except Exception as e:
-                print(f"Error al eliminar al enemigo: {e}")
 
         return result
 
@@ -1252,20 +1411,39 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
         character_id = self.kwargs.get("pk")
         enemy_id = self.kwargs.get("enemy_id")
 
-        character = get_object_or_404(Character, pk=character_id, user=request.user)
-        enemy = get_object_or_404(Character, pk=enemy_id)
+        # Intentar obtener los personajes antes del combate
+        try:
+            character = get_object_or_404(Character, pk=character_id, user=request.user)
+            character_name = character.name
+            character_max_health = character.max_health
+            character_defense = character.defense
+        except:
+            return JsonResponse({
+                "status": "error",
+                "message": "Personaje no encontrado.",
+            })
+
+        try:
+            enemy = get_object_or_404(Character, pk=enemy_id)
+            enemy_name = enemy.name
+            enemy_max_health = enemy.max_health
+            enemy_defense = enemy.defense
+        except:
+            return JsonResponse({
+                "status": "error",
+                "message": "Enemigo no encontrado.",
+            })
 
         action = request.POST.get("action")
-
         print(f"Acción recibida: {action}")
-        print(f"Personaje: {character.name}, Salud: {character.health}, Defensa: {character.defense}")
-        print(f"Enemigo: {enemy.name}, Salud: {enemy.health}, Defensa: {enemy.defense}")
+        print(f"Personaje: {character_name}, Salud: {character.health}, Defensa: {character_defense}")
+        print(f"Enemigo: {enemy_name}, Salud: {enemy.health}, Defensa: {enemy_defense}")
 
         if action not in ["attack", "defend", "flee"]:
             return JsonResponse({
                 "status": "error",
                 "message": "Acción no válida.",
-                "character_id": character.pk
+                "character_id": character_id
             })
 
         # Crear el gestor de combate
@@ -1273,7 +1451,6 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
 
         # Ejecutar el turno de combate
         result = combat_manager.combat_turn(action)
-
         print(f"Resultado del turno: {result}")
 
         # Obtener el mensaje y tipo de alerta
@@ -1281,28 +1458,58 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
         message_tag = result.get("message_tag", "info")
         outcome = result.get("outcome")
 
-        # Refrescar los objetos desde la base de datos para obtener los valores actualizados
-        try:
-            character_refreshed = Character.objects.get(pk=character_id)
-            character_health = character_refreshed.health
-            character_max_health = character_refreshed.max_health
-            character_defense = character_refreshed.defense
-        except Character.DoesNotExist:
-            # Si el personaje ya no existe, usamos los valores anteriores
-            character_health = 0
-            character_max_health = character.max_health
-            character_defense = character.defense
+        # Verificar si algún personaje fue eliminado durante el combate
+        character_deleted = result.get("character_deleted", False)
+        enemy_deleted = result.get("enemy_deleted", False)
 
-        try:
-            enemy_refreshed = Character.objects.get(pk=enemy_id)
-            enemy_health = enemy_refreshed.health
-            enemy_max_health = enemy_refreshed.max_health
-            enemy_defense = enemy_refreshed.defense
-        except Character.DoesNotExist:
-            # Si el enemigo ya no existe, usamos los valores anteriores
-            enemy_health = 0
-            enemy_max_health = enemy.max_health
-            enemy_defense = enemy.defense
+        # Valores por defecto en caso de que los personajes hayan sido eliminados
+        character_health = 0 if character_deleted else character.health
+        character_max_health = character_max_health
+        character_defense = character_defense
+        enemy_health = 0 if enemy_deleted else enemy.health
+        enemy_max_health = enemy_max_health
+        enemy_defense = enemy_defense
+
+        # Refrescar los objetos desde la base de datos solo si no fueron eliminados
+        if not character_deleted:
+            try:
+                character_refreshed = Character.objects.get(pk=character_id)
+                character_health = character_refreshed.health
+                character_max_health = character_refreshed.max_health
+                character_defense = character_refreshed.defense
+            except Character.DoesNotExist:
+                # Si el personaje ya no existe, usar los valores por defecto
+                character_deleted = True
+                character_health = 0
+
+        if not enemy_deleted:
+            try:
+                enemy_refreshed = Character.objects.get(pk=enemy_id)
+                enemy_health = enemy_refreshed.health
+                enemy_max_health = enemy_refreshed.max_health
+                enemy_defense = enemy_refreshed.defense
+            except Character.DoesNotExist:
+                # Si el enemigo ya no existe, usar los valores por defecto
+                enemy_deleted = True
+                enemy_health = 0
+
+        # Si el personaje o enemigo está muerto pero no fue explícitamente eliminado,
+        # asegurarse de que se marque como eliminado
+        if character_health <= 0 and not character_deleted:
+            character_deleted = True
+            try:
+                Character.objects.get(pk=character_id).delete()
+                print(f"Personaje {character_name} (ID: {character_id}) eliminado por salud 0.")
+            except:
+                pass
+
+        if enemy_health <= 0 and not enemy_deleted:
+            enemy_deleted = True
+            try:
+                Character.objects.get(pk=enemy_id).delete()
+                print(f"Enemigo {enemy_name} (ID: {enemy_id}) eliminado por salud 0.")
+            except:
+                pass
 
         # Preparar la respuesta JSON
         response_data = {
@@ -1311,7 +1518,7 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
             "message_tag": message_tag,
             "action": result.get("action"),
             "character_id": character_id,
-            "enemy_name": enemy.name,
+            "enemy_name": enemy_name,
             "success": result.get("success", False) if action == "flee" else None,
             "outcome": outcome,
             "character_health": character_health,
@@ -1319,7 +1526,9 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
             "character_defense": character_defense,
             "enemy_health": enemy_health,
             "enemy_max_health": enemy_max_health,
-            "enemy_defense": enemy_defense
+            "enemy_defense": enemy_defense,
+            "character_deleted": character_deleted,
+            "enemy_deleted": enemy_deleted
         }
 
         return JsonResponse(response_data)

@@ -25,3 +25,4 @@ class CreateCharacterForm(forms.ModelForm):
         model = Character
         fields = ["icon", "name", "sex", "faction", "location", "race"]
         widgets = {"icon": forms.HiddenInput}
+

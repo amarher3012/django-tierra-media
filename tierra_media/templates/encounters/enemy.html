@@ -117,8 +117,8 @@
             const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
 
             // NUEVO: Manejar el botón de "Pelear igualmente" cuando no hay arma
-            $("#continue-anyway").click(function() {
-                $("#weapon-warning").fadeOut(500, function() {
+            $("#continue-anyway").click(function () {
+                $("#weapon-warning").fadeOut(500, function () {
                     $("#intro-text").fadeIn(500);
                     // Iniciar el combate tras la intro
                     startCombatAfterIntro();
@@ -127,12 +127,12 @@
 
             // MODIFICACIÓN: Solo iniciar automáticamente si hay arma equipada
             {% if has_weapon %}
-            startCombatAfterIntro();
+                startCombatAfterIntro();
             {% endif %}
 
             // Función para iniciar el combate después de la intro
             function startCombatAfterIntro() {
-                setTimeout(function() {
+                setTimeout(function () {
                     let introText = $('#intro-text');
                     introText.addClass('fade');
                     introText.fadeOut(1000);  // Hacer desaparecer el texto
@@ -149,9 +149,9 @@
                     // Si no tiene arma equipada, ejecutar automáticamente un ataque
                     // lo que resultará en derrota inmediata según la lógica del CombatManager
                     {% if not has_weapon %}
-                    setTimeout(function() {
-                        handleCombatAction('attack');
-                    }, 1000);
+                        setTimeout(function () {
+                            handleCombatAction('attack');
+                        }, 1000);
                     {% endif %}
                 }, 5000);
             }
@@ -196,21 +196,22 @@
             }
 
             // El resto del código JavaScript permanece igual
-            $('#attack-btn').click(function(e) {
+            $('#attack-btn').click(function (e) {
                 e.preventDefault();
                 handleCombatAction('attack');
             });
 
-            $('#defend-btn').click(function(e) {
+            $('#defend-btn').click(function (e) {
                 e.preventDefault();
                 handleCombatAction('defend');
             });
 
-            $('#flee-btn').click(function(e) {
+            $('#flee-btn').click(function (e) {
                 e.preventDefault();
                 handleCombatAction('flee');
             });
 
+            // Modificar la función handleCombatAction para manejar personajes eliminados
             function handleCombatAction(action) {
                 // Deshabilitar botones durante la acción
                 $('#combat-actions button').prop('disabled', true);
@@ -223,7 +224,7 @@
                         'csrfmiddlewaretoken': csrfToken
                     },
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         console.log('Respuesta del servidor:', response);
 
                         if (response.status === 'success') {
@@ -243,65 +244,69 @@
 
                             // Crear el mensaje de combate con la clase de alerta correcta
                             let alertHtml = `
-                                <div class="alert alert-${response.message_tag} alert-dismissible fade show" role="alert">
-                                    ${response.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            `;
+                    <div class="alert alert-${response.message_tag} alert-dismissible fade show" role="alert">
+                        ${response.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
                             $('#combat-feedback').html(alertHtml);
 
                             // Hacer que el mensaje desaparezca automáticamente después de 5 segundos
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 $('.alert').alert('close');
                             }, 5000);
 
-                            // Si el personaje está muerto o ha ganado, redireccionar después de un tiempo
-                            if (response.character_health <= 0 || response.enemy_health <= 0) {
+                            // Verificar si el personaje ha sido eliminado (nuevo)
+                            let characterDeleted = response.character_deleted || response.character_health <= 0;
+                            let enemyDeleted = response.enemy_deleted || response.enemy_health <= 0;
+
+                            // Si el personaje está muerto o ha sido eliminado, o el enemigo está muerto o ha sido eliminado
+                            if (characterDeleted || enemyDeleted) {
                                 // Deshabilitar los botones de acción inmediatamente
                                 $('#combat-actions button').prop('disabled', true);
 
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     // Mostrar mensaje de resultado
                                     let resultMessage;
-                                    if (response.character_health <= 0) {
+                                    if (characterDeleted) {
                                         // Verificar si es una derrota por falta de arma
                                         if (response.message && response.message.includes("Al estar desarmado")) {
-                                            resultMessage = response.message + " Tu personaje ha sido derrotado.";
+                                            resultMessage = response.message + " Tu personaje ha sido eliminado.";
                                         } else if (!{{ has_weapon|yesno:"true,false" }} && action === 'attack') {
-                                            resultMessage = "Al estar desarmado, has sido derrotado rápidamente. Tu personaje ha sido derrotado.";
+                                            resultMessage = "Al estar desarmado, has sido derrotado rápidamente. Tu personaje ha sido eliminado.";
                                         } else {
-                                            resultMessage = "Has sido derrotado. Tu personaje ha sido derrotado.";
+                                            resultMessage = "Has sido derrotado. Tu personaje ha sido eliminado.";
                                         }
                                     } else {
                                         // Victoria
                                         if (response.message && response.message.includes("no tiene un arma equipada")) {
-                                            resultMessage = `¡Victoria! ${response.enemy_name || 'Tu oponente'} no tenía un arma y ha sido derrotado rápidamente.`;
+                                            resultMessage = `¡Victoria! ${response.enemy_name || 'Tu oponente'} no tenía un arma y ha sido eliminado rápidamente.`;
                                         } else if (response.message && response.message.includes("desarmado")) {
-                                            resultMessage = `¡Victoria! ${response.enemy_name || 'Tu oponente'} estaba desarmado y ha sido derrotado fácilmente.`;
+                                            resultMessage = `¡Victoria! ${response.enemy_name || 'Tu oponente'} estaba desarmado y ha sido eliminado fácilmente.`;
                                         } else {
                                             resultMessage = `¡Victoria! Has derrotado a ${response.enemy_name || 'tu oponente'}.`;
                                         }
                                     }
 
                                     alertHtml = `
-                                        <div class="alert alert-${response.character_health <= 0 ? 'danger' : 'success'} alert-dismissible fade show" role="alert">
-                                            ${resultMessage}
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                        </div>
-                                    `;
+                            <div class="alert alert-${characterDeleted ? 'danger' : 'success'} alert-dismissible fade show" role="alert">
+                                ${resultMessage}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        `;
                                     $('#combat-feedback').html(alertHtml);
 
                                     // Redireccionar según el resultado
-                                    setTimeout(function() {
-                                        const characterId = response.character_id || {{ character.pk }};
+                                    setTimeout(function () {
+                                        const characterId = response.character_id;
                                         console.log("ID del personaje para redirección:", characterId);
 
-                                        if (response.outcome === "defeat") {
-                                            // Si el personaje es derrotado, ir a la página principal
-                                            console.log("Redirigiendo a la página principal (personaje derrotado)");
+                                        if (characterDeleted || response.outcome === "defeat") {
+                                            // Si el personaje es derrotado o eliminado, ir a la página principal
+                                            console.log("Redirigiendo a la página principal (personaje derrotado/eliminado)");
                                             window.location.href = '/tierra-media/';
-                                        } else if (response.outcome === "victory" || response.enemy_health <= 0) {
-                                            // Si el personaje gana el combate, ir a la página de encuentros
+                                        } else if (response.outcome === "victory" || enemyDeleted) {
+                                            // Si el personaje gana el combate o el enemigo es eliminado, ir a la página de encuentros
                                             console.log("Redirigiendo a la página de encuentros (victoria)");
                                             window.location.href = `/tierra-media/characters/${characterId}/encounter`;
                                         }
@@ -315,10 +320,10 @@
                                 $('#combat-actions button').prop('disabled', true);
 
                                 // Obtener el ID del personaje
-                                const characterId = response.character_id || {{ character.pk }};
+                                const characterId = response.character_id;
                                 console.log("ID del personaje para redirección (huir):", characterId);
 
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     // Redirigir a la página de encuentros
                                     console.log("Redirigiendo a la página de encuentros (huida)");
                                     window.location.href = `/tierra-media/characters/${characterId}/encounter`;
@@ -326,30 +331,30 @@
                             }
 
                             // Habilitar los botones de nuevo si el combate continúa
-                            if (!(response.character_health <= 0 || response.enemy_health <= 0 || (action === 'flee' && response.success))) {
+                            if (!(characterDeleted || enemyDeleted || (action === 'flee' && response.success))) {
                                 $('#combat-actions button').prop('disabled', false);
                             }
                         } else {
                             // Mostrar mensaje de error
                             let alertHtml = `
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    ${response.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            `;
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ${response.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
                             $('#combat-feedback').html(alertHtml);
 
                             // Habilitar los botones de nuevo
                             $('#combat-actions button').prop('disabled', false);
                         }
                     },
-                    error: function(xhr, errmsg, err) {
+                    error: function (xhr, errmsg, err) {
                         console.error('Error en la solicitud AJAX:', err);
                         alert('Error al procesar la acción. Intenta nuevamente.');
                         $('#combat-actions button').prop('disabled', false);
                     }
                 });
             }
-        });
+        })
     </script>
 {% endblock %}
