@@ -24,6 +24,7 @@ from .constants import npc_init, weapons_init, armors_init
 
 
 class RegisterView(FormView):
+    """Vista de registro de usuarios"""
     template_name = "registration/signin.html"
     form_class = CustomUserCreationForm
     success_url = reverse_lazy("tierra_media:login")
@@ -64,6 +65,7 @@ class RegisterView(FormView):
 
 
 class ActivateAccount(View):
+    """Esta vista se encargará de activar el usuario recién creado. Si no se activa, no podrá acceder a la página"""
     def get(self, request):
         uid = request.GET.get("uid")
         token = request.GET.get("token")
@@ -99,6 +101,7 @@ class ActivateAccount(View):
 
 
 class IndexView(ListView):
+    """Vista Index"""
     model = Character
     template_name = "tierra_media/index.html"
     context_object_name = "characters"
@@ -116,6 +119,7 @@ class IndexView(ListView):
 
 
 class InfoView(TemplateView):
+    """Vista de información del juego"""
     template_name = "nav/info.html"
 
     def get_context_data(self, **kwargs):
@@ -125,16 +129,16 @@ class InfoView(TemplateView):
 
 
 class ContactView(CreateView):
+    """Vista de formulario de contacto"""
     model = ContactMessage
     form_class = ContactForm
     template_name = 'nav/contact.html'
     success_url = reverse_lazy('tierra_media:contact_success')
 
     def form_valid(self, form):
-        # Guardar el formulario
         self.object = form.save()
 
-        # Enviar correo electrónico
+        # Componemos el correo electrónico
         subject = f"Nuevo mensaje de contacto: {self.object.subject}"
         message = f"""
         Has recibido un nuevo mensaje de contacto:
@@ -146,7 +150,6 @@ class ContactView(CreateView):
         Fecha: {self.object.created_at}
         """
 
-        # Verificar DEFAULT_FROM_EMAIL o usar EMAIL_HOST_USER como alternativa
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER)
         recipient_list = [settings.CONTACT_EMAIL]
 
@@ -173,6 +176,7 @@ class ContactView(CreateView):
 
 
 class ContactSuccessView(CreateView):
+    """Vista a la que se accederá si se ha enviado correctamente el formulario."""
     model = ContactMessage
     form_class = ContactForm
     template_name = 'nav/contact_success.html'  # Asegúrate de crear esta plantilla
@@ -185,6 +189,7 @@ class ContactSuccessView(CreateView):
 
 
 class AboutView(TemplateView):
+    """Vista sencilla en la que se habla sobre los desarrolladores de Tierra Media"""
     template_name = "nav/about.html"
 
     def get_context_data(self, **kwargs):
@@ -486,6 +491,7 @@ class Shop(LoginRequiredMixin, UpdateView):
 
 
 class Move(LoginRequiredMixin, UpdateView):
+    """Vista para mover al personaje de una ubicación a otra"""
     model = Character
     fields = []
     template_name = "move/move.html"
@@ -518,6 +524,7 @@ class Move(LoginRequiredMixin, UpdateView):
 
 
 class MoveSuccess(LoginRequiredMixin, TemplateView):
+    """Vista para mostrar cuando se mueve exitosamente un personaje"""
     template_name = "move/success.html"
 
 
@@ -536,6 +543,7 @@ class CharacterDetail(generics.RetrieveAPIView):
       
       
 class Encounter(LoginRequiredMixin, TemplateView):
+    """Esta vista mostrará los encuentros disponibles de los personajes"""
     template_name = "encounters/encounters.html"
 
     def get_context_data(self, **kwargs):
@@ -561,6 +569,7 @@ class Encounter(LoginRequiredMixin, TemplateView):
             faction = character.faction.name
             relationships = {"allies": [], "enemies": [], "neutrals": []}
 
+            # Se comprueba la relación con los otros personajes en el momento.
             for encounter in encounters:
                 encounter_faction = encounter.faction.name
 
@@ -611,6 +620,7 @@ class Encounter(LoginRequiredMixin, TemplateView):
 
 
 class EncounterAlly(LoginRequiredMixin, UpdateView):
+    """En esta vista, el personaje se encontrará con un aliado y se llevará una curación o un objeto"""
     template_name = "encounters/ally.html"
     model = Character
     context_object_name = "character"
@@ -638,7 +648,7 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
         else:
             healing = random.choice([True, False])
 
-        # Si el personaje va a recibir curación pero ya se encuentra con la vida máxima,
+        # Si el personaje va a recibir curación, pero ya se encuentra con la vida máxima, no se curará. Guardamos esta decisión como "decline"
         if healing and character.health == character.max_health:
             decline = True
 
@@ -692,6 +702,7 @@ class EncounterAlly(LoginRequiredMixin, UpdateView):
 
 
 class EncounterNeutral(LoginRequiredMixin, TemplateView):
+    """Vista para encuentros neutrales"""
     template_name = "encounters/neutral.html"
 
     def get_context_data(self, **kwargs):
@@ -708,12 +719,12 @@ class EncounterNeutral(LoginRequiredMixin, TemplateView):
 
 
 class CombatManager:
+    """Esta clase la usaremos para manejar toda la lógica del combate."""
     def __init__(self, character, enemy, request=None):
         self.character = character
         self.enemy = enemy
         self.request = request
 
-        # Inicializar estados de defensa
         self.character.critical_defense = False
         self.enemy.critical_defense = False
         self.character.defense_reduction = 0
@@ -730,12 +741,10 @@ class CombatManager:
             return 0
 
         # Obtener el daño base del arma y aplicar un multiplicador general para aumentar el daño
-        # CAMBIO: Multiplicador de daño base para aumentar todos los daños
-        base_damage_multiplier = 2.5  # Multiplicador para escalar el daño
+        base_damage_multiplier = 2.5
         weapon_damage = attacker.equipped_weapon.damage * base_damage_multiplier
 
         # Añadir daño base adicional independiente del arma
-        # CAMBIO: Añadir un daño base adicional
         additional_base_damage = 10
         weapon_damage += additional_base_damage
 
@@ -754,8 +763,6 @@ class CombatManager:
         defense_multiplier = self.get_racial_bonus(defender)["defense_multiplier"]
         defense = int(defense * defense_multiplier)
 
-        # CAMBIO: Ajustar el cálculo de la reducción de daño para que la defensa tenga menos impacto
-        # y permita daños más altos mientras sigue siendo relevante
         defense_percentage = min(defense / 300, 0.65)  # Máximo 65% de reducción (antes era 80%)
 
         # Aplicar reducción de daño si el defensor está en posición defensiva
@@ -764,8 +771,6 @@ class CombatManager:
 
         # El daño final es el daño del arma menos la defensa porcentual (mínimo 1)
         final_damage = max(int(weapon_damage * (1 - defense_percentage)), 1)
-
-        # CAMBIO: Añadir variabilidad al daño final con un factor aleatorio
         damage_variance = random.uniform(0.9, 1.3)  # -10% a +30% de variación
         final_damage = int(final_damage * damage_variance)
 
@@ -1458,6 +1463,7 @@ class CombatManager:
 
 
 class EncounterEnemy(LoginRequiredMixin, TemplateView):
+    """En esta vista se manejarán los encuentros con enemigos"""
     template_name = "encounters/enemy.html"
 
     def get_context_data(self, **kwargs):
@@ -1515,7 +1521,7 @@ class EncounterEnemy(LoginRequiredMixin, TemplateView):
                 "character_id": character_id
             })
 
-        # Crear el gestor de combate
+        # Crear una instancia del gestor de combate
         combat_manager = CombatManager(character, enemy, request)
 
         # Ejecutar el turno de combate

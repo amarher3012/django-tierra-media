@@ -502,7 +502,7 @@
         // Variable para guardar el token CSRF
         const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
 
-        // NUEVO: Manejar el botón de "Pelear igualmente" cuando no hay arma
+        // Manejar el botón de "Pelear igualmente" cuando no hay arma
         $("#continue-anyway").click(function() {
             $("#weapon-warning").fadeOut(500, function() {
                 $("#intro-text").fadeIn(500);
@@ -511,7 +511,6 @@
             });
         });
 
-        // MODIFICACIÓN: Solo iniciar automáticamente si hay arma equipada
         {% if has_weapon %}
         startCombatAfterIntro();
         {% endif %}
@@ -532,8 +531,6 @@
                     {{ enemy.max_health }}
                 );
 
-                // Si no tiene arma equipada, ejecutar automáticamente un ataque
-                // lo que resultará en derrota inmediata según la lógica del CombatManager
                 {% if not has_weapon %}
                 setTimeout(function() {
                     handleCombatAction('attack');
@@ -542,7 +539,7 @@
             }, 5000);
         }
 
-        // Actualizar barras de salud - Barras de vida ahora verdes
+        // Actualizar barras de salud
         function updateHealthBars(characterHealth, characterMaxHealth, enemyHealth, enemyMaxHealth) {
             // Calcular porcentajes
             const characterHealthPercent = (characterHealth / characterMaxHealth) * 100;
@@ -559,7 +556,7 @@
             $('#character-health-bar').removeClass('bg-primary bg-warning bg-danger bg-success');
             $('#enemy-health-bar').removeClass('bg-danger bg-warning bg-success');
 
-            // CAMBIO: Usar verde para salud completa, amarillo para <50%, rojo para <25%
+            // Se usa verde para salud completa, amarillo para < 50%, rojo para < 25%
             if (characterHealthPercent < 25) {
                 $('#character-health-bar').addClass('bg-danger');
             } else if (characterHealthPercent < 50) {
@@ -581,7 +578,6 @@
             $('#enemy-health').text(`${enemyHealth}/${enemyMaxHealth}`);
         }
 
-        // NUEVO: Función para aplicar animaciones
         function applyAnimation(element, animationClass, duration = 500) {
             element.addClass(animationClass);
             setTimeout(() => {
@@ -589,61 +585,50 @@
             }, duration);
         }
 
-        // NUEVO: Animar ataque del personaje
         function animateCharacterAttack(isCritical = false) {
             const characterCard = $('.character-card:first');
             const enemyCard = $('.character-card:last');
 
-            // Animar ataque
             applyAnimation(characterCard, 'attack-animation', 800);
 
-            // Si es crítico, añadir efecto adicional
             if (isCritical) {
                 setTimeout(() => {
                     applyAnimation(enemyCard, 'critical-hit-animation', 800);
                 }, 400);
             }
 
-            // Animar daño recibido por el enemigo
             setTimeout(() => {
                 applyAnimation(enemyCard, 'shake-animation', 500);
             }, 400);
         }
 
-        // NUEVO: Animar ataque del enemigo
         function animateEnemyAttack(isCritical = false) {
             const characterCard = $('.character-card:first');
             const enemyCard = $('.character-card:last');
 
-            // Animar ataque
             applyAnimation(enemyCard, 'attack-animation', 800);
 
-            // Si es crítico, añadir efecto adicional
             if (isCritical) {
                 setTimeout(() => {
                     applyAnimation(characterCard, 'critical-hit-animation', 800);
                 }, 400);
             }
 
-            // Animar daño recibido por el personaje
             setTimeout(() => {
                 applyAnimation(characterCard, 'shake-animation', 500);
             }, 400);
         }
 
-        // NUEVO: Animar defensa
         function animateDefend(isCharacter = true) {
             const card = isCharacter ? $('.character-card:first') : $('.character-card:last');
             applyAnimation(card, 'defend-animation', 1000);
         }
 
-        // NUEVO: Animar derrota
         function animateDefeat(isCharacter = true) {
             const card = isCharacter ? $('.character-card:first') : $('.character-card:last');
             card.addClass('defeat-animation');
         }
 
-        // El resto del código JavaScript permanece igual
         $('#attack-btn').click(function(e) {
             e.preventDefault();
             handleCombatAction('attack');
