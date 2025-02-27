@@ -357,7 +357,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="weapon" value="{{ weapon.id }}">
                                 <button type="submit" class="item-btn">
-                                    <img src="{{ weapon.icon.url }}" class="item-img" alt="{{ weapon.name }}">
+                                    <img src="{{ weapon.icon }}" class="item-img" alt="{{ weapon.name }}">
                                     <div class="item-name">{{ weapon.name }}</div>
                                     <div class="item-price">
                                         <i class="bi bi-coin gold-icon"></i> {{ weapon.price }}
