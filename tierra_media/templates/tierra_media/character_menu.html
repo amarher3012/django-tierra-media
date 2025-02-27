@@ -17,7 +17,6 @@
         padding: 2rem 0;
     }
 
-
     .section-title {
         position: relative;
         display: inline-block;
@@ -406,8 +405,8 @@
                     <div class="character-panel">
                         <!-- Información del personaje -->
                         <div class="character-info-card">
-                            <div class="character-header">
-                                <h2 class="text-center"><i class="bi bi-person" style="margin-right: 0.5rem;"></i>Información del personaje</h2>
+                            <div class="character-header text-center">
+                                <h2><i class="bi bi-person"></i>Información del personaje</h2>
                             </div>
                             <div class="character-content">
                                 <div class="character-image-container">
@@ -453,14 +452,8 @@
                                         <span class="equipment-name">
                                             <i class="bi bi-sword" style="color: var(--lotr-gold); margin-right: 0.5rem;"></i>Arma:
                                         </span>
-                                        {% if character.equipped_weapon %}
-                                            <span class="equipment-name">{{ character.equipped_weapon.name }}</span>
-                                        {% else %}
-                                            <span class="stat-value">No tienes un arma equipada</span>
-                                        {% endif %}
+                                        <span class="equipment-name">{{ character.equipped_weapon.name }}</span>
                                     </div>
-
-                                    {% if character.equipped_weapon %}
                                     <div class="equipment-item" style="margin-left: 1.5rem;">
                                         <span class="equipment-stats">Daño:</span>
                                         <span class="equipment-stats">{{ character.equipped_weapon.damage }}</span>
@@ -469,27 +462,18 @@
                                         <span class="equipment-stats">Tipo:</span>
                                         <span class="equipment-stats">{{ character.equipped_weapon.type }}</span>
                                     </div>
-                                    {% endif %}
 
                                     <div class="equipment-item">
                                         <span class="equipment-name">
                                             <i class="bi bi-shield" style="color: var(--lotr-gold); margin-right: 0.5rem;"></i>Armadura:
                                         </span>
-                                        {% if character.equipped_armor %}
-                                            <span class="equipment-name">{{ character.equipped_armor.name }}</span>
-                                        {% else %}
-                                            <span class="stat-value">No tienes una armadura equipada</span>
-                                        {% endif %}
+                                        <span class="equipment-name">{{ character.equipped_armor.name }}</span>
                                     </div>
-
-                                    {% if character.equipped_armor %}
                                     <div class="equipment-item" style="margin-left: 1.5rem;">
                                         <span class="equipment-stats">Defensa:</span>
                                         <span class="equipment-stats">{{ character.equipped_armor.defense }}</span>
                                     </div>
-                                    {% endif %}
                                 </div>
-
                             </div>
                         </div>
 
