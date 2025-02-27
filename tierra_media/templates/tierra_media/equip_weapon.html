@@ -6,19 +6,19 @@
 {% block style %}
 <style>
 
-.inventory-panel {
-    position: fixed;
-    top: 20px; /* Ajusta el valor según sea necesario */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1050; /* Asegura que el modal esté por encima de otros elementos */
-    width: 80%; /* O cualquier valor que se ajuste a tu diseño */
-    max-width: 800px; /* Ajusta el ancho máximo */
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+    .inventory-panel {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1050;
+        width: 60%;
+        max-width: 800px;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
     .game-container {
         background-size: cover;
         background-position: center;
@@ -88,16 +88,31 @@
         border: 2px solid var(--lotr-gold);
         border-radius: 15px;
         padding: 20px;
-        position: absolute;
-        top: 50%;
+        position: fixed;
+        top: 40%; /* Moved higher up the page */
         left: 50%;
-        transform: translate(-50%, -50%) scale(0.9);
+        transform: translateX(-50%) scale(0.9);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 1100; /* Increased z-index to ensure it's on top */
         max-width: 80%;
         max-height: 80%;
         overflow-y: auto;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
+
+    .inventory-panel.visible {
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+
+    .tooltip {
+        z-index: 1200; /* Ensure tooltips are above other elements */
+    }
+
+.tooltip {
+    z-index: 1200; /* Ensure tooltips are above other elements */
+}
 
     .inventory-panel.visible {
         visibility: visible;
@@ -284,7 +299,7 @@
         border-radius: 5px;
         font-family: 'Lato', sans-serif;
         font-size: 14px;
-        z-index: 1000;
+        z-index: 1500;
         border: 1px solid var(--lotr-gold);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         pointer-events: none;
@@ -480,7 +495,7 @@
         </button>
 
         <div class="inventory-header">
-            <h2>Inventario de {{ character.name }}</h2>
+            <h2>Inventario de {{ objects.name }}</h2>
         </div>
 
         <!-- Sección de armas -->
@@ -562,7 +577,6 @@
         </div>
     </div>
 
-    <!-- Tooltip para los items -->
     <div id="item-tooltip" class="tooltip"></div>
 </div>
 {% endblock %}
