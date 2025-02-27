@@ -41,6 +41,7 @@ Pasos básicos para comenzar a jugar:
 1. Crear un usuario con un correo electrónico válido.
 2. Activar la cuenta mediante el enlace de confirmación enviado por correo.
 3. Iniciar sesión y crear un personaje.
+4. Ahora podrás usar las distintas funcionalidades del juego con este personaje.
 
 ## 📂 Estructura
 
@@ -123,9 +124,9 @@ Esta vista se encarga de activar al usuario una vez se haga clic en el enlace en
 
 ---
 
-#### **IndexView/InfoView/ContactView**
+#### **IndexView/InfoView/ContactView/ContactSuccess**
 
-Vistas básicas para las páginas de Índice, Información y Contacto.
+Vistas básicas para las páginas de Índice, Información, Contacto y del éxito al enviar un formulario de contacto.
 
 ---
 
@@ -144,6 +145,8 @@ Se utiliza el ORM de Django para comprobar la existencia de nombres duplicados. 
 
 ---
 
+SEGUIR CON MIS VISTAS!!!!
+
 ### 🛠️ Extras
 
 #### **Clases \\\_preparations**
@@ -159,6 +162,12 @@ Estas clases inicializan NPCs, armas y armaduras de manera similar. Por ejemplo,
 #### **Django REST Framework**
 
 El proyecto incluye una API con Django REST Framework que devuelve todos los personajes de los usuarios. En el futuro, se usará para crear un ranking de personajes basado en el número de batallas ganadas, que se mostrará en la página principal.
+
+---
+
+#### **Mixin Personalizado**
+
+Mixin personalizado que cuenta con una lista de nombres prohibidos para los personajes creados.
 
 ---
 
@@ -209,10 +218,38 @@ Se han realizado pruebas básicas para verificar el flujo principal del juego:
 - Implementación de la lógica del combate.
 - Implementación de las relaciones.
 - Implementación de mover personajes entre localizaciones.
-- Implementacion de Login y registrar
-- Implementación de validar correo
-- Implementación de Messages.
+- Implementacion de Login y Registro.
+- Implementación de Validación de Correo
+- Implementación de Messages en distintas vistas.
 - Implementación de Mixin personalizado.
 - Implementación de LoginRequiredMixin.
 - Aportación de ideas para el diseño de la visualización de algunas vistas.
 ```
+
+## 📝 Observaciones adicionales
+
+### Comunicación
+
+Hemos mantenido una comunicación constante durante todo el proyecto a través de distintos medios, como **Discord** (en voz y texto)
+o **WhatsApp**. En todo momento hemos sabido cómo estaba avanzando cada uno en sus ramas del proyecto, lo que nos ha evitado muchos
+quebraderos de cabeza a la hora de hacer Pull Requests.
+
+### Uso de herramientas de extra
+
+Hemos usado, a lo largo del proyecto, herramientas como **Trello** para organizar el trabajo de una manera directa y dinámica.
+También hemos usado herramientas como **pastebin** para compartir *snippets* de código con facilidad y diversos medios para enviarnos
+elementos estáticos, como imágenes.
+
+### Roles de cada integrante
+
+- Alejandro: podemos decir que se ha comportado, al igual que en los anteriores trabajos, como el líder del proyecto. Ha establecido
+las bases del proyecto con rapidez y, además, ha sido capaz de adaptarse y cambiar gran parte de su trabajo para que encajara mejor con el de los demás. 
+No ha permitido que los ánimos decaigan incluso cuando la acumulación de trabajo era notable.
+
+- Alexánder: ha trabajado como nadie y se ha involucrado mucho en la creación de casi todos los elementos del programa. Ha prestado su
+ayuda varias veces sin dudarlo para resolver problemas que los otros dos integrantes del equipo estábamos teniendo. Ha demostrado varias
+veces su gran habilidad como proofreader y encontrando fallos de manera eficaz cuando los demás no éramos capaces.
+
+- Renato: al igual que en los proyectos anteriores, a Renato se le asignó la tarea de diseñar el sistema de combate, lo que le ha
+tomado una cantidad considerable de tiempo. A pesar de eso, ha estado involucrado en la creación de todas las partes del proyecto, 
+especialmente en el ámbito creativo donde ha demostrado no dejar de tener ideas. Mucha atención al detalle casi obsesiva.
