@@ -145,7 +145,22 @@ Se utiliza el ORM de Django para comprobar la existencia de nombres duplicados. 
 
 ---
 
-SEGUIR CON MIS VISTAS!!!!
+### **Move/MoveSuccess**
+
+Vista que permite que un usuario mueva uno de sus personajes hasta una nueva localización. MoveSuccess muestra una pantalla de éxito con mensajes dinámicos.
+
+---
+
+### **Encounter/EncounterAlly/EncounterNeutral/EncounterEnemy/CombatManager**
+
+Estas vistas se encargan de analizar qué personajes están en la misma localización que el personaje seleccionado y
+nos ofrece interactuar con ellos. Si son aliados, habrá una pequeña escena de diálogo en la que estos nos ofrecerán
+un ungüento curativo o un arma, si las hubiera disponibles. En el encuentro neutral, se nos permitirá alejarnos o acercarnos al
+otro personaje, generando irremediablemente un combate y llevando a la vista de EncounterEnemy.
+
+En EncounterEnemy, se creará una instancia de la clase CombatManager que nos ayudará a manejar toda la lógica del combate.
+Esta se mostrará en la plantilla correspondiente en un combate por turnos con animaciones y decisiones en tiempo real que
+darán una mayor sensación de estar jugando a un videojuego.
 
 ### 🛠️ Extras
 
@@ -239,6 +254,21 @@ quebraderos de cabeza a la hora de hacer Pull Requests.
 Hemos usado, a lo largo del proyecto, herramientas como **Trello** para organizar el trabajo de una manera directa y dinámica.
 También hemos usado herramientas como **pastebin** para compartir *snippets* de código con facilidad y diversos medios para enviarnos
 elementos estáticos, como imágenes.
+
+### Cosas que nos hubiera gustado añadir
+
+Hay ciertas cosas que no hemos podido añadir debido a la falta de tiempo.
+
+- Un modelo "Log" que guardase los distintos eventos relacionados con los personajes de un usuario para mostrar los últimos que ocurrieron
+y mostrarlos en Inicio.
+- Usar la API de REST Framework para tener una especie de ránking en el que se ordenasen a los personajes por sus victorias en combate.
+- Implementar "dinero" para los personajes, con los cuales se podría interactuar en la tienda comprando equipamiento y ganándolo tras superar combates o recibirlo
+por parte de aliados.
+- Que solo se pueda tener encuentros con un aliado concreto una vez cada hora.
+- Que los NPCs resucitasen cada día.
+- Añadir una especie de objetivos/misiones diarias con los que ganarías más dinero.
+- Hacer que la tienda tuviera distintos objetos disponibles dependiendo de su localización y estos estuvieran generados aleatoriamente.
+- Conseguir que los objetos de la tienda tengan un límite y se reinicien cada día.
 
 ### Roles de cada integrante
 
