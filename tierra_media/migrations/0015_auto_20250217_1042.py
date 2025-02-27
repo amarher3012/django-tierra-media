@@ -35,7 +35,7 @@ def starting_races(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("tierra_media", "0014_alter_character_npc"),
+        ("tierra_media", "0001_initial"),
     ]
 
     operations = [

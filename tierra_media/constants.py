@@ -174,13 +174,6 @@ def weapons_init():
 
 def armors_init():
     armors = [
-        {"name": "Thalionir", "defense": 9},
-        {"name": "Gorundor", "defense": 6},
-        {"name": "Eldrinel", "defense": 10},
-        {"name": "Kaelorn", "defense": 5},
-        {"name": "Faethor", "defense": 7},
-        {"name": "Ithilwen", "defense": 8},
-
         {"name": "Aerendil", "defense": 4},
         {"name": "Calenmir", "defense": 10},
         {"name": "Dorhael", "defense": 6},
@@ -188,7 +181,7 @@ def armors_init():
         {"name": "Galadhrim", "defense": 5},
         {"name": "Halethor", "defense": 7},
         {"name": "Isilvar", "defense": 8},
-        {"name": "Lórindor", "defense": 6},
+        {"name": "Lorindor", "defense": 6},
         {"name": "Menelthor", "defense": 9},
         {"name": "Nimrond", "defense": 4},
         {"name": "Orophir", "defense": 10},
