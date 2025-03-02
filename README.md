@@ -175,7 +175,7 @@ En EncounterEnemy, se creará una instancia de la clase CombatManager que nos ay
 Esta se mostrará en la plantilla correspondiente en un combate por turnos con animaciones y decisiones en tiempo real que
 darán una mayor sensación de estar jugando a un videojuego.
 
-#### ⚔️ **Combate*
+#### ⚔️ **Combate**
 
 De estas vistas la más compleja es el combate.
 
@@ -231,6 +231,8 @@ En cada turno, el sistema devuelve información detallada: la acción realizada,
 Esta información permite que la interfaz se actualice adecuadamente para mostrar lo ocurrido en el turno.
 
 Tras cada combate, los personajes derrotados son eliminados permanentemente de la base de datos, implementando así un sistema de muerte permanente que añade tensión y consecuencias reales a cada enfrentamiento.
+
+---
 
 ### 🛠️ Extras
 
