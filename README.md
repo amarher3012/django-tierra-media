@@ -193,11 +193,11 @@ En caso de que el combate termine, se maneja la eliminación del personaje elimi
 
 En CombatManager, cada turno, se inicializa la instancia con referencias del personaje usado y el enemigo.
 
-Se calcula el daño basándonos en las armas equipadas y las posibles bonificaciones raciales y algo de aleatoriedad.
+Lo primero que se realizará en cada tunro es resetear la defensa, que podría haber sido aumentada en el turno anterior, a su estado natural. Luego, se verifica si los personajes
+tienen algún arma equipada, ya que en caso contrario perderían automáticamente el enfrentamiento y serían eliminados. Esto se maneja antes de que se realice ninguna acción para que no dé pie a errores.
 
 Los bonos raciales son los siguientes:
 
-```
 | Raza    | Iniciativa | Multiplicador de Daño | Multiplicador de Defensa | Probabilidad de Huida | Crítico |
 |---------|------------|------------------------|--------------------------|------------------------|---------|
 | Humano  | +5         | 1.20 (+20%)            | 1.0                      | 0                      | 0       |
@@ -205,10 +205,32 @@ Los bonos raciales son los siguientes:
 | Enano   | 0          | 1.10 (+10%)            | 1.20 (+20%)              | 0                      | 0       |
 | Hobbit  | +15        | 1.0                    | 1.0                      | +20%                   | 0       |
 | Orco    | 0          | 1.50 (+50%)            | 1.0                      | 0                      | 0       |
-```
 
+Aunque estamos manejando una variable que es la iniciativa, al final tuvimos que desecharla por cuestión de tiempo. Para simplificar el proceso, el personaje del usuario siempre actuará primero.
 
+Si el personaje ataca, lo primero será comprobar si el defensor está desarmado (victoria automática). Luego si tiene una defensa crítica (anula todo el daño que pueda recibir). Calculamos entonces el daño del personaje utilizado usando la fuerza del arma equipada multiplicada por 2.5 +
+10 (para ajustar el daño un poco) y aplicamos los bonificadores raciales pertinentes. 
 
+A este daño le aplicamos la reducción de daño del enemigo (la cual se calcula a partir de su defensa y la suma de su armadura equipada, si la tuviese). Se le aplica el multiplicador en caso de que sea enano y tenga defensa mejorada. 
+
+Entonces, calculamos el porcentaje de defensa dividiendo la defensa entre 250, con un tope máximo del 75% para no crear personajes inmunes al daño. Si el defensor está en posición defensiva, aplicamos un reductor adicional al daño. Finalmente, calculamos el daño definitivo como el daño
+del arma menos la defensa porcentual (mínimo 1 para evitar ataques que no hagan nada).
+
+Para añadir variabilidad y sorpresa al combate, aplicamos un modificador aleatorio entre -10% y +30%. También se calcula si el ataque es crítico, basado en la probabilidad base del 15% más los bonos raciales (por ejemplo, los elfos tienen un 15% adicional). En caso de crítico, el daño se
+multiplica por 1.5.
+
+Si el personaje logra derrotar al enemigo, se elimina al enemigo de la base de datos y se notifica la victoria. Si no, el enemigo contraataca siguiendo el mismo proceso, y se verifica si el personaje es derrotado.
+
+Si el personaje elige defenderse, aumenta significativamente su defensa para ese turno. Tiene una probabilidad del 25% + (defensa × 0.12) de lograr una defensa crítica, que anula completamente cualquier daño recibido. Si realiza una defensa normal, reduce el daño entrante en un 60%. Tras
+la defensa, el enemigo decide si atacar (más probable) o también defenderse (si tiene poca salud). Se calculan los resultados y se comprueba si algún combatiente ha sido derrotado.
+
+Si el personaje intenta huir, la probabilidad base es del 50%, modificada por los bonos raciales (los hobbits tienen +20%) y reducida en un 20% si el oponente es un orco. Si la huida tiene éxito, el combate termina inmediatamente. Si falla, el enemigo ataca automáticamente, siguiendo el
+mismo proceso de cálculo de daño explicado anteriormente.
+
+En cada turno, el sistema devuelve información detallada: la acción realizada, un mensaje descriptivo del resultado, una etiqueta para el estilo del mensaje (peligro, advertencia, éxito), el resultado final (victoria, derrota o huida), y los cambios en salud y estado de los personajes.
+Esta información permite que la interfaz se actualice adecuadamente para mostrar lo ocurrido en el turno.
+
+Tras cada combate, los personajes derrotados son eliminados permanentemente de la base de datos, implementando así un sistema de muerte permanente que añade tensión y consecuencias reales a cada enfrentamiento.
 
 ### 🛠️ Extras
 
