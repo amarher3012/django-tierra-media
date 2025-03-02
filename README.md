@@ -29,6 +29,7 @@
 Este es un proyecto inspirado en _El Señor de los Anillos_, desarrollado con Django, Bootstrap y algo de JavaScript para cosas visuales. Sus funcionalidades incluyen:
 
 -   Moverse a través de las diferentes localizaciones.
+-   Conseguir armas y armaduras en la tienda.
 -   Elegir y equipar armas y armaduras.
 -   Tener encuentros aliados, neutrales y enemigos.
 -   Crear varios personajes.
@@ -38,10 +39,15 @@ Este es un proyecto inspirado en _El Señor de los Anillos_, desarrollado con Dj
 
 Pasos básicos para comenzar a jugar:
 
-1. Crear un usuario con un correo electrónico válido.
-2. Activar la cuenta mediante el enlace de confirmación enviado por correo.
-3. Iniciar sesión y crear un personaje.
-4. Ahora podrás usar las distintas funcionalidades del juego con este personaje.
+1. Instalar proyecto.
+2. Realizar migraciones (`makemigrations` y `migrate`).
+3. Crear superusuario (`createsuperuser`).
+4. Crear un archivo .env con la variable que contiene la contraseña de aplicación del correo electrónico (consultar email enviado por Renato).
+5. Instalar todo el contenido de requirements.txt.
+6. Crear un usuario con un correo electrónico válido.
+7. Activar la cuenta mediante el enlace de confirmación enviado por correo.
+8. Iniciar sesión y crear un personaje.
+9. Ahora podrás usar las distintas funcionalidades del juego con este personaje.
 
 ## 📂 Estructura
 
@@ -124,9 +130,9 @@ Esta vista se encarga de activar al usuario una vez se haga clic en el enlace en
 
 ---
 
-#### **IndexView/InfoView/ContactView/ContactSuccess**
+#### **IndexView/InfoView/ContactView/ContactSuccess/About**
 
-Vistas básicas para las páginas de Índice, Información, Contacto y del éxito al enviar un formulario de contacto.
+Vistas básicas para las páginas de Índice, Información, Contacto y del éxito al enviar un formulario de contacto y la página de "Sobre Nosotros".
 
 ---
 
@@ -151,6 +157,13 @@ Vista que permite que un usuario mueva uno de sus personajes hasta una nueva loc
 
 ---
 
+### **Mostrar relaciones**
+
+En la propia vista de CharacterDetails se encuentra la lógica detrás de cómo se establecen las relaciones entre los personajes. Se hace una comparación y dependiendo de su facción la vista devuelve tres listas con todos los aliados, enemigos y neutrales.
+Esta se mostrará en el navegador como un modal.
+
+---
+
 ### **Encounter/EncounterAlly/EncounterNeutral/EncounterEnemy/CombatManager**
 
 Estas vistas se encargan de analizar qué personajes están en la misma localización que el personaje seleccionado y
@@ -161,6 +174,41 @@ otro personaje, generando irremediablemente un combate y llevando a la vista de 
 En EncounterEnemy, se creará una instancia de la clase CombatManager que nos ayudará a manejar toda la lógica del combate.
 Esta se mostrará en la plantilla correspondiente en un combate por turnos con animaciones y decisiones en tiempo real que
 darán una mayor sensación de estar jugando a un videojuego.
+
+#### ⚔️ **Combate*
+
+De estas vistas la más compleja es el combate.
+
+Cuando se entra a un combate, lo primero que realizará la vista será cargar la plantilla de enemy.html. Cogerá como contexto al personaje usado, al enemigo y un booleano que indicará si el usuario tiene un arma equipada.
+A continuación, en la función "post" vamos a (con un try-except) a cargar el objeto Character, su nombre, su vida máxima y su defensa.
+Haremos lo mismo con el enemigo. Estas son las estadísticas que necesitamos para calcular el combate. Se envían respuestas JsonResponse para poder enviar la suficiente información para mostrarle al usuario de manera sencilla lo que está ocurriendo.
+
+Se determina la acción elegida por el jugador ("Atacar", "Defender" o "Huir").
+
+Cada turno de combate llama a la función "CombatManager". Se creará una instancia de turno de combate y se calcularán los resultados de este usando la lógica del combate.
+
+Entonces actualiza los puntos de salud de ambos contrincantes y su defensa (en caso de que se defendiese, lo cual hace que la defensa aumente y luego vuelva a su estado natural).
+
+En caso de que el combate termine, se maneja la eliminación del personaje eliminado (si lo hubiera) y lo borra de la base de datos.
+
+En CombatManager, cada turno, se inicializa la instancia con referencias del personaje usado y el enemigo.
+
+Se calcula el daño basándonos en las armas equipadas y las posibles bonificaciones raciales y algo de aleatoriedad.
+
+Los bonos raciales son los siguientes:
+
+```
+| Raza    | Iniciativa | Multiplicador de Daño | Multiplicador de Defensa | Probabilidad de Huida | Crítico |
+|---------|------------|------------------------|--------------------------|------------------------|---------|
+| Humano  | +5         | 1.20 (+20%)            | 1.0                      | 0                      | 0       |
+| Elfo    | +20        | 1.10 (+10%)            | 1.0                      | 0                      | +15%    |
+| Enano   | 0          | 1.10 (+10%)            | 1.20 (+20%)              | 0                      | 0       |
+| Hobbit  | +15        | 1.0                    | 1.0                      | +20%                   | 0       |
+| Orco    | 0          | 1.50 (+50%)            | 1.0                      | 0                      | 0       |
+```
+
+
+
 
 ### 🛠️ Extras
 
@@ -222,6 +270,7 @@ Se han realizado pruebas básicas para verificar el flujo principal del juego:
 - Implementación de listar las acciones de un personaje.
 - Implementación de equipación de objetos, tanto armas como armaduras.
 - Implementación de modal para los detalles de los objetos al pasar por encima de estos.
+- Implementación de Mixin personalizado.
 - Búsqueda de iconos para los objetos y algunos fondos.
 - Aportación de ideas para el diseño de la visualización de algunas vistas.
 ```
@@ -234,10 +283,12 @@ Se han realizado pruebas básicas para verificar el flujo principal del juego:
 - Implementación de las relaciones.
 - Implementación de mover personajes entre localizaciones.
 - Implementacion de Login y Registro.
-- Implementación de Validación de Correo
-- Implementación de Messages en distintas vistas.
+- Implementación de Validación de Correo.
+- Implementación de Messages en distintas vistas y cómo se muestran.
 - Implementación de Mixin personalizado.
 - Implementación de LoginRequiredMixin.
+- Implementación de vistas "Información", "Contacto" y "Sobre Nosotros".
+- Implementación de formulario de contacto que los envía a la cuenta de correo de contacto.
 - Aportación de ideas para el diseño de la visualización de algunas vistas.
 ```
 
